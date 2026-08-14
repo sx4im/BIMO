@@ -6,14 +6,36 @@
 import * as api from "../api.js?v=56";
 
 export const ROTATING_PHRASES = [
-  "Thinking…",
-  "Plotting…",
-  "Pondering…",
-  "Contemplating…",
-  "Analyzing…",
+  "Extrapolating…",
+  "Adjudicating…",
+  "Disambiguating…",
+  "Triangulating…",
+  "Ruminating…",
+  "Elucidating…",
   "Deliberating…",
-  "Calculating…",
-  "Synthesizing…",
+  "Contextualizing…",
+  "Operationalizing…",
+  "Instantiating…",
+  "Substantiating…",
+  "Corroborating…",
+  "Reconciling…",
+  "Interpolating…",
+  "Delineating…",
+  "Disaggregating…",
+  "Recalibrating…",
+  "Abstracting…",
+  "Generalizing…",
+  "Rationalizing…",
+  "Codifying…",
+  "Demystifying…",
+  "Excavating…",
+  "Marshaling…",
+  "Orchestrating…",
+  "Harmonizing…",
+  "Reconfiguring…",
+  "Problematizing…",
+  "Metabolizing…",
+  "Extemporizing…",
 ];
 
 let _lastPhraseIndex = -1;
@@ -64,7 +86,7 @@ export class StreamHandler {
     this.streamingText = "";
     this.streamingReasoning = "";
     this.hiddenBuffer = [];
-  }
+    this.currentPhrase = "";
 
   get isStreaming() {
     return Boolean(this.controller && !this.controller.signal.aborted);
@@ -92,9 +114,12 @@ export class StreamHandler {
 
   startStatusRotation(onRotate) {
     this.stopStatusRotation();
-    this.rotateInterval = setInterval(() => {
-      if (onRotate) onRotate(getRandomPhrase());
-    }, 3000);
+    const tick = () => {
+      this.currentPhrase = getRandomPhrase();
+      if (onRotate) onRotate(this.currentPhrase);
+    };
+    tick();
+    this.rotateInterval = setInterval(tick, 3000);
   }
 
   stopStatusRotation() {

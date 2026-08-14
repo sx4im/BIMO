@@ -14,8 +14,8 @@ import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=1";
-import { MessageFeed } from "../chat/message-feed.js?v=1";
-import { StreamHandler } from "../chat/stream-handler.js?v=1";
+import { MessageFeed } from "../chat/message-feed.js?v=2";
+import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=2";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=1";
 
 function uid(prefix = "tmp") {
@@ -237,11 +237,12 @@ export async function renderChat({ id, incognito }) {
     messageFeed.render({
       messages,
       user: auth.user,
-      generating: streamHandler.isStreaming,
+      generating: composer.isGenerating,
       searching,
       imageGenerating,
       streamingText: streamHandler.streamingText,
       streamingReasoning: streamHandler.streamingReasoning,
+      statusPhrase: streamHandler.currentPhrase,
       enteringId,
       incognito,
     });
@@ -320,6 +321,7 @@ export async function renderChat({ id, incognito }) {
     };
     messages.push(optimisticUser);
     enteringId = optimisticUser.id;
+    streamHandler.currentPhrase = getRandomPhrase();
     composer.isGenerating = true;
     composer.syncSendEnabled();
     renderUI();
@@ -342,6 +344,8 @@ export async function renderChat({ id, incognito }) {
         searching = false;
       }
     }
+
+    renderUI();
 
     try {
       await streamHandler.executeStream({

@@ -63,7 +63,7 @@ export function searchingBubbleNode() {
   ]);
 }
 
-export function streamingBubbleNode(text, reasoning = "", statusPhrase = "Thinking…") {
+export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   const bubble = el("div", { class: "bubble markdown-body streaming-bubble", "data-streaming": "true" });
   if (text) {
     bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text)}</div><span class="cursor">▋</span>`;
@@ -73,7 +73,7 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "Thinki
 
   const bodyChildren = [
     el("div", { class: "meta" }, [
-      el("span", { class: "status-text", text: statusPhrase }),
+      el("span", { class: "status-text", text: statusPhrase || "Thinking…" }),
     ]),
   ];
 
@@ -176,7 +176,7 @@ export class MessageFeed {
     streamingReasoning = "",
     enteringId = null,
     incognito = false,
-    statusPhrase = "Thinking…",
+    statusPhrase = "",
   }) {
     clear(this.streamInner);
 

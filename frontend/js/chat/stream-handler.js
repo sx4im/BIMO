@@ -147,6 +147,8 @@ export class StreamHandler {
     this.controller = null;
     this.currentStreamId = null;
     this.hiddenBuffer = [];
+    this.streamingText = "";
+    this.streamingReasoning = "";
   }
 
   async executeStream({

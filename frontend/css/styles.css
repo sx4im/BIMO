@@ -141,11 +141,6 @@
 *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; }
 
-thinking-orb {
-  --orb-color-light: #000000;
-  --orb-color-dark: #ffffff;
-}
-
 body {
   font-family: var(--font-sans);
   background: var(--canvas);
@@ -2454,16 +2449,6 @@ body:has(.app-shell),
 
 .reasoning-divider {
   display: none; /* handled by the bottom margin of the block */
-}
-
-/* Remove width/height hardcodes to let the component size prop control it */
-.reasoning-block summary thinking-orb,
-.search-bubble thinking-orb {
-  display: inline-block;
-}
-
-@media (max-width: 1023px) {
-  /* No overrides, let JS component handle sizes if needed */
 }
 
 .message.user .bubble {

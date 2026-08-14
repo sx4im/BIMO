@@ -14,8 +14,8 @@ import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=1";
-import { MessageFeed } from "../chat/message-feed.js?v=3";
-import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=3";
+import { MessageFeed } from "../chat/message-feed.js?v=4";
+import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=4";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 
 function uid(prefix = "tmp") {
@@ -176,13 +176,11 @@ export async function renderChat({ id, incognito }) {
     onStop: () => streamHandler.cancel(),
     onOpenVoiceAssistant: () => openVoiceMode(),
     onModelChange: async (model) => {
-      if (!id) {
-        conversation = { ...(conversation || {}), model };
-        return;
-      }
+      conversation = { ...(conversation || {}), model };
+      if (!id) return;
       try {
         const updated = await api.updateConversation(auth.token, id, { model });
-        conversation = updated || { ...conversation, model };
+        conversation = updated || conversation;
       } catch (err) {
         toast(err.message || "Couldn't switch model", { tone: "error" });
       }
@@ -321,6 +319,8 @@ export async function renderChat({ id, incognito }) {
     };
     messages.push(optimisticUser);
     enteringId = optimisticUser.id;
+    streamHandler.streamingText = "";
+    streamHandler.streamingReasoning = "";
     streamHandler.currentPhrase = getRandomPhrase();
     composer.isGenerating = true;
     composer.syncSendEnabled();
@@ -354,9 +354,9 @@ export async function renderChat({ id, incognito }) {
           augmented_message: llmMessage !== text ? llmMessage : undefined,
           conversation_id: (!incognito && id) ? id : undefined,
           attachments,
-          model: conversation?.model || model || defaultModel,
+          model: model || conversation?.model || defaultModel,
           system_prompt: studyMode ? STUDY_SYSTEM_PROMPT : (conversation?.system_prompt || undefined),
-          reasoning_effort: (conversation?.model || model) === "deep" ? reasoningEffort : undefined,
+          reasoning_effort: (model || conversation?.model) === "deep" ? reasoningEffort : undefined,
           incognito,
         },
         streamId,

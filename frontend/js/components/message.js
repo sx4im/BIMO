@@ -5,18 +5,15 @@ import { renderMarkdown } from "./markdown.js?v=30";
 import { openImageModal } from "./image-modal.js?v=30";
 
 export function reasoningDetails({ reasoning, durationText = "", live = false, hasAnswerText = false }) {
-  const orb = el("thinking-orb", {
-    state: "composing",
-    size: "22",
-    speed: "1.25",
-    style: "display:inline-block; vertical-align:middle; margin-right:2px; transform:translateY(-1px);",
+  const mark = el("span", {
+    class: live ? "icon-pulse" : "",
+    html: icon("brain", { width: 14, height: 14 }),
   });
-  if (!live) orb.setAttribute("paused", "true");
   const timer = el("span", {
     class: live ? "reasoning-timer" : "reasoning-duration",
     text: durationText,
   });
-  const summary = el("summary", {}, [orb, " Thought Process ", timer]);
+  const summary = el("summary", {}, [mark, " Thought Process ", timer]);
   const html = `${renderMarkdown(reasoning)}${live && !hasAnswerText ? '<span class="cursor reasoning-cursor">▋</span>' : ""}`;
   const content = el("div", { class: "reasoning-content markdown-body", html });
   return el("details", { class: "reasoning-block" }, [summary, content]);

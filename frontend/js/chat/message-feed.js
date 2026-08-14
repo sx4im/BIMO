@@ -7,7 +7,7 @@
 import { el, clear } from "../utils.js?v=20";
 import { icon } from "../icons.js?v=48";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=20";
-import { messageBubble, reasoningDetails } from "../components/message.js?v=53";
+import { messageBubble, reasoningDetails } from "../components/message.js?v=54";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {
@@ -56,7 +56,7 @@ export function searchingBubbleNode() {
   return el("article", { class: "message assistant searching" }, [
     el("div", { class: "body" }, [
       el("div", { class: "bubble search-bubble" }, [
-        el("thinking-orb", { state: "searching", size: "22", style: "display:inline-block; vertical-align:middle; margin-right:2px;" }),
+        el("span", { class: "icon-pulse", html: icon("globe", { width: 15, height: 15 }) }),
         el("span", { class: "search-label", text: "Searching the web" }),
       ]),
     ]),

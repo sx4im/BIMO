@@ -87,6 +87,7 @@ export class StreamHandler {
     this.streamingReasoning = "";
     this.hiddenBuffer = [];
     this.currentPhrase = "";
+  }
 
   get isStreaming() {
     return Boolean(this.controller && !this.controller.signal.aborted);

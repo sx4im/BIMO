@@ -4,6 +4,24 @@ import { avatar } from "./avatar.js?v=30";
 import { renderMarkdown } from "./markdown.js?v=30";
 import { openImageModal } from "./image-modal.js?v=30";
 
+export function reasoningDetails({ reasoning, durationText = "", live = false, hasAnswerText = false }) {
+  const orb = el("thinking-orb", {
+    state: "composing",
+    size: "22",
+    speed: "1.25",
+    style: "display:inline-block; vertical-align:middle; margin-right:2px; transform:translateY(-1px);",
+  });
+  if (!live) orb.setAttribute("paused", "true");
+  const timer = el("span", {
+    class: live ? "reasoning-timer" : "reasoning-duration",
+    text: durationText,
+  });
+  const summary = el("summary", {}, [orb, " Thought Process ", timer]);
+  const html = `${renderMarkdown(reasoning)}${live && !hasAnswerText ? '<span class="cursor reasoning-cursor">▋</span>' : ""}`;
+  const content = el("div", { class: "reasoning-content markdown-body", html });
+  return el("details", { class: "reasoning-block" }, [summary, content]);
+}
+
 // Recent messages show a 12-hour clock time ("9:57 AM"); anything older than a
 // day shows the date instead. Revealed on hover in the action row.
 function formatStamp(iso) {
@@ -44,10 +62,10 @@ export function messageBubble({ message, userName, userAvatarUrl, onEdit, onRetr
       // span — that class is driven live by the chat page and must never be
       // attached to a finished message, or a new turn's timer overwrites it.
       const dur = message.reasoning_seconds != null ? `· ${message.reasoning_seconds}s` : "";
-      reasoningNode = el("details", { class: "reasoning-block", html: `
-        <summary><thinking-orb state="composing" size="22" speed="1.25" paused="true" style="display:inline-block; vertical-align:middle; margin-right:2px; transform:translateY(-1px);"></thinking-orb> Thought Process <span class="reasoning-duration">${dur}</span></summary>
-        <div class="reasoning-content markdown-body">${renderMarkdown(message.reasoning)}</div>
-      `});
+      reasoningNode = reasoningDetails({
+        reasoning: message.reasoning,
+        durationText: dur,
+      });
     }
     if (message.content) {
       bubbleContent = el("div", { class: `bubble markdown-body${hasImageAttachment ? " caption" : ""}`, html: renderMarkdown(message.content || "") });

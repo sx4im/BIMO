@@ -7,7 +7,7 @@
 import { el, clear } from "../utils.js?v=20";
 import { icon } from "../icons.js?v=48";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=20";
-import { messageBubble } from "../components/message.js?v=52";
+import { messageBubble, reasoningDetails } from "../components/message.js?v=53";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {
@@ -78,10 +78,11 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   ];
 
   if (reasoning.trim()) {
-    bodyChildren.push(el("details", { class: "reasoning-block", open: true, html: `
-      <summary><thinking-orb state="composing" size="22" speed="1.25" style="display:inline-block; vertical-align:middle; margin-right:2px; transform:translateY(-1px);"></thinking-orb> Thought Process <span class="reasoning-timer"></span></summary>
-      <div class="reasoning-content markdown-body">${renderMarkdown(reasoning)}${text ? '' : '<span class="cursor reasoning-cursor">▋</span>'}</div>
-    ` }));
+    bodyChildren.push(reasoningDetails({
+      reasoning,
+      live: true,
+      hasAnswerText: Boolean(text),
+    }));
   }
 
   bodyChildren.push(bubble);
@@ -130,10 +131,11 @@ export class MessageFeed {
             contentDiv.innerHTML = `${renderMarkdown(reasoning)}${text ? '' : '<span class="cursor reasoning-cursor">▋</span>'}`;
           }
         } else {
-          reasoningBlock = el("details", { class: "reasoning-block", open: true, html: `
-            <summary><thinking-orb state="composing" size="22" speed="1.25" style="display:inline-block; vertical-align:middle; margin-right:2px; transform:translateY(-1px);"></thinking-orb> Thought Process <span class="reasoning-timer"></span></summary>
-            <div class="reasoning-content markdown-body">${renderMarkdown(reasoning)}${text ? '' : '<span class="cursor reasoning-cursor">▋</span>'}</div>
-          ` });
+          reasoningBlock = reasoningDetails({
+            reasoning,
+            live: true,
+            hasAnswerText: Boolean(text),
+          });
           body.insertBefore(reasoningBlock, bubble);
         }
       } else if (reasoningBlock) {

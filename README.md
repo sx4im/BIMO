@@ -2,7 +2,7 @@
 
 <h1><img src=".github/assets/bimo-logo.svg" alt="Bimo logo" width="70" align="absmiddle" /> Bimo</h1>
 
-A streaming AI chat workspace and agent built on a plain JavaScript frontend and a Flask backend proxying NVIDIA inference and Supabase storage.
+A streaming AI chat workspace and agent built on a plain JavaScript frontend and a Flask backend proxying NVIDIA inference and Supabase storage. Chat on the web or over WhatsApp.
 
 [![Live demo](https://img.shields.io/badge/Live_demo-bimo.qzz.io-d97757?style=flat-square)](https://bimo.qzz.io)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)

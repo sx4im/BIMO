@@ -1,0 +1,10 @@
+"""Route blueprints for Bimo Flask gateway."""
+
+from __future__ import annotations
+
+from .analytics_routes import analytics_bp
+from .chat_routes import chat_bp
+from .media_routes import media_bp
+from .user_routes import user_bp
+
+__all__ = ["analytics_bp", "chat_bp", "media_bp", "user_bp"]

@@ -1,0 +1,76 @@
+services:
+  - type: web
+    name: bimo-backend
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 2 -k gthread --threads 8 --timeout 600 --bind 0.0.0.0:$PORT app.main:app
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: bimo-attachments
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NVIDIA_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: NVIDIA_MODEL
+        value: meta/llama-3.3-70b-instruct
+      # Friendly-mode model IDs — change these on Render to swap Aeon / Stanza /
+      # Nexos / vision / Iris without touching code. Redeploy after editing.
+      - key: NVIDIA_AEON_MODEL
+        value: mistralai/mistral-small-4-119b-2603
+      - key: NVIDIA_STANZA_MODEL
+        value: qwen/qwen3-next-80b-a3b-instruct
+      - key: NVIDIA_NEXOS_MODEL
+        value: deepseek-ai/deepseek-v4-flash
+      - key: NVIDIA_VISION_MODEL
+        value: google/diffusiongemma-26b-a4b-it
+      # Per-reply output cap. Higher = longer answers / full code builds
+      # without mid-stream truncation. At ~40 tok/s, 8192 ≈ 3.5 min.
+      - key: NVIDIA_MAX_TOKENS
+        value: "8192"
+      # Client read timeout (seconds). Must comfortably exceed the time to
+      # generate NVIDIA_MAX_TOKENS at the model's speed, and stay under the
+      # gunicorn --timeout above so a slow build isn't cut as an "API error".
+      - key: NVIDIA_TIMEOUT
+        value: "540"
+      # Retry budget for transient NVIDIA failures. The free tier caps each
+      # model at 40 requests/minute and returns 429 + Retry-After when hit;
+      # the SDK backs off and honours that header within this budget.
+      - key: NVIDIA_MAX_RETRIES
+        value: "3"
+      # Image generation (Iris). Served via NVIDIA's GenAI endpoint.
+      # Klein 4B: distilled model, ~4 steps, fast text-to-image.
+      - key: NVIDIA_IMAGE_BASE_URL
+        value: https://ai.api.nvidia.com/v1/genai
+      - key: NVIDIA_IMAGE_MODEL
+        value: black-forest-labs/flux.2-klein-4b
+      - key: CORS_ORIGINS
+        value: https://bimo.qzz.io,http://localhost:5500,http://127.0.0.1:5500
+      # Rate limiting is ON for the live deployment (per-user keying with IP
+      # fallback). Point RATELIMIT_STORAGE_URI at a Redis URL so limits are
+      # accurate across workers (in-memory only limits per worker).
+      - key: RATELIMIT_ENABLED
+        value: "1"
+      - key: RATELIMIT_STORAGE_URI
+        value: memory://
+      # WhatsApp Cloud API Integration
+      - key: WHATSAPP_PHONE_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        value: bimo_whatsapp_verify_token_2026
+

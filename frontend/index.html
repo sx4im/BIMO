@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Bimo · an AI chat workspace with streaming responses, rich rendering, vision-aware uploads, per-chat models, and voice chat." />
+    <meta name="theme-color" content="#faf9f5" />
+    <!-- Set the theme BEFORE first paint so there's no light->dark flash.
+         Mirrors the THEME_KEY logic in js/prefs.js. Loaded from self (not inline)
+         so Content-Security-Policy script-src 'self' allows it. -->
+    <script src="/js/theme-boot.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/thinking-orbs-universal@1.0.0/dist/web-component/index.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=10" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Michroma&family=Orbitron:wght@400..900&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- KaTeX CSS is injected by markdown.js only when math is actually
+         rendered, so it never render-blocks the initial paint. -->
+    <link rel="stylesheet" href="/css/styles.css?v=84" />
+    <title>Bimo · AI workspace</title>
+  </head>
+  <body>
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="app" class="app-root"></div>
+
+
+
+    <script type="module" src="/js/main.js?v=102"></script>
+  </body>
+</html>

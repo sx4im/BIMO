@@ -3,7 +3,7 @@ import { icon } from "../icons.js?v=57";
 import { mountAppShell } from "../app-shell.js?v=68";
 import { getAuth } from "../auth.js?v=30";
 import { toast } from "../components/toast.js?v=57";
-import { navigate } from "../router.js?v=30";
+import { navigate } from "../router.js?v=31";
 
 // Posts straight to Formspree (-> the team's inbox). No backend involved; the
 // CSP allows https connect-src, so the fetch works from the browser.

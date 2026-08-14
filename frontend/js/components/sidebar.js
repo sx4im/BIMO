@@ -2,7 +2,7 @@ import { el, clear } from "../utils.js?v=51";
 import { icon } from "../icons.js?v=48";
 import { logo } from "./logo.js?v=30";
 import { avatar } from "./avatar.js?v=30";
-import { getRoute } from "../router.js?v=30";
+import { getRoute } from "../router.js?v=31";
 import { openConfirmModal, openPromptModal } from "./confirm-modal.js?v=58";
 
 const NAV = [

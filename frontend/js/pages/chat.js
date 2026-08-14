@@ -3,11 +3,11 @@
  * Coordinates the message feed, composer, stream handler, voice assistant, and image generation.
  */
 
-import { el, clear } from "../utils.js?v=20";
+import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
-import { getAuth } from "../auth.js?v=22";
-import { navigate } from "../router.js?v=18";
-import { mountAppShell } from "../app-shell.js?v=52";
+import { getAuth } from "../auth.js?v=30";
+import { navigate } from "../router.js?v=31";
+import { mountAppShell } from "../app-shell.js?v=68";
 import { toast } from "../components/toast.js?v=57";
 import { whenMarkdownReady } from "../components/markdown.js?v=20";
 import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";

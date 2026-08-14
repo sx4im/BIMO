@@ -21,9 +21,12 @@ export function defineRoute(pattern, handler) {
 
 export function navigate(hash, { replace = false } = {}) {
   if (!hash.startsWith("#")) hash = `#${hash}`;
+  if (location.hash === hash) {
+    dispatch();
+    return;
+  }
   if (replace) location.replace(hash);
-  else if (location.hash !== hash) location.hash = hash;
-  else dispatch(); // re-render even if hash didn't change
+  else location.hash = hash;
 }
 
 export function getRoute() {

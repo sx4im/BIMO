@@ -6696,6 +6696,9 @@ em { font-style: normal; }
   position: relative;
   width: 100%;
   max-width: 580px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
   background: var(--surface-card);
   border: 1px solid var(--hairline-strong);
   border-radius: var(--r-lg);
@@ -6707,6 +6710,7 @@ em { font-style: normal; }
   outline: none;
   box-sizing: border-box;
 }
+
 
 .doc-artifact-card:hover {
   transform: translateY(-2px);
@@ -6869,12 +6873,14 @@ em { font-style: normal; }
 
 /* Preview Content Container */
 .doc-card-preview-content {
-  padding: 14px 16px 36px;
-  max-height: 240px;
+  flex: 1;
+  min-height: 0;
+  padding: 16px 18px 48px;
   overflow: hidden;
   pointer-events: none;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.55;
+  box-sizing: border-box;
 }
 
 .doc-card-preview-content h1,
@@ -6890,14 +6896,15 @@ em { font-style: normal; }
   bottom: 0;
   left: 0;
   right: 0;
-  height: 58px;
+  height: 64px;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, var(--surface-card) 75%);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   pointer-events: none;
 }
+
 
 .doc-card-expand-hint {
   font-size: 11px;

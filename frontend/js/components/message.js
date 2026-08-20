@@ -20,19 +20,15 @@ export function extractDocumentArtifact(rawContent) {
   const cleaned = stripExportDisclaimers(rawContent);
   const trimmed = cleaned.trim();
 
-  // 1. Standard markdown headers (# Title, ## Section)
-  const h1Match = trimmed.match(/^(?:[\s\S]*?\n)?#\s+([^\n]+)/);
-  const mdHeadings = trimmed.match(/#{1,3}\s+[^\n]+/g) || [];
+  // 1. Explicit H1 Title (# Document Title) near the start of the response
+  const h1Match = trimmed.match(/^(?:[^\n]{0,120}\n+)?#\s+([^\n]+)/);
 
-  // 2. Common uppercase or bold section patterns (e.g. PROFESSIONAL SUMMARY, TECHNICAL SKILLS, EXPERIENCE)
-  const sectionKeywords = /(?:PROFESSIONAL SUMMARY|TECHNICAL SKILLS|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EXPERIENCE|EDUCATION|PROJECTS|SKILLS|OBJECTIVE|OVERVIEW|SUMMARY|INTRODUCTION|KEY FINDINGS|METHODOLOGY|CONCLUSION|RESULTS|DISCUSSION|REFERENCES|TABLE OF CONTENTS|BACKGROUND|KEY STAGES|CHEMICAL EQUATION)/i;
-  const capsHeadingMatch = trimmed.match(/^[A-Z\s\[\]_-]{4,35}$/m);
-  const boldHeadingMatch = trimmed.match(/^\*\*[A-Za-z0-9\s:\[\]_-]{3,40}\*\*/m);
+  // 2. Strict Resume / CV pattern (must match multiple core resume sections)
+  const resumeSections = ["PROFESSIONAL SUMMARY", "TECHNICAL SKILLS", "WORK EXPERIENCE", "EXPERIENCE", "EDUCATION"];
+  const matchedResumeSections = resumeSections.filter((sec) => new RegExp(`\\b${sec}\\b`, "i").test(trimmed));
+  const isResumeDoc = matchedResumeSections.length >= 3 && trimmed.length > 250;
 
-  const hasSections = mdHeadings.length >= 2 || (sectionKeywords.test(trimmed) && (Boolean(capsHeadingMatch) || Boolean(boldHeadingMatch) || mdHeadings.length >= 1));
-  const isStructuredDoc = Boolean(h1Match || (hasSections && trimmed.length > 140));
-
-  if (!isStructuredDoc) {
+  if (!h1Match && !isResumeDoc) {
     return { isDoc: false, text: cleaned };
   }
 
@@ -42,21 +38,10 @@ export function extractDocumentArtifact(rawContent) {
     const docContent = trimmed.substring(h1Index).trim();
     const title = h1Match[1].replace(/[*_`#]/g, "").trim();
 
-    return {
-      isDoc: true,
-      introText,
-      docTitle: title || "Bimo AI Document",
-      docContent,
-    };
-  }
-
-  // First heading or first capitalized line / bracketed name
-  const firstHeadingMatch = trimmed.match(/^(?:[\s\S]*?\n)?(#{1,3}\s+[^\n]+|\*\*[A-Za-z0-9\s:\[\]_-]{3,40}\*\*|^\[[A-Za-z0-9\s_-]+\]|^[A-Z\s]{4,30}$)/m);
-  if (firstHeadingMatch) {
-    const headerIndex = trimmed.indexOf(firstHeadingMatch[0]);
-    const introText = headerIndex > 0 ? stripExportDisclaimers(trimmed.substring(0, headerIndex)) : "";
-    const docContent = trimmed.substring(headerIndex).trim();
-    let title = firstHeadingMatch[1].replace(/[*_`#\[\]]/g, "").trim();
+    // Must have substantive content to qualify as a standalone document card
+    if (docContent.length < 180) {
+      return { isDoc: false, text: cleaned };
+    }
 
     return {
       isDoc: true,
@@ -66,13 +51,24 @@ export function extractDocumentArtifact(rawContent) {
     };
   }
 
-  return {
-    isDoc: true,
-    introText: "",
-    docTitle: "Bimo AI Document",
-    docContent: trimmed,
-  };
+  if (isResumeDoc) {
+    const topNameMatch = trimmed.match(/^(?:[^\n]{0,100}\n+)?(?:\*\*|#\s*)?([A-Za-z\s\[\]_-]{3,40})(?:\*\*)?(?:\s*\n)/);
+    let title = topNameMatch ? topNameMatch[1].replace(/[*_`#\[\]]/g, "").trim() : "Resume";
+    if (!title || title.toUpperCase() === "NAME" || title.toUpperCase() === "YOUR NAME") {
+      title = "Professional Resume";
+    }
+
+    return {
+      isDoc: true,
+      introText: "",
+      docTitle: title,
+      docContent: trimmed,
+    };
+  }
+
+  return { isDoc: false, text: cleaned };
 }
+
 
 export function docArtifactSkeletonCard(statusText = "Formatting and preparing document…") {
   const docIcon = el("div", {

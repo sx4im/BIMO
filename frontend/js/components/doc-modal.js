@@ -4,7 +4,7 @@
  */
 
 import { el } from "../utils.js?v=20";
-import { icon } from "../icons.js?v=48";
+import { icon, formatDocIcon } from "../icons.js?v=48";
 import { renderMarkdown } from "./markdown.js?v=20";
 import { toast } from "./toast.js?v=20";
 
@@ -51,7 +51,7 @@ export function openDocViewerModal({
   ]);
 
   // Download Dropdown Action
-  const dlMenu = el("div", { class: "doc-modal-dl-menu" }, [
+  const dlMenu = el("div", { class: "doc-modal-dl-menu", role: "menu" }, [
     el("button", {
       type: "button",
       class: "doc-modal-dl-item",
@@ -61,11 +61,8 @@ export function openDocViewerModal({
         onDownloadFormat?.("md");
       },
     }, [
-      el("span", { class: "doc-fmt-badge md", text: "MD" }),
-      el("div", { class: "doc-fmt-info" }, [
-        el("span", { class: "doc-fmt-name", text: "Markdown" }),
-        el("span", { class: "doc-fmt-ext", text: ".md file" }),
-      ]),
+      el("span", { class: "doc-fmt-icon", html: formatDocIcon("md", { width: 17, height: 21 }) }),
+      el("span", { class: "doc-fmt-name", text: "Markdown" }),
     ]),
     el("button", {
       type: "button",
@@ -76,11 +73,8 @@ export function openDocViewerModal({
         onDownloadFormat?.("pdf");
       },
     }, [
-      el("span", { class: "doc-fmt-badge pdf", text: "PDF" }),
-      el("div", { class: "doc-fmt-info" }, [
-        el("span", { class: "doc-fmt-name", text: "PDF document" }),
-        el("span", { class: "doc-fmt-ext", text: ".pdf file" }),
-      ]),
+      el("span", { class: "doc-fmt-icon", html: formatDocIcon("pdf", { width: 17, height: 21 }) }),
+      el("span", { class: "doc-fmt-name", text: "PDF" }),
     ]),
     el("button", {
       type: "button",
@@ -91,13 +85,11 @@ export function openDocViewerModal({
         onDownloadFormat?.("docx");
       },
     }, [
-      el("span", { class: "doc-fmt-badge docx", text: "DOCX" }),
-      el("div", { class: "doc-fmt-info" }, [
-        el("span", { class: "doc-fmt-name", text: "Word document" }),
-        el("span", { class: "doc-fmt-ext", text: ".docx file" }),
-      ]),
+      el("span", { class: "doc-fmt-icon", html: formatDocIcon("docx", { width: 17, height: 21 }) }),
+      el("span", { class: "doc-fmt-name", text: "DOCX" }),
     ]),
   ]);
+
 
   const dlWrap = el("div", { class: "doc-modal-dl-wrap" }, [
     el("button", {

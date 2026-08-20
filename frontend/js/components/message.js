@@ -1,5 +1,5 @@
 import { el } from "../utils.js?v=30";
-import { icon } from "../icons.js?v=30";
+import { icon, formatDocIcon } from "../icons.js?v=30";
 import { avatar } from "./avatar.js?v=30";
 import { renderMarkdown } from "./markdown.js?v=30";
 import { openImageModal } from "./image-modal.js?v=30";
@@ -63,7 +63,7 @@ export function docArtifactCard({
 
   const headerLeft = el("div", { class: "doc-card-header-left" }, [docIcon, titleEl]);
 
-  // Download menu
+  // Download menu with colored document icons matching Manus
   const dlMenu = el("div", { class: "doc-card-dl-menu", role: "menu" }, [
     el("button", {
       type: "button",
@@ -74,11 +74,8 @@ export function docArtifactCard({
         onExportFormat?.("md");
       },
     }, [
-      el("span", { class: "doc-fmt-badge md", text: "MD" }),
-      el("div", { class: "doc-fmt-info" }, [
-        el("span", { class: "doc-fmt-name", text: "Markdown" }),
-        el("span", { class: "doc-fmt-ext", text: ".md file" }),
-      ]),
+      el("span", { class: "doc-fmt-icon", html: formatDocIcon("md", { width: 17, height: 21 }) }),
+      el("span", { class: "doc-fmt-name", text: "Markdown" }),
     ]),
     el("button", {
       type: "button",
@@ -89,11 +86,8 @@ export function docArtifactCard({
         onExportFormat?.("pdf");
       },
     }, [
-      el("span", { class: "doc-fmt-badge pdf", text: "PDF" }),
-      el("div", { class: "doc-fmt-info" }, [
-        el("span", { class: "doc-fmt-name", text: "PDF document" }),
-        el("span", { class: "doc-fmt-ext", text: ".pdf file" }),
-      ]),
+      el("span", { class: "doc-fmt-icon", html: formatDocIcon("pdf", { width: 17, height: 21 }) }),
+      el("span", { class: "doc-fmt-name", text: "PDF" }),
     ]),
     el("button", {
       type: "button",
@@ -104,13 +98,11 @@ export function docArtifactCard({
         onExportFormat?.("docx");
       },
     }, [
-      el("span", { class: "doc-fmt-badge docx", text: "DOCX" }),
-      el("div", { class: "doc-fmt-info" }, [
-        el("span", { class: "doc-fmt-name", text: "Word document" }),
-        el("span", { class: "doc-fmt-ext", text: ".docx file" }),
-      ]),
+      el("span", { class: "doc-fmt-icon", html: formatDocIcon("docx", { width: 17, height: 21 }) }),
+      el("span", { class: "doc-fmt-name", text: "DOCX" }),
     ]),
   ]);
+
 
   const dlBtn = el("button", {
     type: "button",
@@ -163,7 +155,6 @@ export function docArtifactCard({
     class: "doc-artifact-card",
     role: "button",
     tabindex: "0",
-    title: "Click to open full document view",
     "aria-label": `Open document ${cleanTitle}`,
     onclick: (e) => {
       if (e.target.closest(".doc-card-header-right")) return;
@@ -176,6 +167,7 @@ export function docArtifactCard({
       }
     },
   }, [header, preview, fade]);
+
 
   return card;
 }

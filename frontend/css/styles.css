@@ -6796,12 +6796,12 @@ em { font-style: normal; }
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  min-width: 175px;
-  background: var(--canvas);
+  min-width: 155px;
+  background: var(--surface-card);
   border: 1px solid var(--hairline-strong);
-  border-radius: var(--r-md);
-  box-shadow: 0 10px 28px -6px rgba(20, 20, 19, 0.22), 0 2px 6px rgba(20, 20, 19, 0.08);
-  padding: 4px;
+  border-radius: var(--r-lg);
+  box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 6px;
   display: none;
   flex-direction: column;
   gap: 2px;
@@ -6825,14 +6825,14 @@ em { font-style: normal; }
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: var(--r-sm);
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
   color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease;
   box-sizing: border-box;
 }
 
@@ -6846,52 +6846,26 @@ em { font-style: normal; }
   outline-offset: -1px;
 }
 
-/* Format Badges */
-.doc-fmt-badge {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 5px;
-  border-radius: var(--r-xs);
+/* Document Format Icons & Typography */
+.doc-fmt-icon {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  min-width: 28px;
-  text-align: center;
+  width: 20px;
+  height: 24px;
 }
 
-.doc-fmt-badge.md {
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.12);
-}
-
-.doc-fmt-badge.pdf {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.12);
-}
-
-.doc-fmt-badge.docx {
-  color: #2563eb;
-  background: rgba(37, 99, 235, 0.12);
-}
-
-.doc-fmt-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.doc-fmt-icon svg {
+  display: block;
 }
 
 .doc-fmt-name {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 500;
   color: var(--ink);
   line-height: 1.2;
 }
 
-.doc-fmt-ext {
-  font-size: 10px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  line-height: 1.2;
-}
 
 /* Preview Content Container */
 .doc-card-preview-content {
@@ -7119,12 +7093,12 @@ em { font-style: normal; }
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  min-width: 195px;
-  background: var(--canvas);
+  min-width: 160px;
+  background: var(--surface-card);
   border: 1px solid var(--hairline-strong);
-  border-radius: var(--r-md);
-  box-shadow: 0 14px 36px -8px rgba(20, 20, 19, 0.28), 0 2px 8px rgba(20, 20, 19, 0.1);
-  padding: 5px;
+  border-radius: var(--r-lg);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 6px;
   display: none;
   flex-direction: column;
   gap: 2px;
@@ -7148,14 +7122,14 @@ em { font-style: normal; }
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 9px;
-  border-radius: var(--r-sm);
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
   color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease;
   box-sizing: border-box;
 }
 
@@ -7163,6 +7137,12 @@ em { font-style: normal; }
 .doc-modal-dl-item:focus-visible {
   background: var(--surface-soft);
 }
+
+.doc-modal-dl-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
+
 
 /* Modal Body / Paper Container */
 .doc-modal-body {

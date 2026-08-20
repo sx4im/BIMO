@@ -111,6 +111,19 @@ export async function renderChat({ id, incognito }) {
     if (!content || !format) return;
     const docTitle = (title || conversation?.title || "Bimo AI Document").trim();
     const filename = formatExportFilename(docTitle, format);
+
+    if (format === "md") {
+      const canonical = buildCanonicalMarkdown({
+        title: docTitle,
+        content,
+        date: new Date(),
+      });
+      const blob = new Blob([canonical], { type: "text/markdown;charset=utf-8" });
+      downloadBlob(blob, filename);
+      toast(`Downloaded ${filename}`, { tone: "success" });
+      return;
+    }
+
     toast(`Preparing ${format.toUpperCase()} document…`, { tone: "info" });
     try {
       const blob = await api.exportDocument(auth.token, {
@@ -125,6 +138,7 @@ export async function renderChat({ id, incognito }) {
       toast(err.message || `Failed to download ${format.toUpperCase()}`, { tone: "error" });
     }
   }
+
 
   // Message Feed
   const messageFeed = new MessageFeed({

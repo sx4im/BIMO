@@ -27,11 +27,17 @@ const DEFAULTS = {
 
 function loadOverrides() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    if (data.apiUrl && typeof data.apiUrl === "string" && data.apiUrl.includes("4a4q")) {
+      data.apiUrl = data.apiUrl.replace("4a4q", "4a4g");
+      save(data);
+    }
+    return data;
   } catch {
     return {};
   }
 }
+
 
 function save(overrides) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));

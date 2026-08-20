@@ -137,22 +137,10 @@ export function docArtifactCard({
 
   const dlWrap = el("div", { class: "doc-card-dl-wrap" }, [dlBtn, dlMenu]);
 
-  // More dots menu
-  const moreBtn = el("button", {
-    type: "button",
-    class: "doc-card-act-btn",
-    title: "Open full document view",
-    "aria-label": "Open document",
-    onclick: (e) => {
-      e.stopPropagation();
-      onOpenDoc?.({ title: cleanTitle, content: markdown });
-    },
-    html: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`,
-  });
-
-  const headerRight = el("div", { class: "doc-card-header-right" }, [dlWrap, moreBtn]);
+  const headerRight = el("div", { class: "doc-card-header-right" }, [dlWrap]);
 
   const header = el("div", { class: "doc-card-header" }, [headerLeft, headerRight]);
+
 
   const preview = el("div", { class: "doc-card-preview-content markdown-body" });
   preview.innerHTML = renderMarkdown(markdown);

@@ -11,6 +11,7 @@ import { mountAppShell } from "../app-shell.js?v=68";
 import { toast } from "../components/toast.js?v=57";
 import { whenMarkdownReady } from "../components/markdown.js?v=20";
 import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
+import { openDocViewerModal } from "../components/doc-modal.js?v=1";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=1";
@@ -18,6 +19,7 @@ import { MessageFeed } from "../chat/message-feed.js?v=4";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=4";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import { detectExportIntent, buildCanonicalMarkdown, formatExportFilename, downloadBlob } from "../export.js?v=1";
+
 
 function uid(prefix = "tmp") {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -207,22 +209,57 @@ export async function renderChat({ id, incognito }) {
     }
   }
 
+  async function handleDirectDownload({ title, content, format }) {
+    if (!content || !format) return;
+    const docTitle = (title || conversation?.title || "Bimo AI Document").trim();
+    const filename = formatExportFilename(docTitle, format);
+    toast(`Preparing ${format.toUpperCase()} document…`, { tone: "info" });
+    try {
+      const blob = await api.exportDocument(auth.token, {
+        title: docTitle,
+        markdown: content,
+        format,
+      });
+      downloadBlob(blob, filename);
+      toast(`Downloaded ${filename}`, { tone: "success" });
+    } catch (err) {
+      console.warn("Direct download failed:", err);
+      toast(err.message || `Failed to download ${format.toUpperCase()}`, { tone: "error" });
+    }
+  }
+
   // Message Feed
   const messageFeed = new MessageFeed({
     onEditMessage: (message) => editMessage(message),
     onRetryMessage: (message) => retryMessage(message),
     onFeedback: (message, sentiment) => handleMessageFeedback(message, sentiment),
     onRetryAssistantMessage: (assistantMsg) => retryAssistantMessage(assistantMsg),
-    onExport: ({ message, format }) => {
-      startExportSession({
-        message,
-        formats: format === "all" ? ["md", "pdf", "docx"] : [format],
-        title: conversation?.title,
+    onOpenDoc: ({ title, content }) => {
+      openDocViewerModal({
+        title,
+        content,
+        onDownloadFormat: (fmt) => handleDirectDownload({ title, content, format: fmt }),
       });
+    },
+    onExport: ({ message, format, title, content }) => {
+      if (format && format !== "all") {
+        handleDirectDownload({
+          title: title || conversation?.title,
+          content: content || message?.content,
+          format,
+        });
+      } else {
+        startExportSession({
+          message,
+          formats: ["md", "pdf", "docx"],
+          title: title || conversation?.title,
+        });
+      }
     },
     onDownloadExport: ({ exportSession, format }) => downloadExportFile({ exportSession, format }),
     onRetryExportFormat: ({ exportSession, format }) => retryExportFormat({ exportSession, format }),
   });
+
 
   // Stream Handler
   const streamHandler = new StreamHandler({

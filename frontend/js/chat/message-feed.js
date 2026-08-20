@@ -258,6 +258,7 @@ export class MessageFeed {
     onExport,
     onDownloadExport,
     onRetryExportFormat,
+    onOpenDoc,
   }) {
     this.onEditMessage = onEditMessage;
     this.onRetryMessage = onRetryMessage;
@@ -266,11 +267,13 @@ export class MessageFeed {
     this.onExport = onExport;
     this.onDownloadExport = onDownloadExport;
     this.onRetryExportFormat = onRetryExportFormat;
+    this.onOpenDoc = onOpenDoc;
 
     this.stream = el("div", { class: "chat-stream" });
     this.streamInner = el("div", { class: "inner" });
     this.stream.append(this.streamInner);
   }
+
 
   get element() {
     return this.stream;
@@ -374,9 +377,11 @@ export class MessageFeed {
           onFeedback: m.role === "assistant" ? this.onFeedback : undefined,
           onRetryAssistant: m.role === "assistant" ? this.onRetryAssistantMessage : undefined,
           onExport: m.role === "assistant" ? this.onExport : undefined,
+          onOpenDoc: m.role === "assistant" ? this.onOpenDoc : undefined,
           entering: enteringId != null && m.id === enteringId,
         })
       );
+
 
       // If there are export sessions attached to this assistant message, render them directly after
       if (exportMap.has(m.id)) {

@@ -4,6 +4,182 @@ import { avatar } from "./avatar.js?v=30";
 import { renderMarkdown } from "./markdown.js?v=30";
 import { openImageModal } from "./image-modal.js?v=30";
 
+export function extractDocumentArtifact(rawContent) {
+  if (!rawContent || typeof rawContent !== "string") {
+    return { isDoc: false, text: rawContent || "" };
+  }
+
+  const trimmed = rawContent.trim();
+
+  // Look for structured document headers (H1 title or multiple sections)
+  const h1Match = trimmed.match(/^(?:[\s\S]*?\n)?#\s+([^\n]+)/);
+  const headings = trimmed.match(/#{1,3}\s+[^\n]+/g) || [];
+  const hasMultipleSections = headings.length >= 2;
+  const isStructuredDoc = Boolean(h1Match || (hasMultipleSections && trimmed.length > 200));
+
+  if (!isStructuredDoc) {
+    return { isDoc: false, text: rawContent };
+  }
+
+  if (h1Match) {
+    const h1Index = trimmed.indexOf(h1Match[0]);
+    const introText = h1Index > 0 ? trimmed.substring(0, h1Index).trim() : "";
+    const docContent = trimmed.substring(h1Index).trim();
+    const title = h1Match[1].replace(/[*_`#]/g, "").trim();
+
+    return {
+      isDoc: true,
+      introText,
+      docTitle: title || "Bimo AI Document",
+      docContent,
+    };
+  }
+
+  const firstHeading = trimmed.match(/^##?\s+([^\n]+)/m);
+  const title = firstHeading ? firstHeading[1].replace(/[*_`#]/g, "").trim() : "Bimo AI Document";
+
+  return {
+    isDoc: true,
+    introText: "",
+    docTitle: title,
+    docContent: trimmed,
+  };
+}
+
+export function docArtifactCard({
+  title,
+  markdown,
+  onOpenDoc,
+  onExportFormat,
+}) {
+  const cleanTitle = (title || "Bimo AI Document").trim();
+
+  const docIcon = el("div", {
+    class: "doc-card-icon",
+    html: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
+  });
+
+  const titleEl = el("span", { class: "doc-card-title-text", text: cleanTitle });
+
+  const headerLeft = el("div", { class: "doc-card-header-left" }, [docIcon, titleEl]);
+
+  // Download menu
+  const dlMenu = el("div", { class: "doc-card-dl-menu", role: "menu" }, [
+    el("button", {
+      type: "button",
+      class: "doc-card-dl-item",
+      onclick: (e) => {
+        e.stopPropagation();
+        dlMenu.classList.remove("open");
+        onExportFormat?.("md");
+      },
+    }, [
+      el("span", { class: "doc-fmt-badge md", text: "MD" }),
+      el("div", { class: "doc-fmt-info" }, [
+        el("span", { class: "doc-fmt-name", text: "Markdown" }),
+        el("span", { class: "doc-fmt-ext", text: ".md file" }),
+      ]),
+    ]),
+    el("button", {
+      type: "button",
+      class: "doc-card-dl-item",
+      onclick: (e) => {
+        e.stopPropagation();
+        dlMenu.classList.remove("open");
+        onExportFormat?.("pdf");
+      },
+    }, [
+      el("span", { class: "doc-fmt-badge pdf", text: "PDF" }),
+      el("div", { class: "doc-fmt-info" }, [
+        el("span", { class: "doc-fmt-name", text: "PDF document" }),
+        el("span", { class: "doc-fmt-ext", text: ".pdf file" }),
+      ]),
+    ]),
+    el("button", {
+      type: "button",
+      class: "doc-card-dl-item",
+      onclick: (e) => {
+        e.stopPropagation();
+        dlMenu.classList.remove("open");
+        onExportFormat?.("docx");
+      },
+    }, [
+      el("span", { class: "doc-fmt-badge docx", text: "DOCX" }),
+      el("div", { class: "doc-fmt-info" }, [
+        el("span", { class: "doc-fmt-name", text: "Word document" }),
+        el("span", { class: "doc-fmt-ext", text: ".docx file" }),
+      ]),
+    ]),
+  ]);
+
+  const dlBtn = el("button", {
+    type: "button",
+    class: "doc-card-act-btn",
+    title: "Download formats",
+    "aria-label": "Download",
+    onclick: (e) => {
+      e.stopPropagation();
+      dlMenu.classList.toggle("open");
+      if (dlMenu.classList.contains("open")) {
+        const closeMenu = (evt) => {
+          if (!dlBtn.contains(evt.target)) {
+            dlMenu.classList.remove("open");
+            document.removeEventListener("click", closeMenu);
+          }
+        };
+        setTimeout(() => document.addEventListener("click", closeMenu), 0);
+      }
+    },
+    html: icon("download", { width: 14, height: 14 }),
+  });
+
+  const dlWrap = el("div", { class: "doc-card-dl-wrap" }, [dlBtn, dlMenu]);
+
+  // More dots menu
+  const moreBtn = el("button", {
+    type: "button",
+    class: "doc-card-act-btn",
+    title: "Open full document view",
+    "aria-label": "Open document",
+    onclick: (e) => {
+      e.stopPropagation();
+      onOpenDoc?.({ title: cleanTitle, content: markdown });
+    },
+    html: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`,
+  });
+
+  const headerRight = el("div", { class: "doc-card-header-right" }, [dlWrap, moreBtn]);
+
+  const header = el("div", { class: "doc-card-header" }, [headerLeft, headerRight]);
+
+  const preview = el("div", { class: "doc-card-preview-content markdown-body" });
+  preview.innerHTML = renderMarkdown(markdown);
+
+  const fade = el("div", { class: "doc-card-fade" }, [
+    el("span", { class: "doc-card-expand-hint", text: "Click to open full document view" }),
+  ]);
+
+  const card = el("div", {
+    class: "doc-artifact-card",
+    role: "button",
+    tabindex: "0",
+    title: "Click to open full document view",
+    "aria-label": `Open document ${cleanTitle}`,
+    onclick: (e) => {
+      if (e.target.closest(".doc-card-header-right")) return;
+      onOpenDoc?.({ title: cleanTitle, content: markdown });
+    },
+    onkeydown: (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onOpenDoc?.({ title: cleanTitle, content: markdown });
+      }
+    },
+  }, [header, preview, fade]);
+
+  return card;
+}
+
 export function reasoningDetails({ reasoning, durationText = "", live = false, hasAnswerText = false }) {
   const mark = el("span", {
     class: live ? "icon-pulse" : "",
@@ -43,47 +219,59 @@ export function messageBubble({
   onRetryAssistant,
   onRenderQuiz,
   onExport,
+  onOpenDoc,
   entering = false,
 }) {
   const isAssistant = message.role === "assistant";
-
 
   let quizNode = null;
   if (isAssistant && message.quizData && onRenderQuiz) {
     quizNode = onRenderQuiz(message);
   }
 
-  // Assistant replies render through marked + highlight.js for rich markdown +
-  // code highlighting. User messages stay plain text (their content is not
-  // trusted markdown).
-  // A generated-image turn carries a short caption ("Here's your image.") above
-  // the image; tag its bubble so the background only hugs the text instead of
-  // stretching the full column width.
   const hasImageAttachment = Array.isArray(message.attachments)
     && message.attachments.some((a) => (a.content_type || "").startsWith("image/"));
 
   let reasoningNode = null;
-  let bubbleContent = null;
+  let bubbleNodes = [];
+
   if (isAssistant) {
     if (message.reasoning && message.reasoning.trim()) {
-      // Show the captured "thought for Ns" when we have it (live turns carry
-      // reasoning_seconds); otherwise no timer text. NOT a `.reasoning-timer`
-      // span — that class is driven live by the chat page and must never be
-      // attached to a finished message, or a new turn's timer overwrites it.
       const dur = message.reasoning_seconds != null ? `· ${message.reasoning_seconds}s` : "";
       reasoningNode = reasoningDetails({
         reasoning: message.reasoning,
         durationText: dur,
       });
     }
+
     if (message.content) {
-      bubbleContent = el("div", { class: `bubble markdown-body${hasImageAttachment ? " caption" : ""}`, html: renderMarkdown(message.content || "") });
+      const docArtifact = extractDocumentArtifact(message.content);
+      if (docArtifact.isDoc) {
+        if (docArtifact.introText) {
+          bubbleNodes.push(el("div", {
+            class: `bubble markdown-body${hasImageAttachment ? " caption" : ""}`,
+            html: renderMarkdown(docArtifact.introText),
+          }));
+        }
+        bubbleNodes.push(
+          docArtifactCard({
+            title: docArtifact.docTitle,
+            markdown: docArtifact.docContent,
+            onOpenDoc,
+            onExportFormat: (fmt) => onExport?.({ message, format: fmt, title: docArtifact.docTitle, content: docArtifact.docContent }),
+          })
+        );
+      } else {
+        bubbleNodes.push(el("div", {
+          class: `bubble markdown-body${hasImageAttachment ? " caption" : ""}`,
+          html: renderMarkdown(message.content || ""),
+        }));
+      }
     }
   } else {
-    bubbleContent = el("div", { class: "bubble", text: message.content });
+    bubbleNodes.push(el("div", { class: "bubble", text: message.content }));
   }
 
-  const bubble = bubbleContent;
 
   // Attachments preview. User messages show the files they sent; assistant
   // messages show generated images (Iris). Image URLs are signed and may
@@ -246,17 +434,17 @@ export function messageBubble({
 
   const bodyChildren = [];
   if (reasoningNode) bodyChildren.push(reasoningNode);
-  if (bubble) bodyChildren.push(bubble);
+  if (bubbleNodes.length) bodyChildren.push(...bubbleNodes);
   if (quizNode) bodyChildren.push(quizNode);
 
   // Long user prompts collapse behind a "Show more" toggle (assistant replies
   // always render in full).
-  if (!isAssistant && bubble && (message.content || "").length > 260) {
-    bubble.classList.add("clamped");
+  if (!isAssistant && bubbleNodes[0] && (message.content || "").length > 260) {
+    bubbleNodes[0].classList.add("clamped");
     const showMore = el("button", {
       type: "button", class: "show-more", text: "Show more",
       onclick: () => {
-        const collapsed = bubble.classList.toggle("clamped");
+        const collapsed = bubbleNodes[0].classList.toggle("clamped");
         showMore.textContent = collapsed ? "Show more" : "Show less";
       },
     });

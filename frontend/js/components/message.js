@@ -20,11 +20,17 @@ export function extractDocumentArtifact(rawContent) {
   const cleaned = stripExportDisclaimers(rawContent);
   const trimmed = cleaned.trim();
 
-  // Look for structured document headers (H1 title or multiple sections)
+  // 1. Standard markdown headers (# Title, ## Section)
   const h1Match = trimmed.match(/^(?:[\s\S]*?\n)?#\s+([^\n]+)/);
-  const headings = trimmed.match(/#{1,3}\s+[^\n]+/g) || [];
-  const hasMultipleSections = headings.length >= 2;
-  const isStructuredDoc = Boolean(h1Match || (hasMultipleSections && trimmed.length > 200));
+  const mdHeadings = trimmed.match(/#{1,3}\s+[^\n]+/g) || [];
+
+  // 2. Common uppercase or bold section patterns (e.g. PROFESSIONAL SUMMARY, TECHNICAL SKILLS, EXPERIENCE)
+  const sectionKeywords = /(?:PROFESSIONAL SUMMARY|TECHNICAL SKILLS|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EXPERIENCE|EDUCATION|PROJECTS|SKILLS|OBJECTIVE|OVERVIEW|SUMMARY|INTRODUCTION|KEY FINDINGS|METHODOLOGY|CONCLUSION|RESULTS|DISCUSSION|REFERENCES|TABLE OF CONTENTS|BACKGROUND|KEY STAGES|CHEMICAL EQUATION)/i;
+  const capsHeadingMatch = trimmed.match(/^[A-Z\s\[\]_-]{4,35}$/m);
+  const boldHeadingMatch = trimmed.match(/^\*\*[A-Za-z0-9\s:\[\]_-]{3,40}\*\*/m);
+
+  const hasSections = mdHeadings.length >= 2 || (sectionKeywords.test(trimmed) && (Boolean(capsHeadingMatch) || Boolean(boldHeadingMatch) || mdHeadings.length >= 1));
+  const isStructuredDoc = Boolean(h1Match || (hasSections && trimmed.length > 140));
 
   if (!isStructuredDoc) {
     return { isDoc: false, text: cleaned };
@@ -44,16 +50,63 @@ export function extractDocumentArtifact(rawContent) {
     };
   }
 
-  const firstHeading = trimmed.match(/^##?\s+([^\n]+)/m);
-  const title = firstHeading ? firstHeading[1].replace(/[*_`#]/g, "").trim() : "Bimo AI Document";
+  // First heading or first capitalized line / bracketed name
+  const firstHeadingMatch = trimmed.match(/^(?:[\s\S]*?\n)?(#{1,3}\s+[^\n]+|\*\*[A-Za-z0-9\s:\[\]_-]{3,40}\*\*|^\[[A-Za-z0-9\s_-]+\]|^[A-Z\s]{4,30}$)/m);
+  if (firstHeadingMatch) {
+    const headerIndex = trimmed.indexOf(firstHeadingMatch[0]);
+    const introText = headerIndex > 0 ? stripExportDisclaimers(trimmed.substring(0, headerIndex)) : "";
+    const docContent = trimmed.substring(headerIndex).trim();
+    let title = firstHeadingMatch[1].replace(/[*_`#\[\]]/g, "").trim();
+
+    return {
+      isDoc: true,
+      introText,
+      docTitle: title || "Bimo AI Document",
+      docContent,
+    };
+  }
 
   return {
     isDoc: true,
     introText: "",
-    docTitle: title,
+    docTitle: "Bimo AI Document",
     docContent: trimmed,
   };
 }
+
+export function docArtifactSkeletonCard(statusText = "Formatting and preparing document…") {
+  const docIcon = el("div", {
+    class: "doc-card-icon",
+    html: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
+  });
+
+  const titleShimmer = el("div", { class: "doc-card-skeleton-title" });
+  const headerLeft = el("div", { class: "doc-card-header-left" }, [docIcon, titleShimmer]);
+
+  const dlPlaceholder = el("div", {
+    class: "doc-card-act-btn placeholder",
+    html: `<span class="export-spinner sm"></span>`,
+  });
+  const headerRight = el("div", { class: "doc-card-header-right" }, [dlPlaceholder]);
+  const header = el("div", { class: "doc-card-header" }, [headerLeft, headerRight]);
+
+  const skeletonLines = el("div", { class: "doc-card-skeleton-body" }, [
+    el("div", { class: "skeleton-line heading" }),
+    el("div", { class: "skeleton-line sub" }),
+    el("div", { class: "skeleton-line full" }),
+    el("div", { class: "skeleton-line full" }),
+    el("div", { class: "skeleton-line medium" }),
+    el("div", { class: "skeleton-line short" }),
+    el("div", { class: "skeleton-line full" }),
+  ]);
+
+  const fade = el("div", { class: "doc-card-fade" }, [
+    el("span", { class: "doc-card-expand-hint", text: statusText }),
+  ]);
+
+  return el("div", { class: "doc-artifact-card skeleton" }, [header, skeletonLines, fade]);
+}
+
 
 
 export function docArtifactCard({

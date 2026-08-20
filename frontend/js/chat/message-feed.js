@@ -7,7 +7,7 @@
 import { el, clear } from "../utils.js?v=20";
 import { icon } from "../icons.js?v=48";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=20";
-import { messageBubble, reasoningDetails } from "../components/message.js?v=54";
+import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=54";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=1";
 
 export function emptyStreamView({ incognito } = {}) {
@@ -67,7 +67,12 @@ export function searchingBubbleNode() {
 export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   const bubble = el("div", { class: "bubble markdown-body streaming-bubble", "data-streaming": "true" });
   if (text) {
-    bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text)}</div><span class="cursor">▋</span>`;
+    const docArtifact = extractDocumentArtifact(text);
+    if (docArtifact.isDoc) {
+      bubble.append(docArtifactSkeletonCard(statusPhrase || "Formatting and preparing document…"));
+    } else {
+      bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text)}</div><span class="cursor">▋</span>`;
+    }
   } else {
     bubble.innerHTML = '<span class="cursor">▋</span>';
   }
@@ -94,7 +99,6 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
 }
 
 export class MessageFeed {
-
   constructor({
     onEditMessage,
     onRetryMessage,
@@ -150,13 +154,20 @@ export class MessageFeed {
     }
 
     if (text) {
-      bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text)}</div><span class="cursor">▋</span>`;
+      const docArtifact = extractDocumentArtifact(text);
+      if (docArtifact.isDoc) {
+        clear(bubble);
+        bubble.append(docArtifactSkeletonCard("Formatting and preparing document…"));
+      } else {
+        bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text)}</div><span class="cursor">▋</span>`;
+      }
     } else {
       bubble.innerHTML = '<span class="cursor">▋</span>';
     }
     this.scrollToBottom();
     return true;
   }
+
 
   setStreamingReasoningTimer(text) {
     this.streamInner

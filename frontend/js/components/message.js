@@ -4,12 +4,21 @@ import { avatar } from "./avatar.js?v=30";
 import { renderMarkdown } from "./markdown.js?v=30";
 import { openImageModal } from "./image-modal.js?v=30";
 
+function stripExportDisclaimers(text) {
+  if (!text) return "";
+  return text
+    .replace(/(?:I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce|download)\s+(?:a\s+)?(?:downloadable\s+)?(?:PDF|Word|DOCX|file|document)[^\n.]*\.(?:\s*However[^\n.]*\.)?|While\s+I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce)[^\n.]*\.(?:\s*you\s+can[^\n.]*\.)?)/gi, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function extractDocumentArtifact(rawContent) {
   if (!rawContent || typeof rawContent !== "string") {
     return { isDoc: false, text: rawContent || "" };
   }
 
-  const trimmed = rawContent.trim();
+  const cleaned = stripExportDisclaimers(rawContent);
+  const trimmed = cleaned.trim();
 
   // Look for structured document headers (H1 title or multiple sections)
   const h1Match = trimmed.match(/^(?:[\s\S]*?\n)?#\s+([^\n]+)/);
@@ -18,12 +27,12 @@ export function extractDocumentArtifact(rawContent) {
   const isStructuredDoc = Boolean(h1Match || (hasMultipleSections && trimmed.length > 200));
 
   if (!isStructuredDoc) {
-    return { isDoc: false, text: rawContent };
+    return { isDoc: false, text: cleaned };
   }
 
   if (h1Match) {
     const h1Index = trimmed.indexOf(h1Match[0]);
-    const introText = h1Index > 0 ? trimmed.substring(0, h1Index).trim() : "";
+    const introText = h1Index > 0 ? stripExportDisclaimers(trimmed.substring(0, h1Index)) : "";
     const docContent = trimmed.substring(h1Index).trim();
     const title = h1Match[1].replace(/[*_`#]/g, "").trim();
 
@@ -45,6 +54,7 @@ export function extractDocumentArtifact(rawContent) {
     docContent: trimmed,
   };
 }
+
 
 export function docArtifactCard({
   title,

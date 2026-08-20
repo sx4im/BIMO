@@ -33,8 +33,20 @@ function formatStamp(iso) {
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-export function messageBubble({ message, userName, userAvatarUrl, onEdit, onRetry, onFeedback, onRetryAssistant, onRenderQuiz, entering = false }) {
+export function messageBubble({
+  message,
+  userName,
+  userAvatarUrl,
+  onEdit,
+  onRetry,
+  onFeedback,
+  onRetryAssistant,
+  onRenderQuiz,
+  onExport,
+  entering = false,
+}) {
   const isAssistant = message.role === "assistant";
+
 
   let quizNode = null;
   if (isAssistant && message.quizData && onRenderQuiz) {
@@ -144,8 +156,7 @@ export function messageBubble({ message, userName, userAvatarUrl, onEdit, onRetr
   if (!isAssistant && onEdit)  actionButtons.push(actBtn("pencil", "Edit", () => onEdit(message)));
   if (message.content) actionButtons.push(copyBtn);
 
-  // Assistant replies get feedback (thumbs up/down) + regenerate. Highlight the
-  // thumb that matches any saved feedback (rating >= 4 up, <= 2 down).
+  // Assistant replies get feedback (thumbs up/down) + export menu + regenerate.
   if (isAssistant) {
     const fb = message.feedback;
     const thumbUpActive = !!fb && fb.rating >= 4;
@@ -156,10 +167,82 @@ export function messageBubble({ message, userName, userAvatarUrl, onEdit, onRetr
         actBtn("thumbsDown", "Bad response", () => onFeedback(message, "down"), { active: thumbDownActive }),
       );
     }
+
+    if (onExport && message.content) {
+      const exportBtn = actBtn("download", "Export response", (e) => {
+        e.stopPropagation();
+        const wrap = exportBtn.closest(".msg-export-wrap");
+        const menu = wrap?.querySelector(".msg-export-menu");
+        if (!menu) return;
+        const isOpen = menu.classList.toggle("open");
+        exportBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        if (isOpen) {
+          const onOutsideClick = (evt) => {
+            if (!wrap.contains(evt.target)) {
+              menu.classList.remove("open");
+              exportBtn.setAttribute("aria-expanded", "false");
+              document.removeEventListener("click", onOutsideClick);
+              document.removeEventListener("keydown", onKey);
+            }
+          };
+          const onKey = (evt) => {
+            if (evt.key === "Escape") {
+              menu.classList.remove("open");
+              exportBtn.setAttribute("aria-expanded", "false");
+              exportBtn.focus();
+              document.removeEventListener("click", onOutsideClick);
+              document.removeEventListener("keydown", onKey);
+            }
+          };
+          setTimeout(() => {
+            document.addEventListener("click", onOutsideClick);
+            document.addEventListener("keydown", onKey);
+          }, 0);
+        }
+      });
+      exportBtn.setAttribute("aria-haspopup", "true");
+      exportBtn.setAttribute("aria-expanded", "false");
+
+      const exportOptions = [
+        { id: "all", label: "Export all formats", ext: ".md · .pdf · .docx", iconName: "download" },
+        { id: "pdf", label: "PDF document", ext: ".pdf", badge: "PDF" },
+        { id: "docx", label: "Word document", ext: ".docx", badge: "DOCX" },
+        { id: "md", label: "Markdown source", ext: ".md", badge: "MD" },
+      ];
+
+      const menuItems = exportOptions.map((opt) =>
+        el("button", {
+          type: "button",
+          class: "msg-export-item",
+          onclick: (e) => {
+            e.stopPropagation();
+            const wrap = exportBtn.closest(".msg-export-wrap");
+            const menu = wrap?.querySelector(".msg-export-menu");
+            if (menu) menu.classList.remove("open");
+            exportBtn.setAttribute("aria-expanded", "false");
+            onExport({ message, format: opt.id });
+          },
+        }, [
+          opt.badge
+            ? el("span", { class: "export-item-badge", text: opt.badge })
+            : el("span", { class: "menu-lead", html: icon(opt.iconName || "download", { width: 14, height: 14 }) }),
+          el("div", { class: "menu-text" }, [
+            el("span", { class: "menu-title", text: opt.label }),
+            el("span", { class: "menu-sub", text: opt.ext }),
+          ]),
+        ])
+      );
+
+      const exportMenu = el("div", { class: "msg-export-menu", role: "menu" }, menuItems);
+      const exportWrap = el("div", { class: "msg-export-wrap" }, [exportBtn, exportMenu]);
+      actionButtons.push(exportWrap);
+    }
+
     if (onRetryAssistant) {
       actionButtons.push(actBtn("refresh", "Retry", () => onRetryAssistant(message)));
     }
   }
+
 
   const bodyChildren = [];
   if (reasoningNode) bodyChildren.push(reasoningNode);

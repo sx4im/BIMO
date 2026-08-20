@@ -17,6 +17,7 @@ import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=1";
 import { MessageFeed } from "../chat/message-feed.js?v=4";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=4";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
+import { detectExportIntent, buildCanonicalMarkdown, formatExportFilename, downloadBlob } from "../export.js?v=1";
 
 function uid(prefix = "tmp") {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -70,6 +71,8 @@ export async function renderChat({ id, incognito }) {
   // State
   let conversation = null;
   let messages = [];
+  let exportSessions = [];
+  let pendingExportIntent = null;
   let loading = false;
   let availableModels = DEFAULT_AVAILABLE_MODELS;
   let defaultModel = "fast";
@@ -103,12 +106,122 @@ export async function renderChat({ id, incognito }) {
     ]),
   ]);
 
+  // Export handlers
+  function startExportSession({ message, formats = ["md", "pdf", "docx"], title } = {}) {
+    if (!message || !message.content) {
+      toast("There is no completed response to export yet", { tone: "error" });
+      return null;
+    }
+
+    const docTitle = (title || conversation?.title || "Bimo AI response").trim();
+    const docDate = message.created_at ? new Date(message.created_at) : new Date();
+    const canonicalMarkdown = buildCanonicalMarkdown({
+      title: docTitle,
+      content: message.content,
+      date: docDate,
+    });
+
+    const sessionId = uid("export");
+    const session = {
+      id: sessionId,
+      title: docTitle,
+      targetMessageId: message.id,
+      canonicalMarkdown,
+      date: docDate,
+      formats: {
+        md: { status: "loading", blob: null, filename: formatExportFilename(docTitle, "md"), error: null },
+        pdf: { status: "loading", blob: null, filename: formatExportFilename(docTitle, "pdf"), error: null },
+        docx: { status: "loading", blob: null, filename: formatExportFilename(docTitle, "docx"), error: null },
+      },
+    };
+
+    exportSessions.push(session);
+    renderUI();
+
+    const formatsToFetch = ["md", "pdf", "docx"];
+
+    const fetchFmt = async (fmtKey) => {
+      try {
+        const blob = await api.exportDocument(auth.token, {
+          title: docTitle,
+          markdown: canonicalMarkdown,
+          format: fmtKey,
+        });
+        if (unmounted) return;
+        session.formats[fmtKey].status = "ready";
+        session.formats[fmtKey].blob = blob;
+        session.formats[fmtKey].error = null;
+      } catch (err) {
+        if (unmounted) return;
+        console.warn(`Export generation failed for ${fmtKey}:`, err);
+        session.formats[fmtKey].status = "error";
+        session.formats[fmtKey].error = err.message || `Failed to create ${fmtKey.toUpperCase()}`;
+      } finally {
+        if (!unmounted) renderUI();
+      }
+    };
+
+    Promise.all(formatsToFetch.map(fetchFmt));
+    return session;
+  }
+
+  async function retryExportFormat({ exportSession, format }) {
+    if (!exportSession || !format || !exportSession.formats[format]) return;
+    const fmtObj = exportSession.formats[format];
+    fmtObj.status = "loading";
+    fmtObj.error = null;
+    renderUI();
+
+    try {
+      const blob = await api.exportDocument(auth.token, {
+        title: exportSession.title,
+        markdown: exportSession.canonicalMarkdown,
+        format,
+      });
+      if (unmounted) return;
+      fmtObj.status = "ready";
+      fmtObj.blob = blob;
+      fmtObj.error = null;
+      toast(`${format.toUpperCase()} document ready`, { tone: "success" });
+    } catch (err) {
+      if (unmounted) return;
+      console.warn(`Retry export failed for ${format}:`, err);
+      fmtObj.status = "error";
+      fmtObj.error = err.message || `Failed to create ${format.toUpperCase()}`;
+      toast(err.message || `Failed to generate ${format.toUpperCase()}`, { tone: "error" });
+    } finally {
+      if (!unmounted) renderUI();
+    }
+  }
+
+  function downloadExportFile({ exportSession, format }) {
+    if (!exportSession || !format) return;
+    const fmtObj = exportSession.formats[format];
+    if (fmtObj?.status === "ready" && fmtObj.blob) {
+      downloadBlob(fmtObj.blob, fmtObj.filename);
+      toast(`Downloading ${format.toUpperCase()} document`, { tone: "success" });
+    } else if (fmtObj?.status === "loading") {
+      toast(`Your ${format.toUpperCase()} document is still preparing…`, { tone: "info" });
+    } else {
+      toast(`Document not ready. Please try again.`, { tone: "error" });
+    }
+  }
+
   // Message Feed
   const messageFeed = new MessageFeed({
     onEditMessage: (message) => editMessage(message),
     onRetryMessage: (message) => retryMessage(message),
     onFeedback: (message, sentiment) => handleMessageFeedback(message, sentiment),
     onRetryAssistantMessage: (assistantMsg) => retryAssistantMessage(assistantMsg),
+    onExport: ({ message, format }) => {
+      startExportSession({
+        message,
+        formats: format === "all" ? ["md", "pdf", "docx"] : [format],
+        title: conversation?.title,
+      });
+    },
+    onDownloadExport: ({ exportSession, format }) => downloadExportFile({ exportSession, format }),
+    onRetryExportFormat: ({ exportSession, format }) => retryExportFormat({ exportSession, format }),
   });
 
   // Stream Handler
@@ -161,8 +274,20 @@ export async function renderChat({ id, incognito }) {
       composer.syncSendEnabled();
       renderUI();
       loadConversations();
+
+      // If this turn had a composite export request, trigger export automatically
+      if (pendingExportIntent) {
+        const intent = pendingExportIntent;
+        pendingExportIntent = null;
+        startExportSession({
+          message: m,
+          formats: intent.formats,
+          title: conversation?.title,
+        });
+      }
     },
     onError: (err) => {
+      pendingExportIntent = null;
       toast(err.message || "Couldn't connect", { tone: "error" });
       composer.isGenerating = false;
       composer.syncSendEnabled();
@@ -177,6 +302,7 @@ export async function renderChat({ id, incognito }) {
     onOpenVoiceAssistant: () => openVoiceMode(),
     onModelChange: async (model) => {
       conversation = { ...(conversation || {}), model };
+
       if (!id) return;
       try {
         const updated = await api.updateConversation(auth.token, id, { model });
@@ -243,6 +369,7 @@ export async function renderChat({ id, incognito }) {
       statusPhrase: streamHandler.currentPhrase,
       enteringId,
       incognito,
+      exportSessions,
     });
     enteringId = null;
   }
@@ -279,12 +406,14 @@ export async function renderChat({ id, incognito }) {
   async function loadMessages() {
     if (incognito || !id) {
       messages = [];
+      exportSessions = [];
       return;
     }
     try {
       const data = await api.getMessages(auth.token, id);
       conversation = data?.conversation || null;
       messages = Array.isArray(data?.messages) ? data.messages : [];
+      exportSessions = [];
       if (conversation?.model) {
         composer.currentModel = conversation.model;
       }
@@ -309,6 +438,28 @@ export async function renderChat({ id, incognito }) {
       return;
     }
 
+    // Detect export intent
+    const exportIntent = detectExportIntent(text);
+    if (exportIntent.exportOnly && !attachments.length) {
+      const latestAssistant = [...messages].reverse().find((m) => m.role === "assistant" && m.content?.trim());
+      if (!latestAssistant) {
+        toast("There is no completed response to export yet", { tone: "error" });
+        return;
+      }
+      startExportSession({
+        message: latestAssistant,
+        formats: exportIntent.formats,
+        title: conversation?.title,
+      });
+      return;
+    }
+
+    if (exportIntent.isExport) {
+      pendingExportIntent = exportIntent;
+    } else {
+      pendingExportIntent = null;
+    }
+
     const optimisticUser = {
       id: uid(),
       role: "user",
@@ -322,6 +473,7 @@ export async function renderChat({ id, incognito }) {
     streamHandler.streamingText = "";
     streamHandler.streamingReasoning = "";
     streamHandler.currentPhrase = getRandomPhrase();
+
     composer.isGenerating = true;
     composer.syncSendEnabled();
     renderUI();
@@ -547,11 +699,14 @@ export async function renderChat({ id, incognito }) {
     id = null;
     conversation = null;
     messages = [];
+    exportSessions = [];
+    pendingExportIntent = null;
     history.replaceState(null, "", "#/app/chat");
     shell.setActiveConversation(null);
     composer.renderModelBadge(incognito);
     renderUI();
   }
+
 
   function openVoiceMode() {
     if (voiceHandle || streamHandler.isStreaming) return;

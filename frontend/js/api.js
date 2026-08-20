@@ -386,7 +386,54 @@ export async function synthesizeSpeech(token, text, { voice, language } = {}) {
   }
 }
 
+// ---------- document export ----------
+
+/**
+ * Request binary document export (.md, .pdf, .docx) from /export endpoint.
+ * Follows Supabase JWT authentication and silent session refresh on 401.
+ */
+export async function exportDocument(token, { title, markdown, format }, signal) {
+  const execute = async (t) => {
+    const response = await fetch(`${config.apiUrl}/export`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(t),
+      },
+      body: JSON.stringify({ title, markdown, format }),
+      signal,
+    });
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      const error = new Error(detail.detail || `Export failed (${response.status})`);
+      error.status = response.status;
+      throw error;
+    }
+    return response.blob();
+  };
+
+  const initialToken = getAuth().auth?.token || token;
+  try {
+    return await execute(initialToken);
+  } catch (error) {
+    if (error.status === 401) {
+      console.warn("[bimo-api] exportDocument received 401, attempting silent session refresh...");
+      try {
+        const newAuth = await refreshSession();
+        if (newAuth?.token) {
+          console.info("[bimo-api] Session refreshed successfully, retrying exportDocument...");
+          return await execute(newAuth.token);
+        }
+      } catch (refreshError) {
+        console.error("[bimo-api] Silent session refresh failed during exportDocument:", refreshError);
+      }
+    }
+    throw error;
+  }
+}
+
 // ---------- usage ----------
+
 
 export async function getUsage(token) {
   return request("/usage", { token });

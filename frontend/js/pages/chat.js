@@ -175,9 +175,11 @@ export async function renderChat({ id, incognito }) {
         id = convo.id;
         history.replaceState(null, "", `#/app/chat/${id}`);
         shell.setActiveConversation(id);
+        loadConversations();
       }
       composer.renderModelBadge(incognito);
     },
+
     onUserMessage: (m) => {
       const mid = m?.id ? String(m.id) : "";
       if (mid.startsWith("msg_pending_")) return;

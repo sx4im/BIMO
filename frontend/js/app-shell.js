@@ -210,6 +210,10 @@ function shellApi() {
       state.activeId = id || null;
       renderSidebars();
     },
+    setConversations(list) {
+      state.conversations = Array.isArray(list) ? list : [];
+      renderSidebars();
+    },
     setIncognitoActive(active) {
       const btn = nodes?.mobileIncognitoBtn;
       if (!btn) return;
@@ -226,6 +230,7 @@ function shellApi() {
     refresh: loadConversations,
   };
 }
+
 
 /**
  * Hard reset: called when the user logs out or jumps to a public route so

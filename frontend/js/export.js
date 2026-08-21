@@ -166,3 +166,84 @@ export function downloadBlob(blob, filename) {
     } catch {}
   }, 2000);
 }
+
+/**
+ * Builds a clean Word-compatible document blob from HTML markup.
+ */
+export function buildClientDocxBlob({ title, htmlContent } = {}) {
+  const cleanTitle = (title || "Bimo AI Document").trim();
+  const docHtml = `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="utf-8">
+  <title>${cleanTitle}</title>
+  <style>
+    body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1a1a1a; margin: 1in; }
+    h1 { font-size: 20pt; font-weight: bold; color: #1e3a8a; border-bottom: 1.5pt solid #3b82f6; padding-bottom: 4pt; margin-bottom: 14pt; }
+    h2 { font-size: 14pt; font-weight: bold; color: #1e293b; margin-top: 14pt; margin-bottom: 6pt; }
+    h3 { font-size: 12pt; font-weight: bold; color: #334155; margin-top: 10pt; margin-bottom: 4pt; }
+    p { margin-bottom: 8pt; }
+    ul, ol { margin-top: 4pt; margin-bottom: 8pt; padding-left: 24pt; }
+    li { margin-bottom: 3pt; }
+    table { border-collapse: collapse; width: 100%; margin-top: 8pt; margin-bottom: 12pt; }
+    th, td { border: 1pt solid #cbd5e1; padding: 6pt 8pt; text-align: left; }
+    th { background-color: #f1f5f9; font-weight: bold; }
+    code { font-family: Consolas, 'Courier New', monospace; background: #f8fafc; padding: 1pt 3pt; border-radius: 2pt; font-size: 9.5pt; }
+    pre { font-family: Consolas, 'Courier New', monospace; background: #f8fafc; border: 1pt solid #e2e8f0; padding: 8pt; font-size: 9.5pt; margin-bottom: 8pt; }
+    hr { border: 0; border-top: 1pt solid #e2e8f0; margin: 12pt 0; }
+  </style>
+</head>
+<body>
+  ${htmlContent || ""}
+</body>
+</html>`;
+  return new Blob([docHtml], { type: "application/vnd.ms-word;charset=utf-8" });
+}
+
+/**
+ * Opens a print dialog formatted for clean saving to PDF.
+ */
+export function printDocumentToPdf({ title, htmlContent } = {}) {
+  const cleanTitle = (title || "Bimo AI Document").trim();
+  const printWindow = window.open("", "_blank", "width=850,height=900");
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+  printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${cleanTitle}</title>
+  <style>
+    @page { size: A4; margin: 18mm; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #111827; background: #fff; margin: 0; padding: 20px; }
+    h1 { font-size: 22pt; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid #3b82f6; padding-bottom: 6px; }
+    h2 { font-size: 15pt; font-weight: 600; color: #1e293b; margin-top: 18px; margin-bottom: 8px; }
+    h3 { font-size: 12pt; font-weight: 600; color: #334155; margin-top: 12px; margin-bottom: 6px; }
+    p { margin-bottom: 10px; }
+    ul, ol { margin-top: 6px; margin-bottom: 12px; padding-left: 22px; }
+    li { margin-bottom: 4px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; }
+    th { background: #f3f4f6; font-weight: 600; }
+    code { font-family: monospace; background: #f3f4f6; padding: 2px 4px; border-radius: 3px; font-size: 9.5pt; }
+    pre { font-family: monospace; background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; border-radius: 4px; overflow-x: auto; margin-bottom: 12px; }
+    hr { border: 0; border-top: 1px solid #e5e7eb; margin: 16px 0; }
+    @media print {
+      body { padding: 0; }
+      @page { margin: 15mm; }
+    }
+  </style>
+</head>
+<body>
+  ${htmlContent || ""}
+  <script>
+    window.onload = () => {
+      window.print();
+    };
+  <\/script>
+</body>
+</html>`);
+  printWindow.document.close();
+}

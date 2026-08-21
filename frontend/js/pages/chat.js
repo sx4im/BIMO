@@ -18,7 +18,15 @@ import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=1";
 import { MessageFeed } from "../chat/message-feed.js?v=4";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=4";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
-import { detectExportIntent, buildCanonicalMarkdown, formatExportFilename, downloadBlob } from "../export.js?v=1";
+import {
+  detectExportIntent,
+  buildCanonicalMarkdown,
+  formatExportFilename,
+  downloadBlob,
+  buildClientDocxBlob,
+  printDocumentToPdf,
+} from "../export.js?v=1";
+
 
 
 function uid(prefix = "tmp") {
@@ -134,10 +142,22 @@ export async function renderChat({ id, incognito }) {
       downloadBlob(blob, filename);
       toast(`Downloaded ${filename}`, { tone: "success" });
     } catch (err) {
-      console.warn("Direct download failed:", err);
-      toast(err.message || `Failed to download ${format.toUpperCase()}`, { tone: "error" });
+      console.warn("Backend export failed, using instant client export:", err);
+      if (format === "docx") {
+        const htmlContent = renderMarkdown(content);
+        const docxBlob = buildClientDocxBlob({ title: docTitle, htmlContent });
+        downloadBlob(docxBlob, filename);
+        toast(`Downloaded ${filename}`, { tone: "success" });
+      } else if (format === "pdf") {
+        const htmlContent = renderMarkdown(content);
+        printDocumentToPdf({ title: docTitle, htmlContent });
+        toast(`Print dialog ready for PDF`, { tone: "info" });
+      } else {
+        toast(err.message || `Failed to download ${format.toUpperCase()}`, { tone: "error" });
+      }
     }
   }
+
 
 
   // Message Feed

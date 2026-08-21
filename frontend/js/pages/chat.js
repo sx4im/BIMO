@@ -128,11 +128,10 @@ export async function renderChat({ id, incognito }) {
       });
       const blob = new Blob([canonical], { type: "text/markdown;charset=utf-8" });
       downloadBlob(blob, filename);
-      toast(`Downloaded ${filename}`, { tone: "success" });
+      toast("Your document is ready", { tone: "success" });
       return;
     }
 
-    toast(`Preparing ${format.toUpperCase()} document…`, { tone: "info" });
     try {
       const blob = await api.exportDocument(auth.token, {
         title: docTitle,
@@ -140,23 +139,24 @@ export async function renderChat({ id, incognito }) {
         format,
       });
       downloadBlob(blob, filename);
-      toast(`Downloaded ${filename}`, { tone: "success" });
+      toast("Your document is ready", { tone: "success" });
     } catch (err) {
       console.warn("Backend export failed, using instant client export:", err);
       if (format === "docx") {
         const htmlContent = renderMarkdown(content);
         const docxBlob = buildClientDocxBlob({ title: docTitle, htmlContent });
         downloadBlob(docxBlob, filename);
-        toast(`Downloaded ${filename}`, { tone: "success" });
+        toast("Your document is ready", { tone: "success" });
       } else if (format === "pdf") {
         const htmlContent = renderMarkdown(content);
         printDocumentToPdf({ title: docTitle, htmlContent });
-        toast(`Print dialog ready for PDF`, { tone: "info" });
+        toast("Your document is ready", { tone: "success" });
       } else {
         toast(err.message || `Failed to download ${format.toUpperCase()}`, { tone: "error" });
       }
     }
   }
+
 
 
 

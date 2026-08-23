@@ -456,6 +456,16 @@ def _coerce_alternating(messages: list[dict]) -> list[dict]:
     return system + merged
 
 
+def _clean_llm_text(text: str) -> str:
+    if not text:
+        return ""
+    # Strip channel tokens e.g. <|channel|>thought, <|channel|>, <channel|>
+    text = re.sub(r"<\|channel\|>[a-zA-Z0-9_]*|<\|channel\|>|<channel\|>[a-zA-Z0-9_]*|<channel\|>", "", text)
+    # Strip any leaked syntax highlighting HTML span tags
+    text = re.sub(r"</?span[^>]*>", "", text)
+    return text
+
+
 def build_messages_for_vision(
     history: Iterable[dict],
     user_content,
@@ -470,12 +480,13 @@ def build_messages_for_vision(
         if isinstance(content, list):
             out.append({"role": role, "content": content})
         elif content:
-            out.append({"role": role, "content": str(content)})
+            out.append({"role": role, "content": _clean_llm_text(str(content))})
     out.append({"role": "user", "content": user_content})
     return _coerce_alternating(out)
 
 
-def build_continuation_messages(
+
+def build_vision_continuation_messages(
     history: Iterable[dict],
     user_content,
     *,
@@ -489,7 +500,7 @@ def build_continuation_messages(
         if isinstance(content, list):
             out.append({"role": role, "content": content})
         elif content:
-            out.append({"role": role, "content": str(content)})
+            out.append({"role": role, "content": _clean_llm_text(str(content))})
     out.append({"role": "user", "content": user_content})
     return _coerce_alternating(out)
 
@@ -512,7 +523,7 @@ def build_messages(
         if isinstance(content, list):
             out.append({"role": role, "content": content})
         elif content:
-            out.append({"role": role, "content": str(content)})
+            out.append({"role": role, "content": _clean_llm_text(str(content))})
     out.append({"role": "user", "content": user_content})
     return _coerce_alternating(out)
 
@@ -543,8 +554,14 @@ def iter_response(
     reasoning_effort: Optional[str] = None,
     thinking: bool = True,
 ) -> Iterator[dict]:
-    """Stream tokens from NVIDIA via the OpenAI SDK."""
-    chosen_model = model or default_model()
+    """Stream text chunks from the selected model via NVIDIA API.
+
+    Yields:
+        {"type": "delta", "data": str} for answer tokens
+        {"type": "reasoning_delta", "data": str} for reasoning tokens
+        {"type": "usage", "data": dict} at the end if provided
+    """
+    chosen_model = (model or default_model()).strip()
     kwargs = {}
 
     if any(k in chosen_model.lower() for k in ("deepseek", "inkling", "thinking", "mistral")):
@@ -631,6 +648,7 @@ def iter_response(
         ) from exc
 
     in_think_tag = False
+    in_channel_thought = False
     full: list[str] = []
     reasoning_full: list[str] = []
     chunk_count = 0
@@ -639,12 +657,6 @@ def iter_response(
     aeon_model_id = get_aeon_model().lower()
     is_aeon = chosen_model.lower() == aeon_model_id or "diffusiongemma" in chosen_model.lower()
     show_thought_ui = True
-
-
-    def _clean_channel_tokens(text: str) -> str:
-        if not text:
-            return ""
-        return re.sub(r"<\|channel\|>[^>]*>|<\|channel\|>|<channel\|>", "", text)
 
     try:
         for chunk in stream:
@@ -659,40 +671,78 @@ def iter_response(
             delta = getattr(choice.delta, "content", None) if choice.delta else None
             
             if reasoning:
-                reasoning_full.append(reasoning)
-                if show_thought_ui:
-                    yield {"type": "reasoning_delta", "data": reasoning}
+                clean_reasoning = _clean_llm_text(reasoning)
+                if clean_reasoning:
+                    reasoning_full.append(clean_reasoning)
+                    if show_thought_ui:
+                        yield {"type": "reasoning_delta", "data": clean_reasoning}
                 
             if delta:
-                delta = _clean_channel_tokens(delta)
+                delta = re.sub(r"</?span[^>]*>", "", delta)
 
-            if delta:
-                if "<think>" in delta:
+                if "<|channel|>thought" in delta:
+                    parts = delta.split("<|channel|>thought", 1)
+                    if parts[0]:
+                        p0 = _clean_llm_text(parts[0])
+                        if p0:
+                            full.append(p0)
+                            yield {"type": "delta", "data": p0}
+                    in_channel_thought = True
+                    delta = parts[1]
+
+                if in_channel_thought and delta:
+                    if "<|channel|>" in delta:
+                        think_part, content_part = delta.split("<|channel|>", 1)
+                        if think_part:
+                            tp = _clean_llm_text(think_part)
+                            if tp:
+                                reasoning_full.append(tp)
+                                if show_thought_ui:
+                                    yield {"type": "reasoning_delta", "data": tp}
+                        in_channel_thought = False
+                        delta = content_part
+                    else:
+                        tp = _clean_llm_text(delta)
+                        if tp:
+                            reasoning_full.append(tp)
+                            if show_thought_ui:
+                                yield {"type": "reasoning_delta", "data": tp}
+                        delta = None
+
+                if delta and "<think>" in delta:
                     parts = delta.split("<think>", 1)
                     if parts[0]:
-                        full.append(parts[0])
-                        yield {"type": "delta", "data": parts[0]}
+                        p0 = _clean_llm_text(parts[0])
+                        if p0:
+                            full.append(p0)
+                            yield {"type": "delta", "data": p0}
                     in_think_tag = True
                     delta = parts[1]
 
-                if in_think_tag:
+                if in_think_tag and delta:
                     if "</think>" in delta:
                         think_part, content_part = delta.split("</think>", 1)
                         if think_part:
-                            reasoning_full.append(think_part)
-                            if show_thought_ui:
-                                yield {"type": "reasoning_delta", "data": think_part}
+                            tp = _clean_llm_text(think_part)
+                            if tp:
+                                reasoning_full.append(tp)
+                                if show_thought_ui:
+                                    yield {"type": "reasoning_delta", "data": tp}
                         in_think_tag = False
                         delta = content_part
                     else:
-                        reasoning_full.append(delta)
-                        if show_thought_ui:
-                            yield {"type": "reasoning_delta", "data": delta}
+                        tp = _clean_llm_text(delta)
+                        if tp:
+                            reasoning_full.append(tp)
+                            if show_thought_ui:
+                                yield {"type": "reasoning_delta", "data": tp}
                         delta = None
 
             if delta:
-                full.append(delta)
-                yield {"type": "delta", "data": delta}
+                delta = _clean_llm_text(delta)
+                if delta:
+                    full.append(delta)
+                    yield {"type": "delta", "data": delta}
                 
             if choice.finish_reason:
                 got_finish = True

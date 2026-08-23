@@ -638,7 +638,8 @@ def iter_response(
 
     aeon_model_id = get_aeon_model().lower()
     is_aeon = chosen_model.lower() == aeon_model_id or "diffusiongemma" in chosen_model.lower()
-    show_thought_ui = not is_aeon
+    show_thought_ui = True
+
 
     def _clean_channel_tokens(text: str) -> str:
         if not text:

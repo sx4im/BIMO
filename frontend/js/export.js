@@ -5,6 +5,8 @@
  * detection in chat prompts, filename sanitization, and browser Blob downloads.
  */
 
+import { stripLeakedHighlightSpans } from "./components/markdown.js?v=31";
+
 export const EXPORT_FORMATS = {
   md: {
     id: "md",
@@ -114,7 +116,7 @@ export function buildCanonicalMarkdown({ title, content, date } = {}) {
     timeZoneName: "short",
   });
 
-  const body = (content || "").trim();
+  const body = stripLeakedHighlightSpans((content || "").trim());
   const startsWithH1 = body.startsWith(`# ${cleanTitle}`);
 
   const headerParts = [];

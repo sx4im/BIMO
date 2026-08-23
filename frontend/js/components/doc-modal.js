@@ -5,7 +5,7 @@
 
 import { el } from "../utils.js?v=20";
 import { icon, formatDocIcon } from "../icons.js?v=48";
-import { renderMarkdown } from "./markdown.js?v=20";
+import { renderMarkdown } from "./markdown.js?v=31";
 import { toast } from "./toast.js?v=20";
 
 export function openDocViewerModal({

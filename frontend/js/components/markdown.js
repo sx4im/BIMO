@@ -159,6 +159,58 @@ function decorateCodeBlocks(html) {
   return html.replace(/<\/code><\/pre>/g, "</code></pre></div>");
 }
 
+// ---------------------------------------------------------------------------
+// Leaked highlight.js markup scrub.
+//
+// The upstream model sometimes pastes PRE-RENDERED highlight.js output into
+// its code fences instead of plain source:
+//   raw form:     <span class="hljs-keyword">int</span>
+//   escaped form: &lt;span class=&quot;hljs-keyword&quot;&gt;int&lt;/span&gt;
+// If rendered as-is, marked escapes it again and the user sees literal span
+// tags. hljs also entity-escapes the code itself (&lt;iostream&gt;), so once
+// a leak is proven every remaining entity is decoded back to source chars.
+// Runs on every render, which also heals old messages already stored with
+// leaked markup. Mirrors backend nvidia_client._strip_leaked_highlight_spans.
+// ---------------------------------------------------------------------------
+const HLJS_SPAN_RE = /<\/?span\b[^>]*>/gi;
+const HLJS_ESCAPED_SPAN_RE = /&(?:amp;|)lt;(?:amp;|)\s*span\b/i;
+
+function decodeEntities(text) {
+  const el = document.createElement("textarea");
+  el.innerHTML = text;
+  return el.value;
+}
+
+function stripLeakedHighlightSpans(text) {
+  if (!text || (text.toLowerCase().indexOf("span") === -1 && text.indexOf("&") === -1)) {
+    return text;
+  }
+  let leaked = false;
+  let prev = null;
+  while (prev !== text) {
+    prev = text;
+    const stripped = text.replace(HLJS_SPAN_RE, "");
+    if (stripped !== text) {
+      text = stripped;          // removed a raw <span ...> layer
+      leaked = true;
+      continue;
+    }
+    if (HLJS_ESCAPED_SPAN_RE.test(text)) {
+      text = decodeEntities(text); // reveal an entity-escaped layer
+      leaked = true;
+      continue;
+    }
+    break;
+  }
+  if (!leaked) return text;
+  // Decode whatever the highlighter escaped inside the leaked markup.
+  return decodeEntities(text);
+}
+
+// Re-exported for consumers that handle raw message text outside the render
+// path (e.g. export.js building downloadable documents).
+export { stripLeakedHighlightSpans };
+
 const BLOCK_PREFIX = "MATHBLOCK_";
 const INLINE_PREFIX = "MATHINLINE_";
 const SUFFIX = "_END";
@@ -310,6 +362,10 @@ function plainFallback(content) {
 }
 
 export function renderMarkdown(content) {
+  if (!content) return "";
+  // Scrub leaked highlight.js markup BEFORE markdown parsing — heals both
+  // live streams and legacy rows already stored with the pollution.
+  content = stripLeakedHighlightSpans(String(content));
   if (!content) return "";
   if (!lib) {
     ensureMarkdown(); // kick/keep the background load going

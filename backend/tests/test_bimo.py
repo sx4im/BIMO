@@ -702,3 +702,71 @@ def test_rate_limit_key_isolation(client):
         assert _rate_limit_key().startswith("ip:")
 
 
+
+
+# --------------------------------------------------------------------------
+# Leaked highlight.js span scrubbing (nvidia_client.sanitize_reply)
+#
+# The upstream model sometimes pastes pre-rendered highlight.js output into
+# code fences instead of plain source, both raw and entity-escaped. See the
+# issue ticket: code blocks rendered literal `<span class="hljs-*">` text.
+# --------------------------------------------------------------------------
+
+from app.nvidia_client import _clean_llm_text, sanitize_reply
+
+
+def test_strip_raw_hljs_spans():
+    src = '<span class="hljs-meta">#</span>include <vector>'
+    assert _clean_llm_text(src) == "#include <vector>"
+
+
+def test_strip_nested_raw_hljs_spans():
+    src = (
+        '<span class="hljs-meta">#<span class="hljs-keyword">include</span>'
+        '</span> main'
+    )
+    assert _clean_llm_text(src) == "#include main"
+
+
+def test_strip_entity_escaped_hljs_spans_and_decode_inner_entities():
+    # The escaped-span variant: hljs output arrived as literal text.
+    src = '&lt;span class=&quot;hljs-keyword&quot;&gt;int&lt;/span&gt; x;'
+    assert _clean_llm_text(src) == "int x;"
+
+
+def test_screenshot_leak_full_shape():
+    # Exact shape from the bug report screenshot.
+    src = (
+        '<span class="hljs-meta">#<span class="hljs-keyword">include</span> '
+        '<span class="hljs-string">&lt;iostream&gt;</span></span>\n'
+        '<span class="hljs-keyword">struct</span>'
+    )
+    assert sanitize_reply(src) == "#include <iostream>\nstruct"
+
+
+def test_split_chunk_span_is_cleaned_once_assembled():
+    # A span split across two SSE chunks: per-chunk cleaning can't catch it,
+    # the final sanitize_reply() pass must.
+    assembled = '<span cla' + 'ss="hljs-keyword">struct</span> Node {'
+    assert sanitize_reply(assembled) == "struct Node {"
+
+
+def test_legit_code_without_spans_untouched():
+    src = "```cpp\n#include <iostream>\nint main() { return 0; }\n```"
+    assert _clean_llm_text(src) == src
+
+
+def test_entities_without_span_evidence_untouched():
+    # No leak proven -> text must be byte-identical (no entity decoding).
+    src = "a &lt; b and c &gt; d &amp; e"
+    assert _clean_llm_text(src) == src
+
+
+def test_plain_text_untouched():
+    for src in ("plain text", "", "<b>bold prose</b>"):
+        assert _clean_llm_text(src) == src
+
+
+def test_channel_tokens_still_stripped_alongside_spans():
+    src = '<|channel|>thought<|channel|><span class="hljs-keyword">int</span> x'
+    assert _clean_llm_text(src) == "int x"

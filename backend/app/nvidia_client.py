@@ -18,6 +18,7 @@ parts) — the SDK forwards them unchanged.
 from __future__ import annotations
 
 import base64
+import html
 import io
 import logging
 import os
@@ -456,13 +457,67 @@ def _coerce_alternating(messages: list[dict]) -> list[dict]:
     return system + merged
 
 
+_SPAN_RE = re.compile(r"</?span\b[^>]*>", re.IGNORECASE)
+
+# A span opener hiding behind HTML entities: &lt;span / &#60;span etc. The
+# optional "amp;" catches the double-escaped "&amp;lt;span" form too.
+_ESCAPED_SPAN_RE = re.compile(r"&(?:amp;|)lt;(?:amp;|)\s*span\b", re.IGNORECASE)
+
+
+def sanitize_reply(text: str) -> str:
+    """Final-pass cleaner for COMPLETE assistant replies.
+
+    Runs once over the assembled reply (after SSE chunks are joined back into
+    contiguous markup): strip raw + entity-escaped highlight.js spans. Entities
+    outside deleted spans are never decoded, so legitimate escaped source like
+    ``#include &lt;iostream&gt;`` survives untouched.
+    """
+    if not text:
+        return text
+    return _strip_leaked_highlight_spans(text)
+
+
+def _strip_leaked_highlight_spans(text: str) -> str:
+    """Remove leaked highlight.js span markup — raw and entity-escaped forms.
+
+    The upstream model occasionally pastes pre-rendered highlight.js output
+    into its markdown code fences, either as raw HTML or as entity-escaped
+    literal text (&lt;span class=...&gt;). hljs also entity-escapes the code
+    itself (&lt;vector&gt;), so once a leak is PROVEN every remaining entity
+    in the text is treated as highlighter serialization and decoded back to
+    the original source characters. Text without any span evidence is returned
+    byte-identical.
+    """
+    if not text or ("span" not in text.lower() and "&" not in text):
+        return text
+
+    leaked = False
+    prev = None
+    while prev != text:
+        prev = text
+        stripped = _SPAN_RE.sub("", text)
+        if stripped != text:
+            text = stripped          # removed a raw <span ...> layer
+            leaked = True
+            continue
+        if _ESCAPED_SPAN_RE.search(text):
+            text = html.unescape(text)  # reveal an entity-escaped layer
+            leaked = True
+            continue
+        break
+
+    if not leaked:
+        return text
+    # Decode whatever the highlighter escaped inside the leaked markup.
+    return html.unescape(text)
+
+
 def _clean_llm_text(text: str) -> str:
     if not text:
         return ""
     # Strip channel tokens e.g. <|channel|>thought, <|channel|>, <channel|>
     text = re.sub(r"<\|channel\|>[a-zA-Z0-9_]*|<\|channel\|>|<channel\|>[a-zA-Z0-9_]*|<channel\|>", "", text)
-    # Strip any leaked syntax highlighting HTML span tags
-    text = re.sub(r"</?span[^>]*>", "", text)
+    text = _strip_leaked_highlight_spans(text)
     return text
 
 
@@ -678,7 +733,7 @@ def iter_response(
                         yield {"type": "reasoning_delta", "data": clean_reasoning}
                 
             if delta:
-                delta = re.sub(r"</?span[^>]*>", "", delta)
+                delta = _strip_leaked_highlight_spans(delta)
 
                 if "<|channel|>thought" in delta:
                     parts = delta.split("<|channel|>thought", 1)

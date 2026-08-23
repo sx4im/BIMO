@@ -1,7 +1,7 @@
 import { el } from "../utils.js?v=30";
 import { icon, formatDocIcon } from "../icons.js?v=30";
 import { avatar } from "./avatar.js?v=30";
-import { renderMarkdown } from "./markdown.js?v=30";
+import { renderMarkdown } from "./markdown.js?v=31";
 import { openImageModal } from "./image-modal.js?v=30";
 
 function stripExportDisclaimers(text) {

@@ -6,9 +6,9 @@
 
 import { el, clear } from "../utils.js?v=20";
 import { icon } from "../icons.js?v=48";
-import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=20";
-import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=54";
-import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=1";
+import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
+import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=55";
+import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {

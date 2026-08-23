@@ -517,6 +517,12 @@ def chat(user):
                     yield sse_event({"type": "token", "data": {"delta": error_note}})
                     continue
 
+            # Final pass over the assembled reply: catch highlight.js markup
+            # that arrived split across SSE chunks and decode entities the
+            # highlighter escaped. Covers persist, incognito payload and the
+            # title snapshot in one place.
+            full_reply = nvidia_client.sanitize_reply(full_reply)
+
             if not full_reply.strip():
                 full_reply = (
                     "I received your document but wasn't able to generate a response. "

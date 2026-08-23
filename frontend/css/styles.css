@@ -6700,17 +6700,26 @@ em { font-style: normal; }
   line-height: 1.3;
 }
 
-.doc-modal-meta {
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.3;
-}
-
 .doc-modal-header-right {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* Icon-only action buttons on narrow screens: the labeled Copy/Download
+   buttons don't fit beside the title on phones, which squeezed the title
+   into an overlap. Labels and the dropdown arrow are hidden and the
+   buttons collapse to icons (aria-labels keep them accessible). */
+@media (max-width: 600px) {
+  .doc-modal-action-btn .doc-modal-btn-label,
+  .doc-modal-action-btn .arrow-icon {
+    display: none;
+  }
+
+  .doc-modal-action-btn {
+    padding: 8px;
+  }
 }
 
 .doc-modal-action-btn {

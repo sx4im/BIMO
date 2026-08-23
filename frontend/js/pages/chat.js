@@ -11,7 +11,7 @@ import { mountAppShell } from "../app-shell.js?v=68";
 import { toast } from "../components/toast.js?v=57";
 import { whenMarkdownReady } from "../components/markdown.js?v=31";
 import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
-import { openDocViewerModal } from "../components/doc-modal.js?v=2";
+import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=1";

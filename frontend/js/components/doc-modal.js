@@ -26,7 +26,6 @@ export function openDocViewerModal({
 
   const headerInfo = el("div", { class: "doc-modal-header-info" }, [
     el("h2", { class: "doc-modal-title", text: cleanTitle }),
-    el("div", { class: "doc-modal-meta", text: "AI-generated document · Markdown source · Ready to export" }),
   ]);
 
   const headerLeft = el("div", { class: "doc-modal-header-left" }, [docIcon, headerInfo]);
@@ -46,8 +45,8 @@ export function openDocViewerModal({
       }
     },
   }, [
-    el("span", { html: icon("copy", { width: 15, height: 15 }) }),
-    el("span", { text: "Copy" }),
+    el("span", { class: "doc-modal-btn-icon", html: icon("copy", { width: 15, height: 15 }) }),
+    el("span", { class: "doc-modal-btn-label", text: "Copy" }),
   ]);
 
   // Download Dropdown Action
@@ -102,8 +101,8 @@ export function openDocViewerModal({
         dlMenu.classList.toggle("open");
       },
     }, [
-      el("span", { html: icon("download", { width: 15, height: 15 }) }),
-      el("span", { text: "Download" }),
+      el("span", { class: "doc-modal-btn-icon", html: icon("download", { width: 15, height: 15 }) }),
+      el("span", { class: "doc-modal-btn-label", text: "Download" }),
       el("span", { class: "arrow-icon", html: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>` }),
     ]),
     dlMenu,

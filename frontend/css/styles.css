@@ -4763,11 +4763,10 @@ em { font-style: normal; }
 }
 /* Code block card: header bar (language + copy) fused to the code surface */
 .markdown-body .code-block {
-  margin: 14px 0;
-  border-radius: 12px;
+  margin: 12px 0;
+  border-radius: var(--r-md);
   overflow: hidden;
   background: var(--surface-dark);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .markdown-body .code-block-head {
@@ -4811,7 +4810,6 @@ em { font-style: normal; }
   background: transparent;
   color: var(--on-dark);
   border-radius: 0;
-  border: none;
   padding: 14px 16px;
   overflow-x: auto;
   margin: 0;

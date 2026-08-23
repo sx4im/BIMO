@@ -15,7 +15,6 @@ import { escapeHtml } from "../utils.js?v=30";
 
 const CDN = {
   marked: "https://esm.sh/marked@13",
-  markedHighlight: "https://esm.sh/marked-highlight@2",
   hljs: "https://esm.sh/highlight.js@11.10.0",
   dompurify: "https://esm.sh/dompurify@3.1.7",
   katex: "https://esm.sh/katex@0.16",
@@ -71,39 +70,40 @@ export function ensureMarkdown() {
   if (loadPromise) return loadPromise;
   loadPromise = Promise.all([
     import(CDN.marked),
-    import(CDN.markedHighlight),
     import(CDN.hljs),
     import(CDN.dompurify),
     import(CDN.katex),
   ])
-    .then(([m, mh, hl, dp, kt]) => {
+    .then(([m, hl, dp, kt]) => {
       const marked = m.marked || m.default;
-      const markedHighlight = mh.markedHighlight || mh.default;
       const hljs = hl.default || hl;
       const DOMPurify = dp.default || dp;
       const katex = kt.default || kt;
 
-      marked.use(
-        markedHighlight({
-          langPrefix: "hljs language-",
-          highlight(code, lang) {
-            const language = lang && hljs.getLanguage(lang) ? lang : "plaintext";
-            const cleanCode = (code || "")
-              .replace(/&amp;/g, "&")
-              .replace(/&lt;/g, "<")
-              .replace(/&gt;/g, ">")
-              .replace(/&quot;/g, '"')
-              .replace(/&#39;|&#x27;/g, "'")
-              .replace(/&apos;/g, "'");
-            try {
-              return hljs.highlight(cleanCode, { language, ignoreIllegals: true }).value;
-            } catch {
-              return cleanCode;
-            }
-          },
-        })
-      );
+
+      const renderer = {
+        code({ text, lang }) {
+          const language = lang && hljs.getLanguage(lang) ? lang : "plaintext";
+          const cleanCode = (text || "")
+            .replace(/&amp;/g, "&")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;|&#x27;/g, "'")
+            .replace(/&apos;/g, "'");
+          let highlighted = cleanCode;
+          try {
+            highlighted = hljs.highlight(cleanCode, { language, ignoreIllegals: true }).value;
+          } catch {
+            highlighted = cleanCode;
+          }
+          return `<pre><code class="hljs language-${lang || ""}">${highlighted}</code></pre>\n`;
+        },
+      };
+
+      marked.use({ renderer });
       marked.setOptions({ gfm: true, breaks: false });
+
 
 
       injectKatexCss();

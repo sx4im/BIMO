@@ -83,11 +83,12 @@ DEFAULT_SYSTEM_PROMPT = (
     "- Avoid the long em dash (—). Use a comma, period, parentheses, or a "
     "colon instead. A normal hyphen in compound words is fine.\n"
     "- Start with the answer immediately, no filler ('Sure!', 'Here is...').\n"
-    "- Code in fenced blocks with language tags.\n"
+    "- Code in fenced blocks with language tags (e.g. ```html, ```python, ```javascript, ```css). ALWAYS write raw code directly inside code blocks (never convert code into HTML entities like &lt; or &gt;).\n"
     "- Be clear, friendly, and direct. Match depth to the question: give a "
     "complete, well-structured answer — never cut an explanation short or "
     "stop mid-thought to save space. Brief for simple asks, thorough for "
     "real ones.\n\n"
+
 
 
     "MATH & SCIENCE (strict): Wrap every symbol, variable, equation, and "

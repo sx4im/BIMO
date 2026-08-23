@@ -88,15 +88,23 @@ export function ensureMarkdown() {
           langPrefix: "hljs language-",
           highlight(code, lang) {
             const language = lang && hljs.getLanguage(lang) ? lang : "plaintext";
+            const cleanCode = (code || "")
+              .replace(/&amp;/g, "&")
+              .replace(/&lt;/g, "<")
+              .replace(/&gt;/g, ">")
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;|&#x27;/g, "'")
+              .replace(/&apos;/g, "'");
             try {
-              return hljs.highlight(code, { language, ignoreIllegals: true }).value;
+              return hljs.highlight(cleanCode, { language, ignoreIllegals: true }).value;
             } catch {
-              return code;
+              return cleanCode;
             }
           },
         })
       );
       marked.setOptions({ gfm: true, breaks: false });
+
 
       injectKatexCss();
       ensureCodeCopyHandler();

@@ -15,7 +15,7 @@ import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=2";
-import { MessageFeed } from "../chat/message-feed.js?v=11";
+import { MessageFeed } from "../chat/message-feed.js?v=12";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=4";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {
@@ -273,6 +273,28 @@ export async function renderChat({ id, incognito }) {
   page.append(header, messageFeed.element, composer.element, ...composer.dropdownElements);
   host.append(page);
   messageFeed.mountScrollFollower(); // permanent pin/free-scroll + jump button
+
+  // Touch devices have no hardware keyboard — raise the on-screen one right
+  // away like claude.ai/ChatGPT do, so the app is immediately typeable.
+  // A load-time focus() works on Android; iOS Safari only honours focus
+  // inside a user gesture, so fall back to the first tap OUTSIDE the message
+  // stream (tapping a message must stay text-selection, not keyboard).
+  (function raiseKeyboardOnTouch() {
+    const coarse = window.matchMedia?.("(pointer: coarse)")?.matches || navigator.maxTouchPoints > 0;
+    if (!coarse) return;
+    const ta = composer.textarea;
+    const attempt = () => { try { ta.focus(); } catch { /* detached */ } };
+    setTimeout(attempt, 350); // let layout settle first
+    const gestureFocus = (e) => {
+      if (e.target?.closest?.(".chat-stream")) return;
+      attempt();
+      document.removeEventListener("touchend", gestureFocus);
+      document.removeEventListener("mousedown", gestureFocus);
+    };
+    document.addEventListener("touchend", gestureFocus, { passive: true });
+    document.addEventListener("mousedown", gestureFocus);
+  })();
+
 
   shell.setIncognitoActive?.(Boolean(incognito));
 

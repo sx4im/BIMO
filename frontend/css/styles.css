@@ -150,10 +150,13 @@
 :root[data-theme="dark"] .feedback-textarea,
 :root[data-theme="dark"] .settings-input,
 :root[data-theme="dark"] .input,
-:root[data-theme="dark"] .composer-box,
 :root[data-theme="dark"] .chat-search-card {
   background: var(--canvas);
 }
+/* NOTE: .composer-box deliberately NOT in this group — its background is
+   var(--input-bar) (#20201f, one step above the canvas, like claude.ai).
+   Putting it here silently flattened the composer onto the page bg. */
+
 
 /* Opaque floaters — must cover the content behind them. */
 :root[data-theme="dark"] .model-dropdown,

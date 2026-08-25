@@ -29,13 +29,30 @@ export class ScrollFollower {
     this.pinned = true;
     this.button = null;
 
+    this._lastTop = typeof scroller?.scrollTop === "number" ? scroller.scrollTop : null;
+
     this._onScroll = () => {
       const el = this.scroller;
       if (!el) return;
+      // Only a genuine USER upward scroll may detach the pin. Non-user
+      // scrolls (programmatic writes, mobile URL-bar collapse, viewport
+      // resizes) also fire scroll events while "not at bottom" — treating
+      // those as user intent silently killed auto-scroll mid-response.
       const atBottom =
         el.scrollHeight - el.scrollTop - el.clientHeight <= PIN_THRESHOLD;
-      if (!atBottom && this.pinned) this.detach();
-      else if (atBottom && !this.pinned) this.attach();
+      const goingUp = this._lastTop != null && el.scrollTop < this._lastTop - 1;
+
+      if (atBottom) {
+        // Arrived (or stayed) at the bottom — (re-)pin. This is the ONLY
+        // path back to pinned, so a user gliding down manually is never
+        // teleported mid-scroll, and mobile URL-bar resizes can't fake it.
+        if (!this.pinned) this.attach();
+      } else if (goingUp && this.pinned) {
+        this.detach();
+      }
+      // Anything else (downward drift, programmatic writes, resize jitter):
+      // leave the current state untouched.
+      this._lastTop = el.scrollTop;
     };
 
     // Keep the button centred over the composer across viewport changes.

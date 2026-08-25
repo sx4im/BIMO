@@ -6,8 +6,9 @@
 
 import { el, clear } from "../utils.js?v=20";
 import { icon } from "../icons.js?v=48";
+import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
-import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=55";
+import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=56";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
 
 export function emptyStreamView({ incognito } = {}) {
@@ -57,7 +58,7 @@ export function searchingBubbleNode() {
   return el("article", { class: "message assistant searching" }, [
     el("div", { class: "body" }, [
       el("div", { class: "bubble search-bubble" }, [
-        el("span", { class: "icon-pulse", html: icon("globe", { width: 15, height: 15 }) }),
+        el("span", { class: "orb-slot" }, [searchOrb(16)]),
         el("span", { class: "search-label", text: "Searching the web" }),
       ]),
     ]),

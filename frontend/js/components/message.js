@@ -1,4 +1,5 @@
-import { el } from "../utils.js?v=30";
+import { el, clear } from "../utils.js?v=30";
+import { thoughtOrb } from "./orb.js?v=1";
 import { icon, formatDocIcon } from "../icons.js?v=30";
 import { avatar } from "./avatar.js?v=30";
 import { renderMarkdown } from "./markdown.js?v=31";
@@ -220,10 +221,12 @@ export function docArtifactCard({
 }
 
 export function reasoningDetails({ reasoning, durationText = "", live = false, hasAnswerText = false }) {
-  const mark = el("span", {
-    class: live ? "icon-pulse" : "",
-    html: icon("brain", { width: 14, height: 14 }),
-  });
+  const mark = el("span", { class: live ? "icon-pulse orb-slot" : "orb-slot" });
+  // Composing orb replaces the brain glyph — animated while reasoning is
+  // streaming in, frozen on its current frame once the turn completes.
+  const orb = thoughtOrb(14);
+  if (!live) orb.setAttribute("paused", "");
+  mark.append(orb);
   const timer = el("span", {
     class: live ? "reasoning-timer" : "reasoning-duration",
     text: durationText,

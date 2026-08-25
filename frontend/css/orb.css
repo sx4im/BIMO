@@ -1,0 +1,22 @@
+/* thinking-orb elements — inline slots for the chat status rows.
+   The <thinking-orb> element is display:inline-flex (set by the runtime);
+   these slots keep it aligned to the text line and prevent flex squashing.
+   The orbs animate themselves (canvas) — no CSS keyframes needed here. */
+
+.reasoning-block summary .orb-slot,
+.search-bubble .orb-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reasoning-block summary .orb-slot {
+  width: 14px;
+  height: 14px;
+}
+
+.search-bubble .orb-slot {
+  width: 16px;
+  height: 16px;
+}

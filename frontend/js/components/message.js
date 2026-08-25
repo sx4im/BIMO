@@ -232,8 +232,7 @@ export function reasoningDetails({ reasoning, durationText = "", live = false, h
     text: durationText,
   });
   const summary = el("summary", {}, [mark, " Thought Process ", timer]);
-  const html = `${renderMarkdown(reasoning)}${live && !hasAnswerText ? '<span class="cursor reasoning-cursor">▋</span>' : ""}`;
-  const content = el("div", { class: "reasoning-content markdown-body", html });
+  const content = el("div", { class: "reasoning-content markdown-body" });
   return el("details", { class: "reasoning-block" }, [summary, content]);
 }
 

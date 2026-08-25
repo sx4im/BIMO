@@ -14,34 +14,35 @@
  *   3. Tail-only work — only the open tail chunk is re-parsed per frame,
  *                       and its HTML is diffed against the previous write
  *                       so idle frames cost nothing.
- *   4. Smooth reveal  — an eternal bottom-fade mask on the streaming text:
- *                       the newest line's last pixels are translucent and
- *                       solidify as the next content pushes up. Characters
- *                       glide in instead of popping per SSE chunk (the old
- *                       per-token "chunk pop"). The caret sits OUTSIDE the
- *                       masked wrap so it never fades.
- *   5. Free scrolling — auto-scroll happens ONLY while the user is at/near
- *                       the bottom. Scrolling up during generation detaches
- *                       the pin; a floating "↓ Latest" pill brings them
- *                       back. Mirrors Claude / ChatGPT behavior.
+ *   4. Typewriter     — rendered text chases arrived text each frame
+ *                       (floor speed + proportional drain), so bursts flow
+ *                       out as one steady stream instead of chunk pops.
+ *   5. Single caret   — at most ONE orange ▋ exists, always at the very
+ *                       end of the newest rendered text. It is appended
+ *                       after the tail div and MOVED on every frame; it is
+ *                       never baked into block HTML, so retired blocks can
+ *                       never carry one. Any caret glyph that leaked into
+ *                       the model's text itself is scrubbed before render.
+ *   6. Free scrolling — auto-scroll pins ONLY while the user is at/near the
+ *                       bottom; scrolling up detaches (with a floating
+ *                       "↓ Latest" pill to return).
  *
- * Visual output matches the previous implementation: same bubble classes,
- * same reasoning block, same skeleton-card path for document artifacts.
- * When the turn settles, chat.js re-renders the canonical message from
- * stored text as before.
+ * Visual output matches the previous implementation otherwise: same bubble
+ * classes, same reasoning block, same skeleton-card path for document
+ * artifacts. When the turn settles, chat.js re-renders the canonical
+ * message from stored text as before.
  */
 
 import { renderMarkdown } from "../components/markdown.js?v=31";
-import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=56";
+import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=57";
 import { splitStreamBlocks } from "./stream-splitter.js?v=1";
+import { CARET_HTML, stripStrayCursors } from "./caret.js?v=1";
 import { el, clear } from "../utils.js?v=30";
 
-const CURSOR_HTML = '<span class="cursor">▋</span>';
 const PIN_THRESHOLD = 140;   // px above the bottom that still counts as "at the bottom"
-// Typewriter pacing: rendered text chases the arrived text each frame — a
-// floor speed keeps slow drips flowing, proportional drain eats bursts fast,
-// so output reads as one steady stream instead of per-chunk pops. Drain
-// constant ≈ exponential catch-up with a ~130 ms time constant.
+// Typewriter pacing: floor speed keeps slow drips flowing; proportional
+// drain eats bursts fast (~130ms exponential catch-up time constant) so
+// output reads as one steady stream instead of per-chunk pops.
 const TYPE_MIN_STEP = 2.0;   // chars/frame floor (~120 cps @60Hz)
 const TYPE_DRAIN = 0.12;     // fraction of the remaining backlog consumed per frame
 
@@ -54,14 +55,16 @@ export class StreamingRenderer {
   constructor(bubble) {
     this.bubble = bubble;
 
-    // One container holds every block chunk; the caret sits beside it,
-    // outside the masked wrap.
     this.blocksWrap = el("div", { class: "stream-blocks" });
     this.cursor = el("span");
     this.cursor.className = "cursor";
     this.cursor.textContent = "▋";
     clear(bubble);
-    bubble.append(this.blocksWrap, this.cursor);
+    // The caret lives INSIDE blocksWrap, after the tail block, so it sits
+    // exactly at the text edge — and moves every frame instead of being
+    // baked into any block's HTML.
+    bubble.append(this.blocksWrap);
+    this.blocksWrap.append(this.cursor);
 
     this.blockEls = [];      // frozen <div> per closed chunk
     this.tailEl = null;      // open chunk (re-parsed per frame)
@@ -69,14 +72,12 @@ export class StreamingRenderer {
     this.reasoningEl = null;
     this.framePending = false;
 
-    // Typewriter pacing state: how much of the ARRIVED text is rendered.
-    // Rendered length only grows; the gap to arrived length shrinks each
-    // frame, which produces the steady character-flow feel.
+    // Typewriter pacing state.
     this.renderedChars = 0;
 
     // Scroll pinning state.
     this.feed = null;        // owning MessageFeed (provides .element)
-    this.pinned = true;      // user is "at the bottom" -> follow the stream
+    this.pinned = true;
     this.jumpPill = null;
     this._hookedEl = null;
 
@@ -101,8 +102,7 @@ export class StreamingRenderer {
   update(text, reasoning = "") {
     const docArtifact = extractDocumentArtifact(text || "");
     if (docArtifact.isDoc) {
-      // Document artifact: swap to the skeleton card, like before — but only
-      // once, not on every token.
+      // Document artifact: swap to the skeleton card once, not per token.
       if (this.framePending) {
         cancelAnimationFrame(this.framePending);
         this.framePending = false;
@@ -112,7 +112,6 @@ export class StreamingRenderer {
         this.skeletonShown = true;
         clear(this.bubble);
         this.bubble.append(docArtifactSkeletonCard("Formatting and preparing document…"));
-        this.cursor.remove(); // old behaviour: no caret next to the skeleton
       }
       return true;
     }
@@ -128,7 +127,7 @@ export class StreamingRenderer {
     return true;
   }
 
-  /** Final synchronous paint: close every chunk, drop caret + pill. */
+  /** Final synchronous paint: close every chunk, drop the caret + pill. */
   finish(text, reasoning = "") {
     if (this.framePending) {
       cancelAnimationFrame(this.framePending);
@@ -206,8 +205,7 @@ export class StreamingRenderer {
 
   /**
    * One animation frame of the typewriter loop: advance the rendered length
-   * toward the arrived length (floor speed + proportional drain), paint, and
-   * re-schedule while a backlog remains.
+   * toward the arrived length, paint, and re-schedule while backlog remains.
    */
   _tick() {
     this.framePending = false;
@@ -216,14 +214,10 @@ export class StreamingRenderer {
     const arrived = (this.pendingText ?? "").length;
     const gap = arrived - this.renderedChars;
     if (gap > 0) {
-      // Steady drain: constant floor speed, plus proportional catch-up so a
-      // big burst never lags far behind.
       const step = Math.max(TYPE_MIN_STEP, gap * TYPE_DRAIN);
       const target = Math.min(arrived, Math.floor(this.renderedChars + step));
       this._flush(target);
       if (!this.done && gap - step > 0.5) {
-        // Backlog remains — keep the typewriter flowing without waiting for
-        // the next network token.
         this.framePending = requestAnimationFrame(() => this._tick());
       }
     } else {
@@ -241,7 +235,7 @@ export class StreamingRenderer {
     if (this.done) return;
     if (!this.bubble.isConnected) return; // feed re-rendered; drop stale writes
 
-    const text = (this.pendingText ?? "").slice(0, Math.max(0, targetChars));
+    const text = stripStrayCursors((this.pendingText ?? "").slice(0, Math.max(0, targetChars)));
     const reasoning = this.pendingReasoning ?? "";
 
     this._updateReasoning(reasoning, Boolean(text));
@@ -254,39 +248,46 @@ export class StreamingRenderer {
         this.tailSrc = "";
       }
       this.renderedChars = 0;
+      this._ensureScrollHook();
       return;
     }
 
     const blocks = splitStreamBlocks(text);
 
-    // Freeze every newly-closed chunk (parse once, never again).
+    // Freeze every newly-closed chunk (parse once, never again). The old
+    // tail div is RETIRED here — its text now lives inside the frozen block,
+    // and leaving it attached would duplicate the text (and strand its caret).
     for (let i = this.blockEls.length; i < blocks.length - 1; i++) {
       const div = el("div", { class: "stream-block" });
       div.innerHTML = renderMarkdown(blocks[i]);
-      this.blocksWrap.append(div);
+      if (this.tailEl?.isConnected) {
+        this.tailEl.remove();
+        this.tailEl = null;
+        this.tailSrc = null;
+      }
+      this.blocksWrap.insertBefore(div, this.cursor); // frozen blocks stay under the caret
       this.blockEls.push(div);
-      this.tailEl = null;
-      this.tailSrc = null;
     }
     while (this.blockEls.length > blocks.length - 1) {
       this.blockEls.pop()?.remove();
     }
 
     // Re-parse only the open tail, and only when it actually changed.
-    if (!this.tailEl) {
+    if (!this.tailEl || !this.tailEl.isConnected) {
       this.tailEl = el("div", { class: "stream-block stream-tail" });
-      this.blocksWrap.append(this.tailEl);
+      this.blocksWrap.insertBefore(this.tailEl, this.cursor);
       this.tailSrc = null;
-    }
-    if (!this.cursor.isConnected) {
-      this.blocksWrap.insertAdjacentElement("afterend", this.cursor);
     }
     const tailSrc = blocks[blocks.length - 1] ?? "";
     if (tailSrc !== this.tailSrc) {
-      this.tailEl.innerHTML = `${renderMarkdown(tailSrc)}${CURSOR_HTML}`;
+      this.tailEl.innerHTML = renderMarkdown(tailSrc);
       this.tailSrc = tailSrc;
     }
     this.renderedChars = text.length;
+
+    // Single-caret policy: the ONE live caret node sits after the tail.
+    // (It is never part of any block's HTML.)
+    this.tailEl.insertAdjacentElement("afterend", this.cursor);
 
     this._ensureScrollHook();
     this._scrollIfPinned();
@@ -302,9 +303,9 @@ export class StreamingRenderer {
     }
     const body = this.bubble.closest(".body");
     if (!body) return;
-    const html =
-      `${renderMarkdown(reasoning)}` +
-      `${hasAnswerText ? "" : '<span class="cursor reasoning-cursor">▋</span>'}`;
+    // No inline reasoning caret anywhere — the orb + timer already signal
+    // liveness, and the single answer caret covers the stream edge.
+    const html = stripStrayCursors(renderMarkdown(reasoning));
     let block = this.reasoningEl && this.reasoningEl.isConnected ? this.reasoningEl : null;
     if (!block) {
       block = body.querySelector(".reasoning-block") || null;
@@ -324,9 +325,12 @@ export class StreamingRenderer {
       } else {
         block = el("details", { class: "reasoning-block" }, [
           el("summary", {}, ["Thought Process"]),
-          el("div", { class: "reasoning-content markdown-body", html }),
+          el("div", { class: "reasoning-content markdown-body" }),
         ]);
         body.insertBefore(block, this.bubble);
+        const content = block.querySelector(".reasoning-content");
+        content.innerHTML = html;
+        content.dataset.src = html;
       }
     }
     this.reasoningEl = block;

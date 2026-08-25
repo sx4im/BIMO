@@ -12,9 +12,10 @@ import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
 import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
-import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=56";
+import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=57";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
-import { StreamingRenderer } from "./stream-renderer.js?v=2";
+import { StreamingRenderer } from "./stream-renderer.js?v=3";
+import { stripStrayCursors } from "./caret.js?v=1";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {
@@ -170,8 +171,8 @@ export class MessageFeed {
       return true;
     }
     if (!bubble) return false;
-    // Fallback: legacy bubble without a renderer.
-    bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text || "")}</div>`;
+    // Fallback: legacy bubble without a renderer (single caret policy — none).
+    bubble.innerHTML = `<div class="stream-text">${stripStrayCursors(renderMarkdown(text || ""))}</div>`;
     return true;
   }
 

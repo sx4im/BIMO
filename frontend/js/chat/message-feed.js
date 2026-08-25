@@ -6,6 +6,11 @@
  * Streaming updates go through StreamingRenderer (stream-renderer.js):
  * tokens are batched per animation frame and only the open markdown block
  * is re-parsed — completed blocks freeze their DOM.
+ *
+ * Scroll-followership (pin-to-bottom / free scroll / jump button) is owned
+ * by ScrollFollower (scroll-follower.js) for the feed's WHOLE lifetime —
+ * it works while a response streams AND when the user just scrolls a long
+ * finished conversation.
  */
 
 import { el, clear } from "../utils.js?v=30";
@@ -14,8 +19,9 @@ import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
 import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=59";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
-import { StreamingRenderer } from "./stream-renderer.js?v=5";
+import { StreamingRenderer } from "./stream-renderer.js?v=6";
 import { stripStrayCursors } from "./caret.js?v=1";
+import { ScrollFollower } from "./scroll-follower.js?v=1";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {
@@ -99,7 +105,7 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   // The incremental renderer owns everything inside the bubble from now on
   // (its constructor seeds it with the current content).
   const renderer = new StreamingRenderer(bubble);
-  renderer.buildReasoning = reasoningDetails;
+  renderer.buildReasoning = (opts) => reasoningDetails({ ...opts, open: true });
   article.__streamRenderer = renderer;
 
   if (text) {
@@ -133,14 +139,35 @@ export class MessageFeed {
     this.stream = el("div", { class: "chat-stream" });
     this.streamInner = el("div", { class: "inner" });
     this.stream.append(this.streamInner);
+
+    // Permanent scroll-followership for this feed's lifetime. The page mounts
+    // it once its DOM is attached (see mountScrollFollower()).
+    this.follower = new ScrollFollower(this.stream);
   }
 
   get element() {
     return this.stream;
   }
 
+  /** Call once the feed's element is in the document (chat page mount). */
+  mountScrollFollower() {
+    if (!this.stream.isConnected) return;
+    // Self-healing: if the stream element was swapped after construction,
+    // rebuild the follower against the live one.
+    if (this.follower.scroller !== this.stream) {
+      this.follower.unmount();
+      this.follower = new ScrollFollower(this.stream);
+    }
+    this.follower.mount();
+  }
+
+  /** Called by the chat page teardown. */
+  unmountScrollFollower() {
+    this.follower.unmount();
+  }
+
   scrollToBottom() {
-    this.stream.scrollTop = this.stream.scrollHeight;
+    this.follower.jumpToBottom();
   }
 
   // Live streaming update. Called per SSE token with the ACCUMULATED strings
@@ -153,7 +180,7 @@ export class MessageFeed {
     if (!renderer) {
       // Bubble existed without its renderer (e.g. restored mid-stream).
       renderer = new StreamingRenderer(bubble);
-      renderer.buildReasoning = reasoningDetails;
+      renderer.buildReasoning = (opts) => reasoningDetails({ ...opts, open: true });
       bubble.__streamRenderer = renderer;
     } else {
       renderer.done = false; // an explicit update means the stream is live
@@ -187,11 +214,6 @@ export class MessageFeed {
   setStatusText(text) {
     const st = this.streamInner.querySelector(".message.streaming .status-text");
     if (st) st.textContent = text;
-  }
-
-  collapseReasoningBlock() {
-    const reasoningBlock = this.streamInner.querySelector(".message.streaming .reasoning-block");
-    if (reasoningBlock) reasoningBlock.removeAttribute("open");
   }
 
   render({
@@ -236,10 +258,13 @@ export class MessageFeed {
       this.streamInner.append(imageGeneratingNode());
     } else if (generating) {
       const node = streamingBubbleNode(streamingText, streamingReasoning, statusPhrase);
-      node.__streamRenderer.feed = this; // enable bottom-pinned auto-scroll
+      node.__streamRenderer.feed = this; // renderer asks the follower to chase
       this.streamInner.append(node);
     }
 
-    setTimeout(() => this.scrollToBottom(), 30);
+    // Growth-aware follow: pinned users stay glued; detached users keep their
+    // place and their jump button (repositioned above the composer).
+    this.follower.notifyContentAppended();
+    setTimeout(() => this.scrollToBottom(), 30); // initial-load snap
   }
 }

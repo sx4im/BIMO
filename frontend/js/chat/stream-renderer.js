@@ -18,28 +18,21 @@
  *                       (floor speed + proportional drain), so bursts flow
  *                       out as one steady stream instead of chunk pops.
  *   5. Single caret   — at most ONE orange ▋ exists, always at the very
- *                       end of the newest rendered text. It is appended
- *                       after the tail div and MOVED on every frame; it is
- *                       never baked into block HTML, so retired blocks can
- *                       never carry one. Any caret glyph that leaked into
- *                       the model's text itself is scrubbed before render.
- *   6. Free scrolling — auto-scroll pins ONLY while the user is at/near the
- *                       bottom; scrolling up detaches (with a floating
- *                       "↓ Latest" pill to return).
+ *                       end of the newest rendered text. It is a persistent
+ *                       node MOVED each frame, never baked into block HTML;
+ *                       leaked caret glyphs in the model's text are scrubbed.
  *
- * Visual output matches the previous implementation otherwise: same bubble
- * classes, same reasoning block, same skeleton-card path for document
- * artifacts. When the turn settles, chat.js re-renders the canonical
- * message from stored text as before.
+ * Scroll-followership does NOT live here: MessageFeed owns a permanent
+ * ScrollFollower for the page lifetime, and this renderer simply asks it to
+ * chase the bottom while it paints. `feed` is injected by the caller.
  */
 
 import { renderMarkdown } from "../components/markdown.js?v=31";
 import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=59";
 import { splitStreamBlocks } from "./stream-splitter.js?v=1";
-import { CARET_HTML, stripStrayCursors } from "./caret.js?v=1";
+import { stripStrayCursors } from "./caret.js?v=1";
 import { el, clear } from "../utils.js?v=30";
 
-const PIN_THRESHOLD = 140;   // px above the bottom that still counts as "at the bottom"
 // Typewriter pacing: floor speed keeps slow drips flowing; proportional
 // drain eats bursts fast (~130ms exponential catch-up time constant) so
 // output reads as one steady stream instead of per-chunk pops.
@@ -48,12 +41,6 @@ const TYPE_DRAIN = 0.12;     // fraction of the remaining backlog consumed per f
 
 function prefersReducedMotion() {
   return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
-}
-
-// Inline chevron (same path as icons.js "chevronDown") — kept local so this
-// module doesn't pull the whole icon set for one glyph.
-function chevronDownIcon() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
 }
 
 export class StreamingRenderer {
@@ -81,24 +68,12 @@ export class StreamingRenderer {
     // Typewriter pacing state.
     this.renderedChars = 0;
 
-    // Scroll pinning state.
-    this.feed = null;        // owning MessageFeed (provides .element)
-    this.pinned = true;
-    this.jumpPill = null;
-    this._hookedEl = null;
+    /** Injected by streamingBubbleNode(): the owning MessageFeed. Its
+     *  follower handles pinning + the jump button; we just ask it to chase. */
+    this.feed = null;
 
     this.done = false;
     this.skeletonShown = false;
-
-    this._onScroll = () => {
-      if (this.done) return;
-      const scroller = this._scroller();
-      if (!scroller) return;
-      const atBottom =
-        scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight <= PIN_THRESHOLD;
-      if (!atBottom && this.pinned) this._detachPin();
-      else if (atBottom && !this.pinned) this._attachPin();
-    };
   }
 
   /**
@@ -133,7 +108,7 @@ export class StreamingRenderer {
     return true;
   }
 
-  /** Final synchronous paint: close every chunk, drop the caret + pill. */
+  /** Final synchronous paint: close every chunk, drop the caret. */
   finish(text, reasoning = "") {
     if (this.framePending) {
       cancelAnimationFrame(this.framePending);
@@ -145,86 +120,14 @@ export class StreamingRenderer {
     // any straggler rAF/token after completion is ignored.
     this._flush(this.pendingText.length);
     this.done = true;
-
     this.cursor.remove();
-    this._removeJumpPill();
-    this._teardownScrollHook();
   }
 
   // -- internals ------------------------------------------------------------
 
-  _scroller() {
-    return this.feed?.element || this.bubble.closest(".chat-stream");
-  }
-
-  _attachPin() {
-    this.pinned = true;
-    this._removeJumpPill();
-  }
-
-  _detachPin() {
-    this.pinned = false;
-    this._showJumpPill();
-  }
-
-  _scrollIfPinned() {
-    const scroller = this._scroller();
-    if (!scroller || !this.pinned) return;
-    scroller.scrollTop = scroller.scrollHeight;
-  }
-
-  _showJumpPill() {
-    if (this.jumpPill?.isConnected) return;
-    // Claude-style: a small circle with just a down arrow, no label.
-    const pill = el(
-      "button",
-      { class: "stream-jump-pill", type: "button", "aria-label": "Jump to latest" },
-      [el("span", { class: "pill-ic", html: chevronDownIcon() })]
-    );
-    pill.addEventListener("click", () => {
-      const s = this._scroller();
-      if (s) s.scrollTo({ top: s.scrollHeight, behavior: "smooth" });
-      this._attachPin();
-    });
-    // Anchor INSIDE the chat workspace (.chat-page), horizontally centred
-    // over the COMPOSER (message bar) itself, hovering just above it.
-    const page = this.bubble.closest(".chat-page");
-    if (!page) return;
-    const composer = page.querySelector(".composer");
-    if (composer) {
-      const cr = composer.getBoundingClientRect();
-      const pr = page.getBoundingClientRect();
-      const center = cr.left + cr.width / 2 - pr.left;
-      pill.style.left = `${Math.round(center)}px`;
-      pill.style.transform = "translateX(-50%)";
-      pill.style.bottom = `${Math.round(pr.bottom - cr.top) + 12}px`;
-    } else {
-      pill.style.left = "50%";
-      pill.style.transform = "translateX(-50%)";
-      pill.style.bottom = "150px";
-    }
-    page.append(pill);
-    this.jumpPill = pill;
-  }
-
-  _removeJumpPill() {
-    this.jumpPill?.remove();
-    this.jumpPill = null;
-  }
-
-  _ensureScrollHook() {
-    const scroller = this._scroller();
-    if (scroller && this._hookedEl !== scroller) {
-      scroller.addEventListener("scroll", this._onScroll, { passive: true });
-      this._hookedEl = scroller;
-    }
-  }
-
-  _teardownScrollHook() {
-    if (this._hookedEl) {
-      this._hookedEl.removeEventListener("scroll", this._onScroll);
-      this._hookedEl = null;
-    }
+  _chase() {
+    // Delegate follow-ship to the feed's permanent ScrollFollower.
+    this.feed?.follower?.chase();
   }
 
   /**
@@ -272,7 +175,6 @@ export class StreamingRenderer {
         this.tailSrc = "";
       }
       this.renderedChars = 0;
-      this._ensureScrollHook();
       return;
     }
 
@@ -310,11 +212,9 @@ export class StreamingRenderer {
     this.renderedChars = text.length;
 
     // Single-caret policy: the ONE live caret node sits after the tail.
-    // (It is never part of any block's HTML.)
     this.tailEl.insertAdjacentElement("afterend", this.cursor);
 
-    this._ensureScrollHook();
-    this._scrollIfPinned();
+    this._chase();
   }
 
   _updateReasoning(reasoning, hasAnswerText) {
@@ -341,9 +241,8 @@ export class StreamingRenderer {
         content.dataset.src = html;
       }
     } else {
-      // Build through MessageFeed's factory lazily to avoid a cycle: reuse
-      // the injected builder if present, else inline a minimal details node.
-      // open: true — the block stays expanded while it streams.
+      // Build through MessageFeed's factory lazily to avoid a cycle. The
+      // factory wraps open:true in, so the Thought Process stays expanded.
       if (typeof this.buildReasoning === "function") {
         block = this.buildReasoning({ reasoning, live: true, hasAnswerText, open: true });
         body.insertBefore(block, this.bubble);

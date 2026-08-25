@@ -15,7 +15,7 @@ import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=2";
-import { MessageFeed } from "../chat/message-feed.js?v=10";
+import { MessageFeed } from "../chat/message-feed.js?v=11";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=4";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {
@@ -272,6 +272,7 @@ export async function renderChat({ id, incognito }) {
 
   page.append(header, messageFeed.element, composer.element, ...composer.dropdownElements);
   host.append(page);
+  messageFeed.mountScrollFollower(); // permanent pin/free-scroll + jump button
 
   shell.setIncognitoActive?.(Boolean(incognito));
 
@@ -726,6 +727,7 @@ export async function renderChat({ id, incognito }) {
   return () => {
     unmounted = true;
     if (imagePollTimer) { clearInterval(imagePollTimer); imagePollTimer = null; }
+    messageFeed.unmountScrollFollower();
     streamHandler.cancel();
     composer.destroy();
     if (voiceHandle) { try { voiceHandle.close(); } catch {} voiceHandle = null; }

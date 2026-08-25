@@ -7,7 +7,7 @@ import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
 import { getAuth } from "../auth.js?v=30";
 import { navigate } from "../router.js?v=31";
-import { mountAppShell } from "../app-shell.js?v=68";
+import { mountAppShell } from "../app-shell.js?v=69";
 import { toast } from "../components/toast.js?v=57";
 import { whenMarkdownReady } from "../components/markdown.js?v=31";
 import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
@@ -222,9 +222,8 @@ export async function renderChat({ id, incognito }) {
       if (reasoningElapsed != null) {
         messageFeed.setStreamingReasoningTimer(`· ${reasoningElapsed}s`);
       }
-      if (reasoningDone) {
-        messageFeed.collapseReasoningBlock();
-      }
+      // NOTE: reasoningDone no longer collapses the block — users read the
+      // thought process while/after the answer streams (Claude behavior).
     },
     onComplete: () => {
       messageFeed.finishStreamingBubble(streamHandler.streamingText, streamHandler.streamingReasoning);

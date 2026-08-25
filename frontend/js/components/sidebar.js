@@ -203,9 +203,10 @@ export function renderSidebar(container, props) {
   );
   for (const { hash, label, icon: iconName } of NAV) {
     const isChat = hash === "#/app/chat";
-    const isActive = isChat
-      ? currentHash.startsWith("#/app/chat")
-      : currentHash.startsWith(hash);
+    // "Chats" opens the search overlay — it's an ACTION, not a page, so it
+    // never gets the active highlight (previously it lit up on every /app/chat
+    // route, which is the whole app). Support/Settings stay path-active.
+    const isActive = isChat ? false : currentHash.startsWith(hash);
     nav.append(
       el(
         "a",

@@ -2463,17 +2463,19 @@ body:has(.app-shell),
   opacity: 1;
 }
 
-.message.streaming .reasoning-block:has(.reasoning-cursor) summary .icon-pulse {
+/* The reasoning orb pulses while its block is streaming (live class set by
+   reasoningDetails) — no longer keyed to an inline caret, which is gone. */
+.message.streaming .reasoning-block summary .icon-pulse {
   display: inline-flex;
 }
 
-.message.streaming .reasoning-block:has(.reasoning-cursor) summary .icon-pulse svg {
+.message.streaming .reasoning-block summary .icon-pulse svg {
   display: block;
   animation: icon-heartbeat 2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .message.streaming .reasoning-block:has(.reasoning-cursor) summary .icon-pulse svg {
+  .message.streaming .reasoning-block summary .icon-pulse svg {
     animation: none;
     opacity: 0.72;
   }
@@ -4988,12 +4990,14 @@ em { font-style: normal; }
 }
 
 /* Floating "↓ Latest" pill — shows while the user has scrolled up during an
-   active stream; clicking returns to the live bottom and re-engages pinning. */
+   active stream. Anchored INSIDE .chat-page (absolute), centred over the chat
+   workspace and lifted just above the composer/input bar (renderer computes
+   the exact offset from the composer's live rect), so it never covers the
+   input — on desktop or mobile. */
 .stream-jump-pill {
-  position: fixed;
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 110px;
   z-index: 60;
   display: inline-flex;
   align-items: center;

@@ -34,7 +34,7 @@
  */
 
 import { renderMarkdown } from "../components/markdown.js?v=31";
-import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=57";
+import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=58";
 import { splitStreamBlocks } from "./stream-splitter.js?v=1";
 import { CARET_HTML, stripStrayCursors } from "./caret.js?v=1";
 import { el, clear } from "../utils.js?v=30";
@@ -179,7 +179,20 @@ export class StreamingRenderer {
       if (s) s.scrollTo({ top: s.scrollHeight, behavior: "smooth" });
       this._attachPin();
     });
-    document.body.append(pill);
+    // Anchor INSIDE the chat workspace (.chat-page), horizontally centred in
+    // it, hovering just ABOVE the composer/input bar — never overlapping the
+    // input and never fixed to the browser viewport.
+    const page = this.bubble.closest(".chat-page");
+    if (!page) return;
+    const composer = page.querySelector(".composer");
+    const pr = page.getBoundingClientRect();
+    if (composer) {
+      const cr = composer.getBoundingClientRect();
+      pill.style.bottom = `${Math.round(pr.bottom - cr.top) + 12}px`;
+    } else {
+      pill.style.bottom = "150px";
+    }
+    page.append(pill);
     this.jumpPill = pill;
   }
 

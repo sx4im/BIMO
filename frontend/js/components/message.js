@@ -220,7 +220,7 @@ export function docArtifactCard({
   return card;
 }
 
-export function reasoningDetails({ reasoning, durationText = "", live = false, hasAnswerText = false }) {
+export function reasoningDetails({ reasoning, durationText = "", live = false, hasAnswerText = false, open = false }) {
   const mark = el("span", { class: live ? "icon-pulse orb-slot" : "orb-slot" });
   // Composing orb replaces the brain glyph — animated while reasoning is
   // streaming in, frozen on its current frame once the turn completes.
@@ -233,7 +233,8 @@ export function reasoningDetails({ reasoning, durationText = "", live = false, h
   });
   const summary = el("summary", {}, [mark, " Thought Process ", timer]);
   const content = el("div", { class: "reasoning-content markdown-body" });
-  return el("details", { class: "reasoning-block" }, [summary, content]);
+  const block = el("details", { class: "reasoning-block", open: open ? "" : null }, [summary, content]);
+  return block;
 }
 
 // Recent messages show a 12-hour clock time ("9:57 AM"); anything older than a
@@ -282,6 +283,9 @@ export function messageBubble({
       reasoningNode = reasoningDetails({
         reasoning: message.reasoning,
         durationText: dur,
+        // Stay expanded: the user was reading it while it streamed — collapsing
+        // on settle made the Thought Process vanish (Claude keeps it visible).
+        open: true,
       });
     }
 

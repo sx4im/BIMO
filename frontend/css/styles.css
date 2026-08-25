@@ -91,7 +91,7 @@
   --surface-soft: #232323;       /* hover rows + user bubble */
   --surface-card: #151515;       /* panels sit FLAT on the page bg; borders define them */
   --surface-active: #343434;     /* active/open item highlight (claude.ai) */
-  --input-bar: #151515;          /* message input bar — flat like everything else */
+  --input-bar: #20201f;          /* message input bar — one step above canvas (claude.ai) */
   --landing-nav-bg: rgba(17, 17, 17, 0.85);  /* translucent dark, not a light band */
   --surface-cream-strong: #3a3a3a;
   --surface-dark: #141413;       /* the already-dark surfaces go a touch deeper */

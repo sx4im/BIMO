@@ -7,6 +7,8 @@ import { renderChat } from "./pages/chat.js?v=100";
 import { renderFeedback } from "./pages/feedback.js?v=68";
 import { renderSettings } from "./pages/settings.js?v=70";
 import { renderNotFound } from "./pages/not-found.js?v=52";
+import { bootVersionGuard } from "./version-guard.js?v=1";
+
 
 // ---------- route guards ----------
 
@@ -86,5 +88,7 @@ async function maybeShowOnboarding(auth) {
 initThemeSync(); // sync <meta> + react to OS theme changes while on "system"
 bootstrap();
 startRouter();
+bootVersionGuard(); // auto-reload idle tabs when a newer deploy exists
+
 
 

@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Bimo · an AI chat workspace with streaming responses, rich rendering, vision-aware uploads, per-chat models, and voice chat." />
+    <!-- Build id (unix seconds). version-guard.js re-fetches "/" periodically
+         and auto-reloads idle tabs when this number grows, so long-lived SPA
+         sessions never keep running a stale bundle across deploys. -->
+    <meta name="bimo-build" content="1787665800" />
+
     <meta name="theme-color" content="#faf9f5" />
     <!-- Set the theme BEFORE first paint so there's no light->dark flash.
          Mirrors the THEME_KEY logic in js/prefs.js. Loaded from self (not inline)
@@ -29,6 +34,6 @@
 
 
 
-    <script type="module" src="/js/main.js?v=114"></script>
+    <script type="module" src="/js/main.js?v=115"></script>
   </body>
 </html>

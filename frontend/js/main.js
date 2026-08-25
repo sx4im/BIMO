@@ -1,11 +1,11 @@
 import { defineRoute, startRouter, navigate, dispatch } from "./router.js?v=31";
 import { bootstrap, getAuth, onAuthChange } from "./auth.js?v=30";
-import { initThemeSync } from "./prefs.js?v=30";
+import { initThemeSync } from "./prefs.js?v=32";
 import * as api from "./api.js?v=32";
 import { renderLanding } from "./pages/landing.js?v=44";
-import { renderChat } from "./pages/chat.js?v=95";
+import { renderChat } from "./pages/chat.js?v=96";
 import { renderFeedback } from "./pages/feedback.js?v=68";
-import { renderSettings } from "./pages/settings.js?v=69";
+import { renderSettings } from "./pages/settings.js?v=70";
 import { renderNotFound } from "./pages/not-found.js?v=52";
 
 // ---------- route guards ----------
@@ -76,7 +76,7 @@ async function maybeShowOnboarding(auth) {
   try {
     if (localStorage.getItem("bimo-onboarded-v6") === "1") return;
     await api.me(auth.token).catch(() => {});
-    const { showOnboarding } = await import("./components/onboarding.js?v=30");
+    const { showOnboarding } = await import("./components/onboarding.js?v=31");
     showOnboarding(auth);
   } catch {
     /* never block the app if the check fails */

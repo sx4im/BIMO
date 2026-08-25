@@ -79,24 +79,26 @@
 /* =============================================================
    Dark theme — set via <html data-theme="dark"> (js/prefs.js +
    the pre-paint script in index.html). The whole UI is driven by
-   the tokens above, so this block alone re-skins the app: the two
-   anchor surfaces map #faf9f5 -> #2c2c2a and #f5f0e8 -> #1a1a19,
-   and every black ink token becomes near-white.
+   the tokens above, so this block alone re-skins the app. Exact
+   claude.ai dark values: page bg #151515, sidebar #111111,
+   hover #232323, active/elevated #343434; ink becomes a warm
+   near-white.
    ============================================================= */
 :root[data-theme="dark"] {
   /* Surface */
-  --canvas: #1f1f1e;             /* sidebar + chat + page bg (reference: Claude) */
-  --surface-soft: #1a1a19;       /* user bubble + sidebar hover (darker than bg) */
-  --surface-card: #30302e;       /* elevated: cards, popups, settings */
-  --input-bar: #2c2c2a;          /* message input bar — its own shade above the bg */
-  --landing-nav-bg: rgba(26, 26, 25, 0.85);  /* translucent dark, not a light band */
-  --surface-cream-strong: #35332f;
+  --canvas: #151515;             /* page + chat bg (claude.ai dark) */
+  --sidebar-bg: #111111;         /* left navigation panel */
+  --surface-soft: #232323;       /* hover rows + user bubble */
+  --surface-card: #343434;       /* active item + elevated: cards, popups */
+  --input-bar: #202020;          /* message input bar — its own shade above the bg */
+  --landing-nav-bg: rgba(17, 17, 17, 0.85);  /* translucent dark, not a light band */
+  --surface-cream-strong: #3a3a3a;
   --surface-dark: #141413;       /* the already-dark surfaces go a touch deeper */
   --surface-dark-elevated: #232321;
   --surface-dark-soft: #1c1b1a;
 
   /* User bubble — near-black, with the same dull off-white text */
-  --user-bubble: #1a1a19;
+  --user-bubble: #232323;
   --user-bubble-ink: #d6d2ca;
 
   /* Ink — black text becomes a dull, professional off-white (pure white read
@@ -104,8 +106,8 @@
   --ink: #d6d2ca;
   --body-strong: #cfccc4;
   --body: #cdcac3;
-  --muted: #a29e94;          /* nudged brighter so secondary text clears AA on cards */
-  --muted-soft: #75726b;
+  --muted: #a8a49a;          /* nudged brighter for AA on the deeper canvas */
+  --muted-soft: #7d7a72;
 
   /* Brand — coral, nudged a touch brighter for dark contrast */
   --primary: #d97757;
@@ -116,14 +118,14 @@
   --on-dark-soft: #a09d96;
 
   /* Hairlines — subtle light-on-dark separators */
-  --hairline: #3a3833;
-  --hairline-soft: #322f2b;
-  --hairline-strong: #46433c;
-  --hairline-dark: #46433c;
+  --hairline: #2c2c2c;
+  --hairline-soft: #242424;
+  --hairline-strong: #3d3d3d;
+  --hairline-dark: #3d3d3d;
 
   /* Misc */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-card-hover: 0 8px 28px -10px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-card-hover: 0 8px 28px -10px rgba(0, 0, 0, 0.65);
   --ring-coral: 0 0 0 3px rgba(217, 119, 87, 0.22);
   --composer-border: rgba(255, 255, 255, 0.08);
   --composer-focus-border: rgba(255, 255, 255, 0.20);
@@ -1456,7 +1458,7 @@ body:has(.app-shell),
   border-right: 1px solid var(--hairline);
   display: flex;
   flex-direction: column;
-  background: var(--canvas);
+  background: var(--sidebar-bg, var(--canvas));
   height: 100%;
   position: sticky;
   top: 0;
@@ -1559,7 +1561,7 @@ body:has(.app-shell),
 
 .sidebar-nav a.active {
   color: var(--ink);
-  background: var(--surface-soft);
+  background: var(--surface-card);
 }
 
 .sidebar-section-head,
@@ -1636,8 +1638,14 @@ body:has(.app-shell),
 .sidebar-convo-lists .item:hover button.entry,
 .sidebar-recent .item.active button.entry,
 .sidebar-recent .item:hover button.entry {
-  background: var(--surface-card);
+  background: var(--surface-soft);
   color: var(--ink);
+}
+
+/* The OPEN conversation gets the stronger active shade (claude.ai #343434). */
+.sidebar-convo-lists .item.active button.entry,
+.sidebar-recent .item.active button.entry {
+  background: var(--surface-card);
 }
 
 .sidebar-convo-lists .item .title,
@@ -4917,15 +4925,48 @@ em { font-style: normal; }
    otherwise miss — keeps the streaming text flush with the settled bubble. */
 .streaming-bubble .stream-text > :first-child { margin-top: 0; }
 .streaming-bubble .stream-text > :last-child { margin-bottom: 0; }
+/* Incremental streaming renderer: the bubble holds one .stream-blocks wrap
+   with a frozen <div> per closed markdown block plus the open tail. The
+   first/last-child resets are re-applied per block so spacing is identical
+   to the single-.stream-text layout, and blocks stack with zero gap. */
+.streaming-bubble .stream-blocks { display: flow-root; }
+.streaming-bubble .stream-block > :first-child { margin-top: 0; }
+.streaming-bubble .stream-block > :last-child { margin-bottom: 0; }
 /* Once the model signals completion, drop the reveal mask so the finished text
    is fully solid during the brief save before it settles into a real message. */
-.streaming-bubble.stream-done .stream-text {
+.streaming-bubble.stream-done .stream-text,
+.streaming-bubble.stream-done .stream-blocks {
   -webkit-mask-image: none;
   mask-image: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .streaming-bubble .stream-text { -webkit-mask-image: none; mask-image: none; }
+  .streaming-bubble .stream-text,
+  .streaming-bubble .stream-blocks { -webkit-mask-image: none; mask-image: none; }
 }
+
+/* Floating "↓ Latest" pill — shows while the user has scrolled up during an
+   active stream; clicking returns to the live bottom and re-engages pinning. */
+.stream-jump-pill {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 110px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 9999px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--surface-card);
+  border: 1px solid var(--hairline-strong);
+  box-shadow: var(--shadow-card-hover);
+  animation: toast-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stream-jump-pill:hover { background: var(--surface-cream-strong); }
 
 /* Message entrance — a soft fade + rise when a turn is added (the user's bubble
    on send, the assistant's on settle). One-shot via the `.entering` class so
@@ -6066,7 +6107,7 @@ em { font-style: normal; }
 }
 
 :root[data-theme="dark"] .confirm-modal-input {
-  background: #1f1f1e;
+  background: #151515;
   color: #f5f5f4;
   border-color: rgba(255, 255, 255, 0.12);
 }

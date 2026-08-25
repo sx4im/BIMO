@@ -3,16 +3,16 @@
 // reads the same THEME_KEY synchronously to set data-theme before first paint,
 // so there's no light->dark flash; this module owns runtime changes.
 
-const THEME_KEY = "bimo-theme";        // "system" | "light" | "dark"
+const THEME_KEY = "bimo-theme";        // "dark" (default) | "system" | "light"
 const NAME_KEY = "bimo-display-name";  // string override for the user's name
 
 // ---------- theme ----------
 
 export function getThemePref() {
   try {
-    return localStorage.getItem(THEME_KEY) || "system";
+    return localStorage.getItem(THEME_KEY) || "dark";
   } catch {
-    return "system";
+    return "dark";
   }
 }
 
@@ -32,7 +32,7 @@ export function applyTheme(pref = getThemePref()) {
   const resolved = resolveTheme(pref);
   document.documentElement.dataset.theme = resolved;
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", resolved === "dark" ? "#2c2c2a" : "#faf9f5");
+  if (meta) meta.setAttribute("content", resolved === "dark" ? "#151515" : "#faf9f5");
   return resolved;
 }
 

@@ -7,7 +7,7 @@
 
 import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=30";
-import { resolveTheme, setThemePref } from "../prefs.js?v=30";
+import { resolveTheme, setThemePref } from "../prefs.js?v=32";
 import { saveOnboarding } from "../api.js?v=30";
 
 // Bump the version suffix to re-show the onboarding to everyone (no DB reset).

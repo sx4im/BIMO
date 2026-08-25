@@ -2,14 +2,19 @@
  * Message feed component for Bimo chat.
  * Renders empty stream states, message bubbles, reasoning/thinking blocks,
  * streaming indicators, and auto-scrolls with smooth locked pinning.
+ *
+ * Streaming updates go through StreamingRenderer (stream-renderer.js):
+ * tokens are batched per animation frame and only the open markdown block
+ * is re-parsed — completed blocks freeze their DOM.
  */
 
-import { el, clear } from "../utils.js?v=20";
+import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
 import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
 import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=56";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
+import { StreamingRenderer } from "./stream-renderer.js?v=2";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {
@@ -67,16 +72,6 @@ export function searchingBubbleNode() {
 
 export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   const bubble = el("div", { class: "bubble markdown-body streaming-bubble", "data-streaming": "true" });
-  if (text) {
-    const docArtifact = extractDocumentArtifact(text);
-    if (docArtifact.isDoc) {
-      bubble.append(docArtifactSkeletonCard(statusPhrase || "Formatting and preparing document…"));
-    } else {
-      bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text)}</div><span class="cursor">▋</span>`;
-    }
-  } else {
-    bubble.innerHTML = '<span class="cursor">▋</span>';
-  }
 
   const bodyChildren = [
     el("div", { class: "meta" }, [
@@ -94,9 +89,26 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
 
   bodyChildren.push(bubble);
 
-  return el("article", { class: "message assistant streaming" }, [
+  const article = el("article", { class: "message assistant streaming" }, [
     el("div", { class: "body" }, bodyChildren),
   ]);
+
+  // The incremental renderer owns everything inside the bubble from now on
+  // (its constructor seeds it with the current content).
+  const renderer = new StreamingRenderer(bubble);
+  renderer.buildReasoning = reasoningDetails;
+  article.__streamRenderer = renderer;
+
+  if (text) {
+    const docArtifact = extractDocumentArtifact(text);
+    if (docArtifact.isDoc) {
+      renderer.update(text, reasoning); // routes to the skeleton card
+    } else {
+      renderer.finish(text, reasoning);
+      renderer.done = false; // the stream continues — allow further frames
+    }
+  }
+  return article;
 }
 
 export class MessageFeed {
@@ -128,47 +140,40 @@ export class MessageFeed {
     this.stream.scrollTop = this.stream.scrollHeight;
   }
 
+  // Live streaming update. Called per SSE token with the ACCUMULATED strings
+  // (same contract as before); all DOM work is deferred + batched inside
+  // StreamingRenderer, so this stays cheap even at high token rates.
   updateStreamingBubble(text, reasoning = "") {
     const bubble = this.streamInner.querySelector(".streaming-bubble[data-streaming='true']");
     if (!bubble) return false;
-
-    const body = bubble.closest(".body");
-    if (body) {
-      let reasoningBlock = body.querySelector(".reasoning-block");
-      if (reasoning.trim()) {
-        if (reasoningBlock) {
-          const contentDiv = reasoningBlock.querySelector(".reasoning-content");
-          if (contentDiv) {
-            contentDiv.innerHTML = `${renderMarkdown(reasoning)}${text ? "" : '<span class="cursor reasoning-cursor">▋</span>'}`;
-          }
-        } else {
-          reasoningBlock = reasoningDetails({
-            reasoning,
-            live: true,
-            hasAnswerText: Boolean(text),
-          });
-          body.insertBefore(reasoningBlock, bubble);
-        }
-      } else if (reasoningBlock) {
-        reasoningBlock.remove();
-      }
-    }
-
-    if (text) {
-      const docArtifact = extractDocumentArtifact(text);
-      if (docArtifact.isDoc) {
-        clear(bubble);
-        bubble.append(docArtifactSkeletonCard("Formatting and preparing document…"));
-      } else {
-        bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text)}</div><span class="cursor">▋</span>`;
-      }
+    let renderer = bubble.__streamRenderer;
+    if (!renderer) {
+      // Bubble existed without its renderer (e.g. restored mid-stream).
+      renderer = new StreamingRenderer(bubble);
+      renderer.buildReasoning = reasoningDetails;
+      bubble.__streamRenderer = renderer;
     } else {
-      bubble.innerHTML = '<span class="cursor">▋</span>';
+      renderer.done = false; // an explicit update means the stream is live
     }
-    this.scrollToBottom();
-    return true;
+    return renderer.update(text, reasoning);
   }
 
+  // Final synchronous paint when the turn completes: closes every block,
+  // cancels pending frames and drops the caret — no flicker before the
+  // settled message replaces the streaming bubble.
+  finishStreamingBubble(text, reasoning = "") {
+    const bubble = this.streamInner.querySelector(".streaming-bubble[data-streaming='true']");
+    const renderer = bubble?.__streamRenderer;
+    if (renderer) {
+      renderer.done = false; // allow the finishing flush
+      renderer.finish(text ?? "", reasoning);
+      return true;
+    }
+    if (!bubble) return false;
+    // Fallback: legacy bubble without a renderer.
+    bubble.innerHTML = `<div class="stream-text">${renderMarkdown(text || "")}</div>`;
+    return true;
+  }
 
   setStreamingReasoningTimer(text) {
     this.streamInner
@@ -227,7 +232,9 @@ export class MessageFeed {
     } else if (imageGenerating) {
       this.streamInner.append(imageGeneratingNode());
     } else if (generating) {
-      this.streamInner.append(streamingBubbleNode(streamingText, streamingReasoning, statusPhrase));
+      const node = streamingBubbleNode(streamingText, streamingReasoning, statusPhrase);
+      node.__streamRenderer.feed = this; // enable bottom-pinned auto-scroll
+      this.streamInner.append(node);
     }
 
     setTimeout(() => this.scrollToBottom(), 30);

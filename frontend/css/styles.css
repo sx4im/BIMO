@@ -89,8 +89,9 @@
   --canvas: #151515;             /* page + chat bg (claude.ai dark) */
   --sidebar-bg: #111111;         /* left navigation panel */
   --surface-soft: #232323;       /* hover rows + user bubble */
-  --surface-card: #343434;       /* active item + elevated: cards, popups */
-  --input-bar: #202020;          /* message input bar — its own shade above the bg */
+  --surface-card: #151515;       /* panels sit FLAT on the page bg; borders define them */
+  --surface-active: #343434;     /* active/open item highlight (claude.ai) */
+  --input-bar: #151515;          /* message input bar — flat like everything else */
   --landing-nav-bg: rgba(17, 17, 17, 0.85);  /* translucent dark, not a light band */
   --surface-cream-strong: #3a3a3a;
   --surface-dark: #141413;       /* the already-dark surfaces go a touch deeper */
@@ -133,6 +134,46 @@
   --starter-border-hover: rgba(255, 255, 255, 0.15);
 
   color-scheme: dark;
+}
+
+/* =============================================================
+   Dark theme — FLAT SURFACE PASS
+   Panels/cards/inputs no longer paint their own fill: they sit
+   directly on the #151515 page and are defined by their borders
+   (claude.ai style). Only things that FLOAT above content keep a
+   solid fill — dropdown menus, popups, modals, the search card,
+   code blocks, chips/badges/pills — otherwise page text would show
+   through them. Hover stays --surface-soft (#232323); the open/
+   active highlight is --surface-active (#343434).
+   ============================================================= */
+:root[data-theme="dark"] .settings-card,
+:root[data-theme="dark"] .feedback-textarea,
+:root[data-theme="dark"] .settings-input,
+:root[data-theme="dark"] .input,
+:root[data-theme="dark"] .composer-box,
+:root[data-theme="dark"] .chat-search-card {
+  background: var(--canvas);
+}
+
+/* Opaque floaters — must cover the content behind them. */
+:root[data-theme="dark"] .model-dropdown,
+:root[data-theme="dark"] .tools-menu,
+:root[data-theme="dark"] .attachment-menu,
+:root[data-theme="dark"] .effort-dropdown,
+:root[data-theme="dark"] .sidebar-convo-menu,
+:root[data-theme="dark"] .doc-card-dl-menu,
+:root[data-theme="dark"] .doc-modal-dl-menu,
+:root[data-theme="dark"] .confirm-modal-card,
+:root[data-theme="dark"] .modal,
+:root[data-theme="dark"] .ob-card,
+:root[data-theme="dark"] .stream-jump-pill {
+  background: var(--surface-dark-elevated);
+}
+
+/* Inline code keeps a soft chip tint so it stays readable on the flat page. */
+:root[data-theme="dark"] .markdown-body code:not(pre code),
+:root[data-theme="dark"] .settings-card .footnote code {
+  background: var(--surface-soft);
 }
 
 /* =============================================================
@@ -1561,7 +1602,7 @@ body:has(.app-shell),
 
 .sidebar-nav a.active {
   color: var(--ink);
-  background: var(--surface-card);
+  background: var(--surface-active, var(--surface-card));
 }
 
 .sidebar-section-head,
@@ -1645,7 +1686,7 @@ body:has(.app-shell),
 /* The OPEN conversation gets the stronger active shade (claude.ai #343434). */
 .sidebar-convo-lists .item.active button.entry,
 .sidebar-recent .item.active button.entry {
-  background: var(--surface-card);
+  background: var(--surface-active, var(--surface-card));
 }
 
 .sidebar-convo-lists .item .title,
@@ -2583,6 +2624,8 @@ body:has(.app-shell),
 }
 .chat-search-row:hover,
 .chat-search-row.active { background: var(--surface-soft); }
+/* The row for the currently-open conversation gets the active shade. */
+.chat-search-row.active.current { background: var(--surface-active, var(--surface-card)); }
 .chat-search-row .cs-ic { display: inline-flex; color: var(--muted); flex-shrink: 0; }
 .chat-search-row .cs-title {
   flex: 1;
@@ -4961,7 +5004,7 @@ em { font-style: normal; }
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  background: var(--surface-card);
+  background: var(--surface-dark-elevated);
   border: 1px solid var(--hairline-strong);
   box-shadow: var(--shadow-card-hover);
   animation: toast-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -6088,7 +6131,7 @@ em { font-style: normal; }
 }
 
 :root[data-theme="dark"] .confirm-modal-card {
-  background: #2a2a2a;
+  background: var(--surface-dark-elevated);
   color: #f5f5f4;
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 28px 70px -18px rgba(0, 0, 0, 0.75), 0 8px 28px rgba(0, 0, 0, 0.4);

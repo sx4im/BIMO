@@ -34,7 +34,7 @@
  */
 
 import { renderMarkdown } from "../components/markdown.js?v=31";
-import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=58";
+import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=59";
 import { splitStreamBlocks } from "./stream-splitter.js?v=1";
 import { CARET_HTML, stripStrayCursors } from "./caret.js?v=1";
 import { el, clear } from "../utils.js?v=30";
@@ -343,8 +343,9 @@ export class StreamingRenderer {
     } else {
       // Build through MessageFeed's factory lazily to avoid a cycle: reuse
       // the injected builder if present, else inline a minimal details node.
+      // open: true — the block stays expanded while it streams.
       if (typeof this.buildReasoning === "function") {
-        block = this.buildReasoning({ reasoning, live: true, hasAnswerText });
+        block = this.buildReasoning({ reasoning, live: true, hasAnswerText, open: true });
         body.insertBefore(block, this.bubble);
       } else {
         block = el("details", { class: "reasoning-block" }, [

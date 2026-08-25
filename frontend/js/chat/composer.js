@@ -27,10 +27,34 @@ export const DEFAULT_AVAILABLE_MODELS = [
 
 export function greetingPlaceholder() {
   const h = new Date().getHours();
-  if (h >= 5 && h < 12) return "Good morning. What is on your mind today?";
-  if (h >= 12 && h < 17) return "Good afternoon. What is your focus?";
-  if (h >= 17 && h < 21) return "Good evening. What are we working on?";
-  return "Working late? What is the priority?";
+  // Short, human, Claude-ish greetings — picked at random per time bucket.
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  if (h >= 5 && h < 12) {
+    return pick([
+      "Coffee's on. What are we building?",
+      "Morning! What's on your mind?",
+      "Fresh day — what do you need?",
+    ]);
+  }
+  if (h >= 12 && h < 17) {
+    return pick([
+      "Afternoon! What are we working on?",
+      "Good afternoon. What do you need?",
+      "Middle of the day — ask away.",
+    ]);
+  }
+  if (h >= 17 && h < 21) {
+    return pick([
+      "Evening! What's on deck?",
+      "Good evening. What shall we dig into?",
+      "Winding down or digging in?",
+    ]);
+  }
+  return pick([
+    "Hey night owl. What keeps you up?",
+    "Late shift? I'm up too.",
+    "Quiet hours — perfect. What are we solving?",
+  ]);
 }
 
 export class Composer {

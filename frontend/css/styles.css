@@ -2801,9 +2801,12 @@ body:has(.app-shell),
 
 @media (max-width: 480px), (max-height: 700px) {
   .app-footer {
-    padding: 2px 8px 3px;
+    /* Minimal footprint on small phones (iPhone SE/XR class): tiny padding,
+       no divider band, and respect the iOS home-indicator safe area. */
+    padding: 1px 8px max(2px, env(safe-area-inset-bottom));
     font-size: 10px;
-    line-height: 1.2;
+    line-height: 1.15;
+    border-top: none;
   }
 }
 

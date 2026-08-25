@@ -12,7 +12,7 @@ import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
 import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
-import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=58";
+import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=59";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
 import { StreamingRenderer } from "./stream-renderer.js?v=5";
 import { stripStrayCursors } from "./caret.js?v=1";
@@ -85,6 +85,8 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
       reasoning,
       live: true,
       hasAnswerText: Boolean(text),
+      // Stay expanded while streaming AND after settle — the user reads it.
+      open: true,
     }));
   }
 

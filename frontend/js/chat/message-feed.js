@@ -14,7 +14,7 @@ import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
 import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=58";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
-import { StreamingRenderer } from "./stream-renderer.js?v=4";
+import { StreamingRenderer } from "./stream-renderer.js?v=5";
 import { stripStrayCursors } from "./caret.js?v=1";
 
 export function emptyStreamView({ incognito } = {}) {

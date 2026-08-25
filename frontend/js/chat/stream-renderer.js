@@ -50,6 +50,12 @@ function prefersReducedMotion() {
   return Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 }
 
+// Inline chevron (same path as icons.js "chevronDown") — kept local so this
+// module doesn't pull the whole icon set for one glyph.
+function chevronDownIcon() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
+}
+
 export class StreamingRenderer {
   /** @param {HTMLElement} bubble the `.streaming-bubble[data-streaming]` element */
   constructor(bubble) {
@@ -169,27 +175,32 @@ export class StreamingRenderer {
 
   _showJumpPill() {
     if (this.jumpPill?.isConnected) return;
+    // Claude-style: a small circle with just a down arrow, no label.
     const pill = el(
       "button",
       { class: "stream-jump-pill", type: "button", "aria-label": "Jump to latest" },
-      [el("span", { text: "↓ Latest" })]
+      [el("span", { class: "pill-ic", html: chevronDownIcon() })]
     );
     pill.addEventListener("click", () => {
       const s = this._scroller();
       if (s) s.scrollTo({ top: s.scrollHeight, behavior: "smooth" });
       this._attachPin();
     });
-    // Anchor INSIDE the chat workspace (.chat-page), horizontally centred in
-    // it, hovering just ABOVE the composer/input bar — never overlapping the
-    // input and never fixed to the browser viewport.
+    // Anchor INSIDE the chat workspace (.chat-page), horizontally centred
+    // over the COMPOSER (message bar) itself, hovering just above it.
     const page = this.bubble.closest(".chat-page");
     if (!page) return;
     const composer = page.querySelector(".composer");
-    const pr = page.getBoundingClientRect();
     if (composer) {
       const cr = composer.getBoundingClientRect();
+      const pr = page.getBoundingClientRect();
+      const center = cr.left + cr.width / 2 - pr.left;
+      pill.style.left = `${Math.round(center)}px`;
+      pill.style.transform = "translateX(-50%)";
       pill.style.bottom = `${Math.round(pr.bottom - cr.top) + 12}px`;
     } else {
+      pill.style.left = "50%";
+      pill.style.transform = "translateX(-50%)";
       pill.style.bottom = "150px";
     }
     page.append(pill);

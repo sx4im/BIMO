@@ -2813,7 +2813,7 @@ body:has(.chat-page.is-empty) .app-footer,
    ============================================================= */
 
 .chat-page.is-empty .chat-stream {
-  flex: 1 1 0%;
+  flex: 0.72 1 0%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -2829,7 +2829,7 @@ body:has(.chat-page.is-empty) .app-footer,
 }
 
 .chat-page.is-empty .empty-stream {
-  padding: 0 0 48px;
+  padding: 0 0 36px;
 }
 
 .chat-page.is-empty .empty-stream .mark {
@@ -2846,7 +2846,7 @@ body:has(.chat-page.is-empty) .app-footer,
 }
 
 .chat-page.is-empty .composer-wrap {
-  flex: 1 1 0%;
+  flex: 1.28 1 0%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

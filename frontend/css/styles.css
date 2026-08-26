@@ -2233,11 +2233,11 @@ body:has(.app-shell),
 
 .empty-stream h2 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
   font-weight: 400;
-  font-size: clamp(28px, 3.4vw, 40px);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  font-size: clamp(32px, 3.8vw, 44px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 
@@ -2829,22 +2829,20 @@ body:has(.chat-page.is-empty) .app-footer,
 }
 
 .chat-page.is-empty .empty-stream {
-  padding: 0 0 24px;
+  padding: 0 0 48px;
 }
 
 .chat-page.is-empty .empty-stream .mark {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 16px;
-}
-
-.chat-page.is-empty .empty-stream .mark svg {
-  width: 72px;
-  height: 72px;
+  display: none;
 }
 
 .chat-page.is-empty .empty-stream h2 {
-  font-size: clamp(26px, 3.2vw, 36px);
+  font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
+  font-size: clamp(32px, 3.8vw, 44px);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
 .chat-page.is-empty .composer-wrap {

@@ -338,7 +338,7 @@ export class MessageFeed {
       this._imageGeneratingNode = null;
     }
 
-    if (generating) {
+    if (generating && !searching) {
       if (!this._streamingNode || !this._streamingNode.isConnected) {
         this._streamingNode = streamingBubbleNode(streamingText, streamingReasoning, statusPhrase);
         this._streamingNode.__streamRenderer.feed = this;

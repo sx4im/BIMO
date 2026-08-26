@@ -283,9 +283,8 @@ export function messageBubble({
       reasoningNode = reasoningDetails({
         reasoning: message.reasoning,
         durationText: dur,
-        // Stay expanded: the user was reading it while it streamed — collapsing
-        // on settle made the Thought Process vanish (Claude keeps it visible).
-        open: true,
+        // Manual by design: collapsed until the user clicks the summary.
+        // (open defaults to false in reasoningDetails.)
       });
     }
 

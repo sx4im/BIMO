@@ -28,7 +28,7 @@
  */
 
 import { renderMarkdown } from "../components/markdown.js?v=31";
-import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=59";
+import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=60";
 import { splitStreamBlocks } from "./stream-splitter.js?v=1";
 import { stripStrayCursors } from "./caret.js?v=1";
 import { el, clear } from "../utils.js?v=30";
@@ -241,10 +241,11 @@ export class StreamingRenderer {
         content.dataset.src = html;
       }
     } else {
-      // Build through MessageFeed's factory lazily to avoid a cycle. The
-      // factory wraps open:true in, so the Thought Process stays expanded.
+      // Build through MessageFeed's factory lazily to avoid a cycle.
+      // Manual policy: the block stays collapsed until the user clicks it,
+      // so pass the options through untouched (no forced open).
       if (typeof this.buildReasoning === "function") {
-        block = this.buildReasoning({ reasoning, live: true, hasAnswerText, open: true });
+        block = this.buildReasoning({ reasoning, live: true, hasAnswerText });
         body.insertBefore(block, this.bubble);
       } else {
         block = el("details", { class: "reasoning-block" }, [

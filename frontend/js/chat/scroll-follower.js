@@ -30,29 +30,36 @@ export class ScrollFollower {
     this.button = null;
 
     this._lastTop = typeof scroller?.scrollTop === "number" ? scroller.scrollTop : null;
+    this._lastHeight = typeof scroller?.scrollHeight === "number" ? scroller.scrollHeight : null;
 
     this._onScroll = () => {
       const el = this.scroller;
       if (!el) return;
-      // Only a genuine USER upward scroll may detach the pin. Non-user
-      // scrolls (programmatic writes, mobile URL-bar collapse, viewport
-      // resizes) also fire scroll events while "not at bottom" — treating
-      // those as user intent silently killed auto-scroll mid-response.
+      // Two rules keep user intent and layout noise apart:
+      //  1. Only a genuine USER upward scroll may detach the pin — and a
+      //     gesture NEVER coincides with a scrollHeight change. When content
+      //     is written/removed (feed re-render, images loading), the browser
+      //     clamps scrollTop and fires a scroll event that looks exactly like
+      //     an upward drag; treating it as one silently killed auto-scroll
+      //     for the whole response.
+      //  2. Re-pin happens ONLY on arrival at bottom, so a user gliding down
+      //     manually is never teleported mid-scroll.
       const atBottom =
         el.scrollHeight - el.scrollTop - el.clientHeight <= PIN_THRESHOLD;
-      const goingUp = this._lastTop != null && el.scrollTop < this._lastTop - 1;
+      const heightChanged =
+        this._lastHeight != null &&
+        Math.abs(el.scrollHeight - this._lastHeight) > 1;
+      const goingUp = !heightChanged &&
+        this._lastTop != null && el.scrollTop < this._lastTop - 1;
 
       if (atBottom) {
-        // Arrived (or stayed) at the bottom — (re-)pin. This is the ONLY
-        // path back to pinned, so a user gliding down manually is never
-        // teleported mid-scroll, and mobile URL-bar resizes can't fake it.
         if (!this.pinned) this.attach();
       } else if (goingUp && this.pinned) {
         this.detach();
       }
-      // Anything else (downward drift, programmatic writes, resize jitter):
-      // leave the current state untouched.
+      // Everything else (downward drift, clamps, resizes): state untouched.
       this._lastTop = el.scrollTop;
+      this._lastHeight = el.scrollHeight;
     };
 
     // Keep the button centred over the composer across viewport changes.

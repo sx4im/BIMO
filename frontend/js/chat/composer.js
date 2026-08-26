@@ -28,19 +28,20 @@ export const DEFAULT_AVAILABLE_MODELS = [
 export function greetingPlaceholder() {
   const h = new Date().getHours();
   // Short, human, Claude-ish greetings — picked at random per time bucket.
+  // No dashes anywhere: they read as clutter in a placeholder.
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   if (h >= 5 && h < 12) {
     return pick([
       "Coffee's on. What are we building?",
       "Morning! What's on your mind?",
-      "Fresh day — what do you need?",
+      "Fresh day. What do you need?",
     ]);
   }
   if (h >= 12 && h < 17) {
     return pick([
       "Afternoon! What are we working on?",
       "Good afternoon. What do you need?",
-      "Middle of the day — ask away.",
+      "Middle of the day, ask away.",
     ]);
   }
   if (h >= 17 && h < 21) {
@@ -53,7 +54,7 @@ export function greetingPlaceholder() {
   return pick([
     "Hey night owl. What keeps you up?",
     "Late shift? I'm up too.",
-    "Quiet hours — perfect. What are we solving?",
+    "Quiet hours. Perfect for solving something.",
   ]);
 }
 

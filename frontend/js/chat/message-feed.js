@@ -17,11 +17,11 @@ import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
 import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
-import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=59";
+import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=60";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
-import { StreamingRenderer } from "./stream-renderer.js?v=6";
+import { StreamingRenderer } from "./stream-renderer.js?v=7";
 import { stripStrayCursors } from "./caret.js?v=1";
-import { ScrollFollower } from "./scroll-follower.js?v=2";
+import { ScrollFollower } from "./scroll-follower.js?v=3";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {
@@ -91,8 +91,6 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
       reasoning,
       live: true,
       hasAnswerText: Boolean(text),
-      // Stay expanded while streaming AND after settle — the user reads it.
-      open: true,
     }));
   }
 
@@ -105,7 +103,7 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   // The incremental renderer owns everything inside the bubble from now on
   // (its constructor seeds it with the current content).
   const renderer = new StreamingRenderer(bubble);
-  renderer.buildReasoning = (opts) => reasoningDetails({ ...opts, open: true });
+  renderer.buildReasoning = (opts) => reasoningDetails(opts); // manual: collapsed until clicked
   article.__streamRenderer = renderer;
 
   if (text) {
@@ -180,7 +178,7 @@ export class MessageFeed {
     if (!renderer) {
       // Bubble existed without its renderer (e.g. restored mid-stream).
       renderer = new StreamingRenderer(bubble);
-      renderer.buildReasoning = (opts) => reasoningDetails({ ...opts, open: true });
+      renderer.buildReasoning = (opts) => reasoningDetails(opts); // manual: collapsed until clicked
       bubble.__streamRenderer = renderer;
     } else {
       renderer.done = false; // an explicit update means the stream is live

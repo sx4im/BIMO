@@ -40,6 +40,7 @@ export function emptyStreamView({ incognito } = {}) {
     ]);
   }
   return el("div", { class: "empty-stream" }, [
+    el("div", { class: "mark", html: icon("spike", { width: 44, height: 44 }) }),
     el("h2", { text: "What can I do for you?" }),
   ]);
 }

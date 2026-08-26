@@ -531,8 +531,14 @@ export class Composer {
     let left = rect.left;
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
-    this.modelDropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
-    this.modelDropdown.style.top = "auto";
+    const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
+    if (isPageEmpty) {
+      this.modelDropdown.style.top = `${rect.bottom + 8}px`;
+      this.modelDropdown.style.bottom = "auto";
+    } else {
+      this.modelDropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+      this.modelDropdown.style.top = "auto";
+    }
     this.modelDropdown.style.left = `${left}px`;
     this.modelDropdown.style.right = "auto";
     this.modelDropdown.style.width = `${width}px`;
@@ -593,8 +599,14 @@ export class Composer {
     let left = rect.left;
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
-    this.effortDropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
-    this.effortDropdown.style.top = "auto";
+    const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
+    if (isPageEmpty) {
+      this.effortDropdown.style.top = `${rect.bottom + 8}px`;
+      this.effortDropdown.style.bottom = "auto";
+    } else {
+      this.effortDropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+      this.effortDropdown.style.top = "auto";
+    }
     this.effortDropdown.style.left = `${left}px`;
     this.effortDropdown.style.right = "auto";
     this.effortDropdown.style.width = `${width}px`;

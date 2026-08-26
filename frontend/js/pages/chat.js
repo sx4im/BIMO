@@ -277,16 +277,22 @@ export async function renderChat({ id, incognito }) {
   // Auto-focus composer textarea so it is always active and hungry for input
   const attemptFocus = () => {
     try {
-      composer.focus();
+      if (composer?.textarea) {
+        composer.textarea.focus({ preventScroll: true });
+        const len = composer.textarea.value.length;
+        composer.textarea.setSelectionRange(len, len);
+      }
     } catch {
       /* ignore if not attached yet */
     }
   };
   attemptFocus();
   requestAnimationFrame(attemptFocus);
-  setTimeout(attemptFocus, 80);
-  setTimeout(attemptFocus, 250);
-  setTimeout(attemptFocus, 500);
+  setTimeout(attemptFocus, 50);
+  setTimeout(attemptFocus, 150);
+  setTimeout(attemptFocus, 300);
+  setTimeout(attemptFocus, 600);
+  setTimeout(attemptFocus, 1000);
 
   // On touch/mobile devices, tapping anywhere outside interactive controls immediately focuses composer & raises keyboard
   const handleUniversalFocus = (e) => {
@@ -295,6 +301,8 @@ export async function renderChat({ id, incognito }) {
     }
     attemptFocus();
   };
+  window.addEventListener("focus", attemptFocus);
+  window.addEventListener("pageshow", attemptFocus);
   page.addEventListener("click", handleUniversalFocus);
   document.addEventListener("touchstart", handleUniversalFocus, { passive: true });
   document.addEventListener("pointerdown", handleUniversalFocus, { passive: true });
@@ -453,6 +461,8 @@ export async function renderChat({ id, incognito }) {
     composer.isGenerating = true;
     composer.syncSendEnabled();
     renderUI();
+    messageFeed.follower.attach();
+    messageFeed.scrollToBottom();
 
     const streamId = uid("stream");
     let llmMessage = text;
@@ -460,6 +470,8 @@ export async function renderChat({ id, incognito }) {
     if (searchEnabled && text) {
       searching = true;
       renderUI();
+      messageFeed.follower.attach();
+      messageFeed.scrollToBottom();
       try {
         const res = await api.searchWeb(auth.token, text);
         const results = res?.results || [];
@@ -474,6 +486,8 @@ export async function renderChat({ id, incognito }) {
     }
 
     renderUI();
+    messageFeed.follower.attach();
+    messageFeed.scrollToBottom();
 
     try {
       await streamHandler.executeStream({
@@ -515,6 +529,8 @@ export async function renderChat({ id, incognito }) {
     composer.isImageGenerating = true;
     composer.syncSendEnabled();
     renderUI();
+    messageFeed.follower.attach();
+    messageFeed.scrollToBottom();
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000);
@@ -740,8 +756,8 @@ export async function renderChat({ id, incognito }) {
   document.addEventListener("visibilitychange", onVisibilityChange);
 
   // Initial load
-  loading = true;
-  renderUI();
+  loading = Boolean(id);
+  renderUI({ initial: true });
 
   Promise.all([loadModels(), loadMessages()]).then(() => {
     if (unmounted) return;
@@ -763,6 +779,10 @@ export async function renderChat({ id, incognito }) {
     streamHandler.cancel();
     composer.destroy();
     if (voiceHandle) { try { voiceHandle.close(); } catch {} voiceHandle = null; }
+    window.removeEventListener("focus", attemptFocus);
+    window.removeEventListener("pageshow", attemptFocus);
+    document.removeEventListener("touchstart", handleUniversalFocus);
+    document.removeEventListener("pointerdown", handleUniversalFocus);
     document.removeEventListener("visibilitychange", onVisibilityChange);
   };
 }

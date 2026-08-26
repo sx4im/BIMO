@@ -2829,30 +2829,40 @@ body:has(.chat-page.is-empty) .app-footer,
 }
 
 .chat-page.is-empty .empty-stream {
-  padding: 0 0 32px;
+  padding: 0 0 36px;
+  text-align: center;
 }
 
-.chat-page.is-empty .empty-stream .mark {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin: 0 auto 16px;
-  color: var(--ink);
-}
-
-.chat-page.is-empty .empty-stream .mark svg {
-  width: 44px;
-  height: 44px;
-}
-
-.chat-page.is-empty .empty-stream h2 {
+.chat-page.is-empty .empty-stream h2,
+.empty-stream-title {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
   font-size: clamp(30px, 3.6vw, 42px);
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--ink);
+}
+
+.chat-page.is-empty .empty-stream .mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  margin: 0;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.chat-page.is-empty .empty-stream .mark svg {
+  width: 32px;
+  height: 32px;
+  display: block;
 }
 
 .chat-page.is-empty .composer-wrap {
@@ -2877,9 +2887,9 @@ body:has(.chat-page.is-empty) .tools-menu,
 @media (max-width: 768px) {
   .chat-page.is-empty .chat-stream { padding: 0 16px; }
   .chat-page.is-empty .composer-wrap { padding: 0 16px 20px; }
-  .chat-page.is-empty .empty-stream .mark { width: 38px; height: 38px; margin-bottom: 12px; }
-  .chat-page.is-empty .empty-stream .mark svg { width: 38px; height: 38px; }
-  .chat-page.is-empty .empty-stream h2 { font-size: 24px; }
+  .chat-page.is-empty .empty-stream h2,
+  .empty-stream-title { font-size: 24px; gap: 8px; }
+  .chat-page.is-empty .empty-stream .mark svg { width: 24px; height: 24px; }
 }
 
 @media (max-width: 480px), (max-height: 700px) {

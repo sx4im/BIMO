@@ -143,9 +143,9 @@ export class ScrollFollower {
       `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
       `<path d="m6 9 6 6 6-6"/></svg></span>`;
     b.addEventListener("click", () => this.jumpToBottom());
-    page.append(b);
     this.button = b;
     this._position();
+    page.append(b);
   }
 
   /** Centre over the composer (message bar), hovering just above it. */

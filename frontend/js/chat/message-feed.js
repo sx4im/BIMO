@@ -21,7 +21,7 @@ import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSk
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
 import { StreamingRenderer } from "./stream-renderer.js?v=8";
 import { stripStrayCursors } from "./caret.js?v=1";
-import { ScrollFollower } from "./scroll-follower.js?v=4";
+import { ScrollFollower } from "./scroll-follower.js?v=5";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {

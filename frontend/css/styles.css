@@ -5017,10 +5017,25 @@ em { font-style: normal; }
   background: var(--surface-dark-elevated);
   border: 1px solid var(--hairline-strong);
   box-shadow: var(--shadow-card-hover);
-  animation: toast-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-50%);
+  animation: streamJumpPillIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .stream-jump-pill:hover { background: var(--surface-cream-strong); }
 .stream-jump-pill .pill-ic { display: inline-flex; }
+
+@keyframes streamJumpPillIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stream-jump-pill { animation: none; opacity: 1; }
+}
 
 /* Message entrance — a soft fade + rise when a turn is added (the user's bubble
    on send, the assistant's on settle). One-shot via the `.entering` class so

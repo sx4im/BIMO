@@ -1,4 +1,4 @@
-# BIMO — Chat Context Handoff (2026-08-25, ~21:00 PKT)
+# BIMO — Chat Context Handoff (2026-08-26, ~10:15 PKT)
 
 Paste this whole block as your first message in a new session.
 
@@ -15,12 +15,13 @@ Vanilla ESM SPA (`frontend/`, no framework) + FastAPI backend (`backend/`) + Sup
 4. User wants terse replies, direct execution end-to-end ("yes push" = commit+push+verify+report), verification with real tool output, no patch-work fixes — root cause only.
 
 ## State
-- Branch `main`, everything pushed through commit `0e239a4` (feat(chat): manual Thought Process, clamp-proof autoscroll, dash-free greetings). Working tree clean except possibly nothing — check `git status`.
-- All suites green before push: regression 10/10, splitter 16/16, version-guard tests pass, CSS balanced, backend 52/52.
+- Branch `main`, everything pushed through commit `a90f0a9` (fix(scroll): viewport-churn phantom gestures; feed reconciliation; PGRST303 retry; readme migrations). Working tree clean except untracked HANDOFF.md updates — check `git status`.
+- All suites green before push (2026-08-26): scroll-follower regression 18/18, splitter OK, version-guard pass, backend 56/56.
+- Live site verified serving bimo-build=1787718538 and `scroll-follower.js?v=4` (contains `_lastViewport`).
 
 ## Design decisions locked in today (user-confirmed)
 - **Thought Process is MANUAL**: collapsed by default everywhere (streaming, settled, and history loads). User clicks the summary/arrow to expand. Implemented by making `reasoningDetails()`'s `open` param default false and removing ALL forced `open:true` from the three call paths (settled `messageBubble` path in message.js, streaming-bubble creation in message-feed.js `streamingBubbleNode`, and renderer's lazy `buildReasoning` factory).
-- **ScrollFollower** (`frontend/js/chat/scroll-follower.js`): owns pin/free-scroll/jump-pill for the feed's whole life (NOT inside StreamingRenderer — that lifecycle bug was fixed earlier). PIN_THRESHOLD=140px. Detach ONLY on genuine user upward scroll; re-pin ONLY on arrival at bottom; **any scrollTop delta coinciding with a scrollHeight change (>1px) is ignored** because browser clamps during feed re-renders masquerade as upward drags and killed autoscroll (that was today's autoscroll bug).
+- **ScrollFollower** (`frontend/js/chat/scroll-follower.js`): owns pin/free-scroll/jump-pill for the feed's whole life (NOT inside StreamingRenderer — that lifecycle bug was fixed earlier). PIN_THRESHOLD=140px. Detach ONLY on genuine user upward scroll; re-pin ONLY on arrival at bottom; **any scrollTop delta coinciding with a layout-dimension change (>1px) is ignored — BOTH scrollHeight AND clientHeight are watched** (`_lastViewport`, added in `a90f0a9`) because browser clamps from content re-renders AND viewport churn (soft keyboard, mobile URL bar, scroll-anchoring) masquerade as upward drags and killed autoscroll.
 - **Mobile keyboard auto-open** in chat.js: on touch devices (pointer:coarse / maxTouchPoints>0) focus composer ~350ms after mount (Android); iOS needs gesture so first touchend/mousedown outside `.chat-stream` also focuses (tapping messages stays text-selection).
 - **Version guard** (`frontend/js/version-guard.js`): boots with build id from meta tag, re-fetches "/" every 90s (no-store), location.reload() if served id > booted id AND tab visible AND no stream painting. Solves "stale SPA tab runs old code across deploys".
 - Greeting placeholders (composer.js `greetingPlaceholder()`): NO dashes anywhere (user hates them).
@@ -33,9 +34,10 @@ Vanilla ESM SPA (`frontend/`, no framework) + FastAPI backend (`backend/`) + Sup
 - DB probe confirmed reasoning IS persisted fine (rows carry up to ~14k chars; `add_message` returns full row incl. reasoning; SSE `assistant_message` carries it). Earlier "thought process hides after save" reports were the open:true/settle-rebuild interaction — superseded by manual-collapse policy.
 
 ## Known TODO / loose ends
-1. **Bump `<meta name="bimo-build" content="...">`** (currently stale at 1787665800) on next deploy, then keep bumping per deploy.
-2. jsdom regression suite lives in `/tmp/sr-test/final-regression.mjs` (+ dom-test.mjs older scenarios) — /tmp gets wiped on reboot; consider copying into repo as permanent tests.
-3. User may still be on a stale tab until they hard-refresh once more (Ctrl+Shift+R / PWA reopen) to pick up the guarded build.
+1. ~~Bump bimo-build meta~~ — done twice today (1787714297 @ `02776b7`, 1787718538 @ `a90f0a9`); keep bumping per deploy.
+2. ~~Adopt regression suite into repo~~ — done (`frontend/test-scroll-follower-regression.mjs`, jsdom devDep, `npm test`).
+3. User should hard-refresh once (Ctrl+Shift+R / PWA reopen) to pick up build 1787718538; the guard now auto-reloads idle tabs within ~90s of the next deploy.
+4. Concurrent-session note: a parallel workstream landed feed reconciliation + PGRST303 retry in `a90f0a9` (same commit — version chain interlocked).
 
 ## Verification commands
 - `cd ~/Projects/bimo/backend && .venv/bin/python -m pytest tests/ -q`

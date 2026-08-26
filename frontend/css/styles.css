@@ -2710,7 +2710,7 @@ body:has(.app-shell),
   margin: 0;
   font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
   font-weight: 400;
-  font-size: clamp(32px, 3.8vw, 44px);
+  font-size: clamp(28px, 3.2vw, 38px);
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -3473,7 +3473,7 @@ body:has(.chat-page.is-empty) .app-footer,
 .empty-stream-title {
   margin: 0;
   font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
-  font-size: clamp(36px, 4.4vw, 50px);
+  font-size: clamp(30px, 3.6vw, 42px);
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -3517,7 +3517,7 @@ body:has(.chat-page.is-empty) .tools-menu,
 
   .chat-page.is-empty .empty-stream h2,
   .empty-stream-title {
-    font-size: clamp(26px, 6.8vw, 34px);
+    font-size: clamp(22px, 5.6vw, 28px);
   }
 
   .chat-page.is-empty .composer-wrap {
@@ -5942,7 +5942,7 @@ body:has(.chat-page.is-empty) .tools-menu,
   }
 
   .empty-stream h2 {
-    font-size: clamp(24px, 6.5vw, 30px);
+    font-size: clamp(21px, 5.5vw, 27px);
   }
 
   .empty-stream p {

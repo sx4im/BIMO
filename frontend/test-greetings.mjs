@@ -3,6 +3,7 @@ import {
   getFirstName,
   getGreetingPool,
   getGreeting,
+  getRandomGreetingTemplate,
   MORNING_GREETINGS,
   AFTERNOON_GREETINGS,
   EVENING_GREETINGS,
@@ -20,10 +21,15 @@ function check(name, cond, extra = "") {
   }
 }
 
-// 1. First name extraction
+// 1. First name extraction (Google, GitHub, and email usernames)
 check("First name from 'Saim Khan'", getFirstName("Saim Khan") === "Saim");
 check("First name from 'saim'", getFirstName("saim") === "Saim");
 check("First name from 'Alice Bob Charlie'", getFirstName("Alice Bob Charlie") === "Alice");
+check("First name from GitHub username 'sx4im'", getFirstName("sx4im") === "Sx4im");
+check("First name from email prefix 'john.doe'", getFirstName("john.doe") === "John");
+check("First name from username 'jane_smith'", getFirstName("jane_smith") === "Jane");
+check("First name from 'Bimo user' returns empty fallback", getFirstName("Bimo user") === "");
+check("First name from 'user' returns empty fallback", getFirstName("user") === "");
 check("First name from null", getFirstName(null) === "");
 check("First name from undefined", getFirstName(undefined) === "");
 check("First name from empty string", getFirstName("   ") === "");
@@ -76,6 +82,12 @@ check("Afternoon greeting contains Saim", afternoonMsg.includes("Saim"));
 
 const eveningMsg = getGreeting("Saim", makeDate(17));
 check("Evening greeting contains Saim", eveningMsg.includes("Saim"));
+
+// 4. Stable template verification (no random reroll / blinking)
+const tpl = getRandomGreetingTemplate(makeDate(14));
+const res1 = getGreeting("Saim", makeDate(14), tpl);
+const res2 = getGreeting("Saim", makeDate(14), tpl);
+check("Template produces identical output across renders", res1 === res2);
 
 console.log(`\nGreetings tests completed: ${failures === 0 ? "ALL PASSED" : failures + " FAILED"}`);
 if (failures > 0) process.exit(1);

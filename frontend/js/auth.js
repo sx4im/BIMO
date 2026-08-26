@@ -31,7 +31,13 @@ function userFromSession(session) {
   // base_name is the OAuth-derived name; `name` applies the local override (if
   // any) so the whole app shows the user's chosen name. Clearing the override
   // reverts to base_name.
-  const baseName = meta.full_name || meta.name || (u.email ? u.email.split("@")[0] : "Bimo user");
+  const baseName =
+    meta.full_name ||
+    meta.name ||
+    meta.user_name ||
+    meta.preferred_username ||
+    meta.given_name ||
+    (u.email ? u.email.split("@")[0] : "");
   return {
     token: session.access_token,
     expires_at: session.expires_at,

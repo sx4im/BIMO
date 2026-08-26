@@ -22,9 +22,9 @@ import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
 import { StreamingRenderer } from "./stream-renderer.js?v=8";
 import { stripStrayCursors } from "./caret.js?v=1";
 import { ScrollFollower } from "./scroll-follower.js?v=5";
-import { getGreeting } from "./greetings.js?v=1";
+import { getGreeting, getRandomGreetingTemplate, getFirstName } from "./greetings.js?v=2";
 
-export function emptyStreamView({ incognito, user } = {}) {
+export function emptyStreamView({ incognito, user, template } = {}) {
   if (incognito) {
     const ghost = `
       <svg xmlns="http://www.w3.org/2000/svg" class="incognito-ghost" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -41,7 +41,7 @@ export function emptyStreamView({ incognito, user } = {}) {
     ]);
   }
   return el("div", { class: "empty-stream" }, [
-    el("h2", { class: "empty-stream-title", text: getGreeting(user?.name) }),
+    el("h2", { class: "empty-stream-title", text: getGreeting(user?.name, new Date(), template) }),
   ]);
 }
 
@@ -142,6 +142,7 @@ export class MessageFeed {
     // are never torn down or re-parsed.
     this._messageNodes = new Map();
     this._emptyNode = null;
+    this._emptyGreetingTemplate = null;
     this._searchingNode = null;
     this._imageGeneratingNode = null;
     this._streamingNode = null;
@@ -170,6 +171,17 @@ export class MessageFeed {
   /** Called by the chat page teardown. */
   unmountScrollFollower() {
     this.follower.unmount();
+  }
+
+  reset() {
+    this.follower.unmount();
+    clear(this.streamInner);
+    this._messageNodes.clear();
+    this._emptyNode = null;
+    this._emptyGreetingTemplate = null;
+    this._searchingNode = null;
+    this._imageGeneratingNode = null;
+    this._streamingNode = null;
   }
 
   scrollToBottom() {
@@ -243,10 +255,19 @@ export class MessageFeed {
       if (this._searchingNode) { this._searchingNode.remove(); this._searchingNode = null; }
       if (this._imageGeneratingNode) { this._imageGeneratingNode.remove(); this._imageGeneratingNode = null; }
       if (this._streamingNode) { this._streamingNode.remove(); this._streamingNode = null; }
-      if (!this._emptyNode || !this._emptyNode.isConnected || initial) {
-        if (this._emptyNode) this._emptyNode.remove();
-        this._emptyNode = emptyStreamView({ incognito, user });
+      if (!this._emptyNode || !this._emptyNode.isConnected) {
+        this._emptyGreetingTemplate = getRandomGreetingTemplate();
+        this._emptyNode = emptyStreamView({ incognito, user, template: this._emptyGreetingTemplate });
         this.streamInner.append(this._emptyNode);
+      } else if (!incognito && this._emptyGreetingTemplate) {
+        // Keep the stable template without re-rolling, just sync user's first name if auth loaded after mount
+        const titleEl = this._emptyNode.querySelector(".empty-stream-title");
+        if (titleEl) {
+          const expected = this._emptyGreetingTemplate(getFirstName(user?.name));
+          if (titleEl.textContent !== expected) {
+            titleEl.textContent = expected;
+          }
+        }
       }
       return;
     }
@@ -254,6 +275,7 @@ export class MessageFeed {
     if (this._emptyNode) {
       this._emptyNode.remove();
       this._emptyNode = null;
+      this._emptyGreetingTemplate = null;
     }
 
     const currentMsgIds = new Set(messages.map((m) => m.id));

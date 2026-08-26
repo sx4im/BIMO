@@ -2,15 +2,13 @@
 // Generates short, elegant, single-line greetings tailored to the user's local time
 // and display first name.
 
-import { getDisplayName } from "../prefs.js?v=30";
-
 export function getFirstName(fullName) {
   if (!fullName || typeof fullName !== "string") return "";
   const cleaned = fullName.trim();
-  if (!cleaned) return "";
-  const first = cleaned.split(/\s+/)[0];
-  if (!first) return "";
-  return first.charAt(0).toUpperCase() + first.slice(1);
+  if (!cleaned || cleaned.toLowerCase() === "bimo user" || cleaned.toLowerCase() === "user") return "";
+  const raw = cleaned.split(/[\s._-]+/)[0];
+  if (!raw) return "";
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
 export const MORNING_GREETINGS = [
@@ -71,10 +69,13 @@ export function getGreetingPool(date = new Date()) {
   return GENERAL_GREETINGS;
 }
 
-export function getGreeting(userName, date = new Date()) {
-  const name = userName || getDisplayName() || "";
-  const firstName = getFirstName(name);
+export function getRandomGreetingTemplate(date = new Date()) {
   const pool = getGreetingPool(date);
-  const fn = pool[Math.floor(Math.random() * pool.length)];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+export function getGreeting(userName, date = new Date(), template = null) {
+  const firstName = getFirstName(userName);
+  const fn = template || getRandomGreetingTemplate(date);
   return fn(firstName);
 }

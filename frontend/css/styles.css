@@ -5171,7 +5171,7 @@ em { font-style: normal; }
 .model-badge.model-badge-button {
   appearance: none;
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
   border-radius: var(--r-pill);
   padding: 5px 11px 5px 12px;
   height: auto;
@@ -5184,13 +5184,16 @@ em { font-style: normal; }
   line-height: 1.2;
   color: var(--ink);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .model-badge.model-badge-button:hover,
 .model-badge.model-badge-button[aria-expanded="true"] {
   background: var(--surface-soft);
-  border-color: var(--hairline-strong);
   color: var(--ink);
+}
+:root[data-theme="dark"] .model-badge.model-badge-button:hover,
+:root[data-theme="dark"] .model-badge.model-badge-button[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.08);
 }
 .model-badge .caret {
   color: var(--muted);

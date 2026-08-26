@@ -2849,21 +2849,29 @@ body:has(.chat-page.is-empty) .tools-menu,
 
 @media (max-width: 768px) {
   .chat-page.is-empty .chat-stream {
-    flex: 1.15 1 0%;
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 0 16px;
-    justify-content: flex-end;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
   .chat-page.is-empty .empty-stream {
-    padding: 0 0 20px;
+    padding: 0 0 16px;
   }
   .chat-page.is-empty .empty-stream h2,
   .empty-stream-title {
     font-size: clamp(26px, 6.8vw, 34px);
   }
   .chat-page.is-empty .composer-wrap {
-    flex: 0.85 1 0%;
-    padding: 0 16px max(24px, env(safe-area-inset-bottom));
-    justify-content: flex-start;
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 0 12px max(10px, env(safe-area-inset-bottom));
+    justify-content: flex-end;
+  }
+  .chat-page.is-empty .composer {
+    max-width: 100%;
   }
 }
 

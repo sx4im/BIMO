@@ -411,7 +411,8 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
-    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
+    const isMobile = window.innerWidth <= 768;
+    const openDown = isPageEmpty && !isMobile;
     this.attachmentMenu.style.position = "fixed";
     if (openDown) {
       this.attachmentMenu.style.top = `${rect.bottom + margin}px`;
@@ -479,7 +480,8 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
-    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
+    const isMobile = window.innerWidth <= 768;
+    const openDown = isPageEmpty && !isMobile;
     this.toolsMenu.style.position = "fixed";
     if (openDown) {
       this.toolsMenu.style.top = `${rect.bottom + margin}px`;
@@ -567,7 +569,8 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
-    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
+    const isMobile = window.innerWidth <= 768;
+    const openDown = isPageEmpty && !isMobile;
     if (openDown) {
       this.modelDropdown.style.top = `${rect.bottom + 8}px`;
       this.modelDropdown.style.bottom = "auto";
@@ -636,7 +639,8 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
-    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
+    const isMobile = window.innerWidth <= 768;
+    const openDown = isPageEmpty && !isMobile;
     if (openDown) {
       this.effortDropdown.style.top = `${rect.bottom + 8}px`;
       this.effortDropdown.style.bottom = "auto";

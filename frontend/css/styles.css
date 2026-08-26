@@ -606,25 +606,27 @@ body:has(.app-shell),
 
 .toast-container {
   position: fixed;
-  top: 10px;
-  right: 16px;
+  top: 14px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px;
-  max-width: min(360px, calc(100vw - 32px));
+  max-width: min(420px, calc(100vw - 32px));
   pointer-events: none;
 }
 
-/* Claude-style pill toasts — theme tokens so light/dark stay distinct */
+/* Crisp rounded toasts — non-pill shape with subtle radius */
 .toast {
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   padding: 8px 14px 8px 14px;
-  border-radius: 9999px;
+  border-radius: 9px;
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -4638,13 +4640,14 @@ body:has(.chat-page.is-empty) .tools-menu,
   .analytics-chart-card { padding: 20px; }
   .analytics-chart-card h3 { font-size: 19px; }
 
-  /* Toast — clean right-aligned pill on mobile */
+  /* Toast — top center on mobile */
   .toast-container {
-    top: 10px;
-    right: 12px;
-    left: auto;
-    max-width: min(320px, calc(100vw - 24px));
-    align-items: flex-end;
+    top: 12px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    max-width: min(340px, calc(100vw - 24px));
+    align-items: center;
   }
 
   /* Sidebar drawer width */

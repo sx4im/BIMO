@@ -370,9 +370,6 @@ export class Composer {
       this.attachmentsBar,
       this.composerBox,
       this.recordingBar,
-      el("div", { class: "hints" }, [
-        el("span", { html: 'Press <kbd>Enter</kbd> to send, <kbd>Shift</kbd>+<kbd>Enter</kbd> for new line' }),
-      ]),
     ]);
 
     this.composerWrap = el("div", { class: "composer-wrap" }, [this.composer]);
@@ -529,7 +526,7 @@ export class Composer {
   positionModelDropdown() {
     const rect = this.modelBadge.getBoundingClientRect();
     const margin = 8;
-    const width = Math.min(240, window.innerWidth - margin * 2);
+    const width = Math.min(215, window.innerWidth - margin * 2);
     let left = rect.left;
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);

@@ -3081,13 +3081,9 @@ body:has(.chat-page.is-empty) .tools-menu,
   align-self: center;
 }
 
-/* Surface + item styling is shared with the model / attachment / effort
-   menus (see "Composer dropdown menus" below). This block only positions the
-   tools menu — it opens UPWARD from the bottom toolbar. */
 .tools-menu {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
+  position: fixed;
+  z-index: 50;
   min-width: 215px;
   width: 215px;
 }
@@ -5318,13 +5314,9 @@ em { font-style: normal; }
   align-self: center;
 }
 
-/* Surface + item styling is shared (see "Composer dropdown menus"). This
-   block only positions the attachment menu — it opens UPWARD from the
-   bottom toolbar. */
 .attachment-menu {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
+  position: fixed;
+  z-index: 50;
   min-width: 215px;
   width: 215px;
 }

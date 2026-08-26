@@ -402,8 +402,34 @@ export class Composer {
     this.textarea.focus();
   }
 
+  positionAttachMenu() {
+    const rect = this.attachBtn.getBoundingClientRect();
+    const margin = 8;
+    const width = Math.min(215, window.innerWidth - margin * 2);
+    let left = rect.left;
+    const maxLeft = window.innerWidth - width - margin;
+    if (left > maxLeft) left = Math.max(margin, maxLeft);
+    const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
+    this.attachmentMenu.style.position = "fixed";
+    if (isPageEmpty) {
+      this.attachmentMenu.style.top = `${rect.bottom + margin}px`;
+      this.attachmentMenu.style.bottom = "auto";
+    } else {
+      this.attachmentMenu.style.bottom = `${window.innerHeight - rect.top + margin}px`;
+      this.attachmentMenu.style.top = "auto";
+    }
+    this.attachmentMenu.style.left = `${left}px`;
+    this.attachmentMenu.style.right = "auto";
+    this.attachmentMenu.style.width = `${width}px`;
+    this.attachmentMenu.style.minWidth = "auto";
+  }
+
   toggleAttachMenu(show) {
-    this.attachmentMenu.classList.toggle("open", show ?? !this.attachmentMenu.classList.contains("open"));
+    const next = show ?? !this.attachmentMenu.classList.contains("open");
+    if (next) {
+      this.positionAttachMenu();
+    }
+    this.attachmentMenu.classList.toggle("open", next);
   }
 
   toggleToolsMenu(show) {
@@ -450,9 +476,15 @@ export class Composer {
     let left = rect.left;
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
+    const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
     this.toolsMenu.style.position = "fixed";
-    this.toolsMenu.style.bottom = `${window.innerHeight - rect.top + margin}px`;
-    this.toolsMenu.style.top = "auto";
+    if (isPageEmpty) {
+      this.toolsMenu.style.top = `${rect.bottom + margin}px`;
+      this.toolsMenu.style.bottom = "auto";
+    } else {
+      this.toolsMenu.style.bottom = `${window.innerHeight - rect.top + margin}px`;
+      this.toolsMenu.style.top = "auto";
+    }
     this.toolsMenu.style.left = `${left}px`;
     this.toolsMenu.style.right = "auto";
     this.toolsMenu.style.width = `${width}px`;

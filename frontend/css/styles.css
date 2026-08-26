@@ -2829,40 +2829,20 @@ body:has(.chat-page.is-empty) .app-footer,
 }
 
 .chat-page.is-empty .empty-stream {
-  padding: 0 0 36px;
+  padding: 0 0 40px;
   text-align: center;
 }
 
 .chat-page.is-empty .empty-stream h2,
 .empty-stream-title {
   margin: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
   font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
-  font-size: clamp(30px, 3.6vw, 42px);
+  font-size: clamp(36px, 4.4vw, 50px);
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--ink);
-}
-
-.chat-page.is-empty .empty-stream .mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: auto;
-  height: auto;
-  margin: 0;
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.chat-page.is-empty .empty-stream .mark svg {
-  width: 32px;
-  height: 32px;
-  display: block;
+  text-align: center;
 }
 
 .chat-page.is-empty .composer-wrap {

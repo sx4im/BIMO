@@ -15,7 +15,7 @@ import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=11";
-import { MessageFeed } from "../chat/message-feed.js?v=18";
+import { MessageFeed } from "../chat/message-feed.js?v=19";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=5";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {
@@ -274,6 +274,17 @@ export async function renderChat({ id, incognito }) {
   host.append(page);
   messageFeed.mountScrollFollower(); // permanent pin/free-scroll + jump button
 
+  // Auto-focus composer textarea so it is always active and ready for typing
+  requestAnimationFrame(() => composer.focus());
+  setTimeout(() => composer.focus(), 150);
+
+  // Clicking anywhere on the empty chat background keeps composer focused
+  page.addEventListener("click", (e) => {
+    if (page.classList.contains("is-empty") && !e.target.closest("button, a, input, select, textarea, [role='menu'], [role='option'], .model-dropdown, .tools-menu, .attachment-menu")) {
+      composer.focus();
+    }
+  });
+
   // Touch devices have no hardware keyboard — raise the on-screen one right
   // away like claude.ai/ChatGPT do, so the app is immediately typeable.
   // A load-time focus() works on Android; iOS Safari only honours focus
@@ -294,7 +305,6 @@ export async function renderChat({ id, incognito }) {
     document.addEventListener("touchend", gestureFocus, { passive: true });
     document.addEventListener("mousedown", gestureFocus);
   })();
-
 
   shell.setIncognitoActive?.(Boolean(incognito));
 
@@ -671,6 +681,7 @@ export async function renderChat({ id, incognito }) {
     shell.setActiveConversation(null);
     composer.renderModelBadge(incognito);
     renderUI({ initial: true });
+    composer.focus();
   }
 
 

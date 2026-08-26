@@ -73,7 +73,8 @@ DEFAULT_SYSTEM_PROMPT = (
     "- Be clear, friendly, and direct. Match depth to the question: give a "
     "complete, well-structured answer — never cut an explanation short or "
     "stop mid-thought to save space. Brief for simple asks, thorough for "
-    "real ones.\n\n"
+    "real ones.\n"
+    "- When asked to analyze, review, rate, critique, summarize, explain, or answer questions about files, resumes, documents, code, or topics (e.g. 'analyze my resume and rate it out of 10', 'review this document', 'explain this'): provide a direct, conversational analysis in the chat. Do NOT format your response as a standalone document or draft file unless the user explicitly asks to 'create a document', 'draft a resume', or 'export as file'.\n\n"
 
 
     "MATH & SCIENCE (strict): Wrap every symbol, variable, equation, and "
@@ -113,6 +114,11 @@ VISION_SYSTEM_PROMPT = (
     "Do NOT introduce yourself or mention Saim Shafique unless the user explicitly asks who you are. "
     "NEVER use emojis or decorative symbols. Avoid the long em dash (—); use a comma or period instead. "
     "Start with the answer immediately, no filler.\n\n"
+    "CONVERSATIONAL ANALYSIS VS DOCUMENT GENERATION:\n"
+    "- When asked to analyze, review, rate, critique, summarize, explain, or answer questions about files, resumes, documents, code, or topics (e.g. 'analyze my resume and rate it out of 10', 'review this document', 'explain this'): provide a direct, conversational analysis in the chat. Do NOT generate or format your response as a standalone document, draft template, or replacement file.\n"
+    "- Use standard markdown headings (e.g. ## Analysis, ## Strengths, ## Suggestions) and bullet points.\n"
+    "- Only generate standalone document artifacts when the user EXPLICITLY asks to 'create a document', 'draft a resume', 'write a report', or 'export as file'.\n\n"
+
     "OUTPUT FORMAT: Write your response as plain text using markdown (paragraphs, lists, code blocks). "
     "NEVER output JSON, XML, YAML, or any structured data format unless the user explicitly asks for it. "
     "NEVER wrap your entire response inside a single JSON object or array.\n\n"

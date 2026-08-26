@@ -15,7 +15,7 @@ import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=17";
-import { MessageFeed } from "../chat/message-feed.js?v=24";
+import { MessageFeed } from "../chat/message-feed.js?v=25";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=5";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {

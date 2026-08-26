@@ -21,49 +21,17 @@ export function extractDocumentArtifact(rawContent) {
   const cleaned = stripExportDisclaimers(rawContent);
   const trimmed = cleaned.trim();
 
-  // 1. Explicit H1 Title (# Document Title) near the start of the response
-  const h1Match = trimmed.match(/^(?:[^\n]{0,120}\n+)?#\s+([^\n]+)/);
-
-  // 2. Strict Resume / CV pattern (must match multiple core resume sections)
-  const resumeSections = ["PROFESSIONAL SUMMARY", "TECHNICAL SKILLS", "WORK EXPERIENCE", "EXPERIENCE", "EDUCATION"];
-  const matchedResumeSections = resumeSections.filter((sec) => new RegExp(`\\b${sec}\\b`, "i").test(trimmed));
-  const isResumeDoc = matchedResumeSections.length >= 3 && trimmed.length > 250;
-
-  if (!h1Match && !isResumeDoc) {
-    return { isDoc: false, text: cleaned };
-  }
-
-  if (h1Match) {
-    const h1Index = trimmed.indexOf(h1Match[0]);
-    const introText = h1Index > 0 ? stripExportDisclaimers(trimmed.substring(0, h1Index)) : "";
-    const docContent = trimmed.substring(h1Index).trim();
-    const title = h1Match[1].replace(/[*_`#]/g, "").trim();
-
-    // Must have substantive content to qualify as a standalone document card
-    if (docContent.length < 180) {
-      return { isDoc: false, text: cleaned };
-    }
-
-    return {
-      isDoc: true,
-      introText,
-      docTitle: title || "Bimo AI Document",
-      docContent,
-    };
-  }
-
-  if (isResumeDoc) {
-    const topNameMatch = trimmed.match(/^(?:[^\n]{0,100}\n+)?(?:\*\*|#\s*)?([A-Za-z\s\[\]_-]{3,40})(?:\*\*)?(?:\s*\n)/);
-    let title = topNameMatch ? topNameMatch[1].replace(/[*_`#\[\]]/g, "").trim() : "Resume";
-    if (!title || title.toUpperCase() === "NAME" || title.toUpperCase() === "YOUR NAME") {
-      title = "Professional Resume";
-    }
-
+  // Explicit document fence: :::document ... ::: or ```document ... ```
+  const fenceMatch = trimmed.match(/^:::document(?:\s+([^\n]+))?\n([\s\S]+?)\n:::/i)
+    || trimmed.match(/^```document(?:\s+([^\n]+))?\n([\s\S]+?)\n```/i);
+  if (fenceMatch) {
+    const title = (fenceMatch[1] || "").replace(/[*_`#]/g, "").trim() || "Document";
+    const docContent = fenceMatch[2].trim();
     return {
       isDoc: true,
       introText: "",
       docTitle: title,
-      docContent: trimmed,
+      docContent,
     };
   }
 

@@ -28,7 +28,7 @@
  */
 
 import { renderMarkdown } from "../components/markdown.js?v=31";
-import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=60";
+import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=62";
 import { splitStreamBlocks } from "./stream-splitter.js?v=1";
 import { stripStrayCursors } from "./caret.js?v=1";
 import { el, clear } from "../utils.js?v=30";

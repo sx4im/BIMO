@@ -5,7 +5,7 @@
 // which validates the JWT and uses the service role on the server side.
 
 import { config } from "./config.js?v=30";
-import { getAuth, refreshSession } from "./auth.js?v=30";
+import { getAuth, refreshSession } from "./auth.js?v=31";
 
 function authHeaders(token) {
   const t = getAuth().auth?.token || token;

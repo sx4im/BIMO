@@ -3639,30 +3639,42 @@ body:has(.chat-page.is-empty) .tools-menu,
 }
 
 .composer .send {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
-  border-radius: 9999px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   color: var(--on-primary);
   background: var(--primary);
-  transition: background 150ms ease;
+  transition: background 150ms ease, opacity 150ms ease, transform 120ms ease;
 }
 
-.composer .send:hover {
+.composer .send:hover:not(:disabled) {
   background: var(--primary-active);
+}
+
+.composer .send:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .composer .send:disabled {
   background: var(--primary-disabled, #e6dfd8);
   color: var(--muted);
   cursor: not-allowed;
+  opacity: 0.55;
+}
+
+:root[data-theme="dark"] .composer .send:disabled {
+  background: #2a2a28;
+  color: #666;
+  opacity: 0.45;
 }
 
 .composer .send svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.2;
 }
 
 /* Web-search pill — sits beside the send button. Off = subtle outline;
@@ -5779,7 +5791,12 @@ body:has(.chat-page.is-empty) .tools-menu,
     display: none;
   }
 
-  .composer .send,
+  .composer .send {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
   .composer-attach,
   .composer-voice {
     width: 38px;

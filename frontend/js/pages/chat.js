@@ -5,7 +5,7 @@
 
 import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
-import { getAuth } from "../auth.js?v=30";
+import { getAuth } from "../auth.js?v=31";
 import { navigate } from "../router.js?v=31";
 import { mountAppShell } from "../app-shell.js?v=69";
 import { toast } from "../components/toast.js?v=58";
@@ -14,8 +14,8 @@ import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
 import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
-import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=13";
-import { MessageFeed } from "../chat/message-feed.js?v=21";
+import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=16";
+import { MessageFeed } from "../chat/message-feed.js?v=24";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=5";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {
@@ -351,7 +351,7 @@ export async function renderChat({ id, incognito }) {
 
     messageFeed.render({
       messages,
-      user: auth.user,
+      user: getAuth().auth?.user || auth.user,
       generating: composer.isGenerating,
       searching,
       imageGenerating,

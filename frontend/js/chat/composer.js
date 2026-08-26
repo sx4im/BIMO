@@ -5,7 +5,7 @@
  */
 
 import { el, clear } from "../utils.js?v=20";
-import { icon } from "../icons.js?v=48";
+import { icon } from "../icons.js?v=64";
 import { toast } from "../components/toast.js?v=58";
 import { openImageModal } from "../components/image-modal.js?v=18";
 import { blobToWav16kMono } from "../audio-wav.js?v=30";
@@ -24,37 +24,39 @@ export const DEFAULT_AVAILABLE_MODELS = [
   { id: "image", label: "Iris 1.0", description: "Image generation", kind: "image" },
 ];
 
+let _pageGreetingPlaceholder = null;
 export function greetingPlaceholder() {
+  if (_pageGreetingPlaceholder) return _pageGreetingPlaceholder;
   const h = new Date().getHours();
   // Short, human, Claude-ish greetings — picked at random per time bucket.
   // No dashes anywhere: they read as clutter in a placeholder.
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   if (h >= 5 && h < 12) {
-    return pick([
+    _pageGreetingPlaceholder = pick([
       "Coffee's on. What are we building?",
       "Morning! What's on your mind?",
       "Fresh day. What do you need?",
     ]);
-  }
-  if (h >= 12 && h < 17) {
-    return pick([
+  } else if (h >= 12 && h < 17) {
+    _pageGreetingPlaceholder = pick([
       "Afternoon! What are we working on?",
       "Good afternoon. What do you need?",
       "Middle of the day, ask away.",
     ]);
-  }
-  if (h >= 17 && h < 21) {
-    return pick([
+  } else if (h >= 17 && h < 22) {
+    _pageGreetingPlaceholder = pick([
       "Evening! What's on deck?",
       "Good evening. What shall we dig into?",
       "Winding down or digging in?",
     ]);
+  } else {
+    _pageGreetingPlaceholder = pick([
+      "Hey night owl. What keeps you up?",
+      "Late shift? I'm up too.",
+      "Quiet hours. Perfect for solving something.",
+    ]);
   }
-  return pick([
-    "Hey night owl. What keeps you up?",
-    "Late shift? I'm up too.",
-    "Quiet hours. Perfect for solving something.",
-  ]);
+  return _pageGreetingPlaceholder;
 }
 
 export class Composer {

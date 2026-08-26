@@ -1,7 +1,7 @@
 import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=57";
 import { mountAppShell } from "../app-shell.js?v=69";
-import { getAuth } from "../auth.js?v=30";
+import { getAuth } from "../auth.js?v=31";
 import { toast } from "../components/toast.js?v=58";
 import { navigate } from "../router.js?v=31";
 

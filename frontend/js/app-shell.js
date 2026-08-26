@@ -4,7 +4,7 @@ import { renderSidebar } from "./components/sidebar.js?v=59";
 import { openChatSearch } from "./components/chat-search.js?v=30";
 import { toast } from "./components/toast.js?v=58";
 import * as api from "./api.js?v=30";
-import { getAuth, signOut } from "./auth.js?v=30";
+import { getAuth, signOut } from "./auth.js?v=31";
 import { navigate } from "./router.js?v=31";
 
 /**

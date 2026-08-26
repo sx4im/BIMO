@@ -2,10 +2,29 @@
 // Generates short, elegant, single-line greetings tailored to the user's local time
 // and display first name.
 
+let _pageGreetingTemplate = null;
+
 export function getFirstName(fullName) {
   if (!fullName || typeof fullName !== "string") return "";
-  const cleaned = fullName.trim();
+  let cleaned = fullName.trim();
   if (!cleaned || cleaned.toLowerCase() === "bimo user" || cleaned.toLowerCase() === "user") return "";
+
+  // If it is an email address (e.g. user@gmail.com or 123456+username@users.noreply.github.com)
+  if (cleaned.includes("@")) {
+    cleaned = cleaned.split("@")[0];
+    if (cleaned.includes("+")) {
+      cleaned = cleaned.split("+")[1] || cleaned;
+    }
+  }
+
+  // Handle multi-word names like "Saim Shafique" -> "Saim"
+  const spaceParts = cleaned.split(/\s+/);
+  if (spaceParts.length > 1 && spaceParts[0]) {
+    const first = spaceParts[0];
+    return first.charAt(0).toUpperCase() + first.slice(1);
+  }
+
+  // Handle separated usernames like "saim.shafique", "saim_khan", "saim-dev"
   const raw = cleaned.split(/[\s._-]+/)[0];
   if (!raw) return "";
   return raw.charAt(0).toUpperCase() + raw.slice(1);
@@ -49,24 +68,20 @@ export const GENERAL_GREETINGS = [
 
 export function getGreetingPool(date = new Date()) {
   const hour = date.getHours();
-  // Morning: 5am to 10am (5 <= hour < 10)
-  if (hour >= 5 && hour < 10) {
+  // Morning: 5am to 12pm (5 <= hour < 12)
+  if (hour >= 5 && hour < 12) {
     return MORNING_GREETINGS;
   }
-  // Afternoon: 1pm to 3pm (13 <= hour < 15)
-  if (hour >= 13 && hour < 15) {
+  // Afternoon: 12pm to 5pm (12 <= hour < 17)
+  if (hour >= 12 && hour < 17) {
     return AFTERNOON_GREETINGS;
   }
-  // Evening: 5pm to 7pm (17 <= hour < 19)
-  if (hour >= 17 && hour < 19) {
+  // Evening: 5pm to 10pm (17 <= hour < 22)
+  if (hour >= 17 && hour < 22) {
     return EVENING_GREETINGS;
   }
-  // Night: 8pm to 1am (hour >= 20 || hour < 1)
-  if (hour >= 20 || hour < 1) {
-    return NIGHT_GREETINGS;
-  }
-  // Other hours: General clean classics
-  return GENERAL_GREETINGS;
+  // Night: 10pm to 5am (hour >= 22 || hour < 5)
+  return NIGHT_GREETINGS;
 }
 
 export function getRandomGreetingTemplate(date = new Date()) {
@@ -74,8 +89,19 @@ export function getRandomGreetingTemplate(date = new Date()) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+export function getPageGreetingTemplate(date = new Date()) {
+  if (!_pageGreetingTemplate) {
+    _pageGreetingTemplate = getRandomGreetingTemplate(date);
+  }
+  return _pageGreetingTemplate;
+}
+
+export function resetPageGreetingTemplate() {
+  _pageGreetingTemplate = null;
+}
+
 export function getGreeting(userName, date = new Date(), template = null) {
   const firstName = getFirstName(userName);
-  const fn = template || getRandomGreetingTemplate(date);
+  const fn = template || getPageGreetingTemplate(date);
   return fn(firstName);
 }

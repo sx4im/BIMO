@@ -28,16 +28,46 @@ function userFromSession(session) {
   if (!session) return null;
   const u = session.user || {};
   const meta = u.user_metadata || {};
+  const idData = (Array.isArray(u.identities) && u.identities[0]?.identity_data) || {};
+
   // base_name is the OAuth-derived name; `name` applies the local override (if
   // any) so the whole app shows the user's chosen name. Clearing the override
   // reverts to base_name.
-  const baseName =
+  let baseName =
     meta.full_name ||
     meta.name ||
+    idData.full_name ||
+    idData.name ||
     meta.user_name ||
+    idData.user_name ||
     meta.preferred_username ||
+    idData.preferred_username ||
+    meta.nickname ||
+    idData.nickname ||
     meta.given_name ||
-    (u.email ? u.email.split("@")[0] : "");
+    idData.given_name ||
+    "";
+
+  if (!baseName && u.email) {
+    let emailPrefix = u.email.split("@")[0];
+    if (emailPrefix.includes("+")) {
+      emailPrefix = emailPrefix.split("+")[1] || emailPrefix;
+    }
+    baseName = emailPrefix;
+  }
+
+  const avatarUrl =
+    meta.avatar_url ||
+    meta.picture ||
+    idData.avatar_url ||
+    idData.picture ||
+    null;
+
+  const provider =
+    u.app_metadata?.provider ||
+    (Array.isArray(u.identities) && u.identities[0]?.provider) ||
+    "google";
+
   return {
     token: session.access_token,
     expires_at: session.expires_at,
@@ -46,8 +76,8 @@ function userFromSession(session) {
       email: u.email,
       name: getDisplayName() || baseName,
       base_name: baseName,
-      avatar_url: meta.avatar_url || meta.picture || null,
-      provider: u.app_metadata?.provider || "google",
+      avatar_url: avatarUrl,
+      provider: provider,
     },
   };
 }

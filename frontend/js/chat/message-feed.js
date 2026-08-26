@@ -22,20 +22,11 @@ import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
 import { StreamingRenderer } from "./stream-renderer.js?v=8";
 import { stripStrayCursors } from "./caret.js?v=1";
 import { ScrollFollower } from "./scroll-follower.js?v=5";
-import { getGreeting, getRandomGreetingTemplate, getFirstName } from "./greetings.js?v=2";
+import { getGreeting, getRandomGreetingTemplate, getPageGreetingTemplate, getFirstName } from "./greetings.js?v=4";
 
 export function emptyStreamView({ incognito, user, template } = {}) {
   if (incognito) {
-    const ghost = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="incognito-ghost" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 2.5a7.5 7.5 0 0 0-7.5 7.5v11.4c0 .55.66.8.98.38L8.2 18.4l2.9 3.05a1.05 1.05 0 0 0 1.8 0l2.9-3.05 2.72 3.38c.32.42.98.17.98-.38V10A7.5 7.5 0 0 0 12 2.5z"/>
-        <g class="ghost-eyes">
-          <circle class="ghost-eye" cx="9.2" cy="10.6" r="0.72" fill="currentColor" stroke="currentColor" stroke-width="0.62"/>
-          <circle class="ghost-eye" cx="14.8" cy="10.6" r="0.72" fill="currentColor" stroke="currentColor" stroke-width="0.62"/>
-        </g>
-      </svg>`;
     return el("div", { class: "empty-stream incognito" }, [
-      el("div", { class: "mark", html: ghost }),
       el("h2", { html: '<span class="accent">Incognito</span> chat' }),
       el("p", { text: "Messages here aren't saved to your history." }),
     ]);
@@ -256,7 +247,7 @@ export class MessageFeed {
       if (this._imageGeneratingNode) { this._imageGeneratingNode.remove(); this._imageGeneratingNode = null; }
       if (this._streamingNode) { this._streamingNode.remove(); this._streamingNode = null; }
       if (!this._emptyNode || !this._emptyNode.isConnected) {
-        this._emptyGreetingTemplate = getRandomGreetingTemplate();
+        this._emptyGreetingTemplate = getPageGreetingTemplate();
         this._emptyNode = emptyStreamView({ incognito, user, template: this._emptyGreetingTemplate });
         this.streamInner.append(this._emptyNode);
       } else if (!incognito && this._emptyGreetingTemplate) {

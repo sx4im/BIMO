@@ -194,11 +194,20 @@ def user_from_token(token: Optional[str]) -> Optional[User]:
     metadata = payload.get("user_metadata") or {}
     app_meta = payload.get("app_metadata") or {}
     email = payload.get("email")
+    raw_name = (
+        metadata.get("full_name")
+        or metadata.get("name")
+        or metadata.get("user_name")
+        or metadata.get("preferred_username")
+        or metadata.get("nickname")
+        or metadata.get("given_name")
+        or (email.split("@")[0] if email else None)
+    )
     logger.info("auth: decode ok in %.3fs sub=%s", t_decode, payload.get("sub"))
     return User(
         id=payload["sub"],
         email=email,
-        name=metadata.get("full_name") or metadata.get("name") or email,
+        name=raw_name,
         avatar_url=metadata.get("avatar_url") or metadata.get("picture"),
         provider=app_meta.get("provider") or "google",
         raw=payload,

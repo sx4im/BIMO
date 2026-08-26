@@ -18,7 +18,7 @@ const PATHS = {
   helpStudy: `<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M10 12.5002c1.3807 0 2.5 -1.1192 2.5 -2.5 0 -1.38067 -1.1193 -2.49996 -2.5 -2.49996 -1.38071 0 -2.5 1.11929 -2.5 2.49996 0 1.3808 1.11929 2.5 2.5 2.5Z" stroke-width="1"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m13.4995 13.4998 -1.73 -1.73" stroke-width="1"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M7 2.00024v0C7 1.17182 6.32843 0.500244 5.5 0.500244h-5V10.5002h5" stroke-width="1"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M7 2.00024v4.5" stroke-width="1"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M7 2v0C7 1.17157 7.67157 0.5 8.5 0.5h5v7.00024" stroke-width="1"/>`,
   arrowRight: `<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>`,
   arrowLeft: `<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>`,
-  send: `<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.112z"/><path d="m21.854 2.147-10.94 10.939"/>`,
+  send: `<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>`,
   square: `<rect width="18" height="18" x="3" y="3" rx="2"/>`,
   pencil: `<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>`,
   globe: `<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>`,

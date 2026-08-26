@@ -4,7 +4,7 @@
  */
 
 import { blobToWav16kMono } from "../audio-wav.js?v=30";
-import { toast } from "../components/toast.js?v=57";
+import { toast } from "../components/toast.js?v=58";
 import * as api from "../api.js?v=56";
 
 export class AudioRecorder {

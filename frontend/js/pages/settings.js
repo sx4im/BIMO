@@ -4,7 +4,7 @@ import { mountAppShell, tearDownShell, getShellState } from "../app-shell.js?v=6
 import { getAuth, signOut, setUserDisplayName } from "../auth.js?v=30";
 import { getThemePref, setThemePref } from "../prefs.js?v=32";
 import { avatar } from "../components/avatar.js?v=30";
-import { toast } from "../components/toast.js?v=57";
+import { toast } from "../components/toast.js?v=58";
 import { openConfirmModal } from "../components/confirm-modal.js?v=58";
 import * as api from "../api.js?v=30";
 

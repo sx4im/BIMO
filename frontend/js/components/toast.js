@@ -9,29 +9,19 @@ const ICONS = {
   info: "info",
 };
 
-export function toast(message, { tone = "info", duration = 3200 } = {}) {
+export function toast(message, { tone = "info", duration = 2000 } = {}) {
   const container = $("#toast-container");
   if (!container) return;
 
   const node = el("div", { class: `toast ${tone}`, role: "status" }, [
     el("div", { class: "icon", html: icon(ICONS[tone] || "info", { width: 16, height: 16 }) }),
     el("div", { class: "body", text: message }),
-    el(
-      "button",
-      {
-        class: "close",
-        type: "button",
-        "aria-label": "Dismiss",
-        onclick: () => remove(),
-        html: icon("x", { width: 14, height: 14 }),
-      }
-    ),
   ]);
 
   const remove = () => {
     node.style.transition = "opacity 180ms ease, transform 180ms ease";
     node.style.opacity = "0";
-    node.style.transform = "translateX(20px)";
+    node.style.transform = "translateY(-8px) scale(0.96)";
     setTimeout(() => node.remove(), 200);
   };
 

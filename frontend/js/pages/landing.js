@@ -1,7 +1,7 @@
 import { $, el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=30";
 import { logo, spikeMark } from "../components/logo.js?v=30";
-import { toast } from "../components/toast.js?v=57";
+import { toast } from "../components/toast.js?v=58";
 import { signInWithGoogle, signInWithGithub, isConfigured } from "../auth.js?v=30";
 import { navigate } from "../router.js?v=31";
 import { tearDownShell } from "../app-shell.js?v=69";

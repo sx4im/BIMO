@@ -5,10 +5,11 @@
  */
 
 import { el, clear } from "../utils.js?v=20";
-import { icon } from "../icons.js?v=64";
+import { icon, formatDocIcon } from "../icons.js?v=64";
 import { toast } from "../components/toast.js?v=58";
 import { openImageModal } from "../components/image-modal.js?v=18";
 import { blobToWav16kMono } from "../audio-wav.js?v=30";
+import { getAuth } from "../auth.js?v=31";
 import * as api from "../api.js?v=56";
 
 export const REASONING_EFFORT_OPTIONS = [
@@ -290,17 +291,19 @@ export class Composer {
       },
       onpaste: (e) => {
         const items = [...(e.clipboardData?.items || [])];
-        const imageFiles = items
-          .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
-          .map((it) => it.getAsFile())
-          .filter(Boolean);
-        if (!imageFiles.length) return;
-        e.preventDefault();
-        if (imageFiles.length > 3) {
-          toast("Max 3 images", { tone: "error" });
-          imageFiles.splice(3);
+        const files = [];
+        for (const it of items) {
+          if (it.kind === "file") {
+            const f = it.getAsFile();
+            if (f) files.push(f);
+          }
         }
-        for (const file of imageFiles) this.uploadAndAttach(file);
+        if (!files.length) return;
+        e.preventDefault();
+        if (files.length > 3) {
+          toast("Max 3 files", { tone: "error" });
+        }
+        for (const file of files.slice(0, 3)) this.uploadAndAttach(file);
       },
     });
 
@@ -339,7 +342,31 @@ export class Composer {
       ]),
     ]);
 
-    this.composerBox = el("div", { class: "composer-box glass" }, [this.textarea, this.composerToolbar]);
+    this.composerBox = el("div", { class: "composer-box glass" }, [
+      this.attachmentsBar,
+      this.textarea,
+      this.composerToolbar,
+    ]);
+
+    this.composerBox.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      this.composerBox.classList.add("drag-over");
+    });
+    this.composerBox.addEventListener("dragleave", (e) => {
+      if (!this.composerBox.contains(e.relatedTarget)) {
+        this.composerBox.classList.remove("drag-over");
+      }
+    });
+    this.composerBox.addEventListener("drop", (e) => {
+      e.preventDefault();
+      this.composerBox.classList.remove("drag-over");
+      const files = [...(e.dataTransfer?.files || [])];
+      if (!files.length) return;
+      if (files.length > 3) {
+        toast("Max 3 files", { tone: "error" });
+      }
+      for (const file of files.slice(0, 3)) this.uploadAndAttach(file);
+    });
 
     this.composer = el("form", {
       class: "composer",
@@ -370,7 +397,6 @@ export class Composer {
       this.imageInput,
       this.documentInput,
       this.cameraInput,
-      this.attachmentsBar,
       this.composerBox,
       this.recordingBar,
     ]);
@@ -694,27 +720,36 @@ export class Composer {
   renderAttachmentsBar() {
     clear(this.attachmentsBar);
     for (const f of this.uploadingFiles) {
+      const isImg = f.file?.type?.startsWith("image/") || (f.name && /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name));
+      const children = [
+        el("span", { class: "spinner", html: icon("loader", { width: 14, height: 14 }) }),
+      ];
+      if (isImg && f.previewUrl) {
+        children.push(el("img", { src: f.previewUrl, alt: f.name || "uploading image" }));
+      } else {
+        children.push(el("span", { class: "ic", html: icon("fileText", { width: 14, height: 14 }) }));
+      }
+      children.push(el("span", { class: "name line-clamp-1", text: f.name || "Uploading..." }));
+      children.push(
+        el("button", {
+          type: "button",
+          class: "x",
+          "aria-label": "Cancel upload",
+          onclick: () => {
+            this.uploadingFiles = this.uploadingFiles.filter((x) => x !== f);
+            this.renderAttachmentsBar();
+            this.syncSendEnabled();
+          },
+          html: icon("x", { width: 12, height: 12 }),
+        })
+      );
       this.attachmentsBar.append(
-        el("div", { class: "composer-attachment-chip loading" }, [
-          el("span", { class: "spinner", html: icon("loader", { width: 14, height: 14 }) }),
-          el("span", { class: "name line-clamp-1", text: f.name }),
-          el("button", {
-            type: "button",
-            class: "x",
-            "aria-label": "Cancel upload",
-            onclick: () => {
-              this.uploadingFiles = this.uploadingFiles.filter((x) => x !== f);
-              this.renderAttachmentsBar();
-              this.syncSendEnabled();
-            },
-            html: icon("x", { width: 12, height: 12 }),
-          }),
-        ])
+        el("div", { class: "composer-attachment-chip loading" }, children)
       );
     }
 
     for (const a of this.pendingAttachments) {
-      const isImage = (a.content_type || "").startsWith("image/");
+      const isImage = (a.content_type || "").startsWith("image/") || /\.(png|jpe?g|webp|gif|svg)$/i.test(a.filename || "");
       const children = [];
       if (isImage && a.url) {
         children.push(el("img", {
@@ -725,7 +760,12 @@ export class Composer {
           onclick: () => openImageModal(a.url, a.filename),
         }));
       } else {
-        children.push(el("span", { class: "ic", html: icon("fileText", { width: 14, height: 14 }) }));
+        const ext = (a.filename || "").split(".").pop()?.toLowerCase();
+        if (["pdf", "docx", "md"].includes(ext)) {
+          children.push(el("span", { class: "ic", html: formatDocIcon(ext, { width: 15, height: 18 }) }));
+        } else {
+          children.push(el("span", { class: "ic", html: icon("fileText", { width: 14, height: 14 }) }));
+        }
       }
       children.push(el("span", { class: "name line-clamp-1", text: a.filename || "attachment" }));
       children.push(
@@ -751,10 +791,20 @@ export class Composer {
       toast("Max file size is 50MB", { tone: "error" });
       return;
     }
-    const token = this.getAuthToken();
-    if (!token) return;
+    const token = this.getAuthToken?.() || getAuth().auth?.token;
+    if (!token) {
+      toast("Please sign in to attach files", { tone: "error" });
+      return;
+    }
 
-    this.uploadingFiles.push(file);
+    const isImg = file.type?.startsWith("image/") || /\.(png|jpe?g|webp|gif|svg)$/i.test(file.name);
+    let previewUrl = null;
+    if (isImg) {
+      try { previewUrl = URL.createObjectURL(file); } catch {}
+    }
+
+    const uploadEntry = { file, name: file.name, previewUrl };
+    this.uploadingFiles.push(uploadEntry);
     this.renderAttachmentsBar();
     this.syncSendEnabled();
 
@@ -764,7 +814,10 @@ export class Composer {
     } catch (err) {
       toast(err.message || "Upload failed", { tone: "error" });
     } finally {
-      this.uploadingFiles = this.uploadingFiles.filter((x) => x !== file);
+      this.uploadingFiles = this.uploadingFiles.filter((x) => x !== uploadEntry);
+      if (previewUrl) {
+        try { URL.revokeObjectURL(previewUrl); } catch {}
+      }
       this.renderAttachmentsBar();
       this.syncSendEnabled();
     }
@@ -802,8 +855,18 @@ export class Composer {
       return;
     }
     this.sendBtn.classList.remove("stopping");
+
     const hasInput = Boolean(this.textarea.value.trim()) || this.pendingAttachments.length > 0;
-    if (hasInput) {
+    const isUploading = this.uploadingFiles.length > 0;
+
+    if (isUploading) {
+      this.voiceAssistantBtn.style.display = "none";
+      this.sendBtn.style.display = "";
+      this.sendBtn.setAttribute("aria-label", "Uploading attachment");
+      this.sendBtn.title = "Uploading attachment...";
+      this.sendBtn.innerHTML = `<span class="send-spin">${icon("loader", { width: 16, height: 16 })}</span>`;
+      this.sendBtn.disabled = true;
+    } else if (hasInput) {
       this.voiceAssistantBtn.style.display = "none";
       this.sendBtn.style.display = "";
       this.sendBtn.setAttribute("aria-label", "Send message");
@@ -1013,6 +1076,26 @@ export class Composer {
     };
     document.addEventListener("click", this._onDocClick);
 
+    this._onGlobalPaste = (e) => {
+      if (document.activeElement === this.textarea) return;
+      const items = [...(e.clipboardData?.items || [])];
+      const files = [];
+      for (const it of items) {
+        if (it.kind === "file") {
+          const f = it.getAsFile();
+          if (f) files.push(f);
+        }
+      }
+      if (!files.length) return;
+      e.preventDefault();
+      this.textarea.focus();
+      if (files.length > 3) {
+        toast("Max 3 files", { tone: "error" });
+      }
+      for (const file of files.slice(0, 3)) this.uploadAndAttach(file);
+    };
+    document.addEventListener("paste", this._onGlobalPaste);
+
     this._onPointerDown = (e) => {
       if (this.modelDropdownOpen && !this.modelBadge.contains(e.target) && !this.modelDropdown.contains(e.target)) {
         this.closeModelDropdown();
@@ -1031,6 +1114,7 @@ export class Composer {
       try { this.mediaRecorder.stop(); } catch {}
     }
     document.removeEventListener("click", this._onDocClick);
+    document.removeEventListener("paste", this._onGlobalPaste);
     document.removeEventListener("pointerdown", this._onPointerDown, true);
   }
 }

@@ -6950,10 +6950,21 @@ em {
 }
 
 .composer-attachments {
-  display: none;
+  display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  padding: 8px 12px 0;
+  padding: 4px 6px 6px;
+  width: 100%;
+}
+
+.composer-attachments:empty {
+  display: none !important;
+}
+
+.composer-box.drag-over {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px var(--primary-soft) !important;
 }
 
 .composer-attachment-chip {
@@ -6963,21 +6974,43 @@ em {
   background: var(--surface-soft);
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
-  padding: 5px 8px;
-  max-width: 220px;
+  padding: 4px 8px;
+  max-width: 260px;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+:root[data-theme="dark"] .composer-attachment-chip {
+  background: var(--surface-card);
+  border-color: var(--border-soft);
 }
 
 .composer-attachment-chip img {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   object-fit: cover;
   border-radius: var(--r-sm);
+  flex-shrink: 0;
+}
+
+.composer-attachment-chip .ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  background: var(--surface-card);
+  color: var(--muted);
+  flex-shrink: 0;
 }
 
 .composer-attachment-chip .name {
   font-size: 12.5px;
   color: var(--body-strong);
   max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .composer-attachment-chip .x {
@@ -6989,21 +7022,31 @@ em {
   cursor: pointer;
   border-radius: 4px;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 120ms ease, background 120ms ease;
 }
 
 .composer-attachment-chip .x:hover {
   color: var(--ink);
-  background: var(--surface-card);
+  background: var(--surface-soft);
 }
 
 /* Loading chip — spinner animation */
+.composer-attachment-chip.loading {
+  opacity: 0.9;
+  border-style: dashed;
+}
+
 .composer-attachment-chip.loading .spinner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+  color: var(--primary);
 }
 
 .composer-attachment-chip.loading .spinner svg {

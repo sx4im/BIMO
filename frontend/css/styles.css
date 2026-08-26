@@ -4629,14 +4629,36 @@ body:has(.chat-page.is-empty) .tools-menu,
   .analytics-chart-card { padding: 20px; }
   .analytics-chart-card h3 { font-size: 19px; }
 
-  /* Toast — top center on mobile */
+  /* Toast — compact top center on mobile */
   .toast-container {
-    top: 12px;
+    top: 10px;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    max-width: min(340px, calc(100vw - 24px));
+    max-width: min(300px, calc(100vw - 24px));
     align-items: center;
+  }
+
+  .toast {
+    font-size: 12px;
+    padding: 5px 10px;
+    gap: 6px;
+    border-radius: 6px;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.3;
+  }
+
+  .toast .icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .toast .icon svg {
+    width: 13px;
+    height: 13px;
   }
 
   /* Sidebar drawer width */

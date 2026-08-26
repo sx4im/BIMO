@@ -14,7 +14,7 @@ import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
 import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
-import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=11";
+import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=12";
 import { MessageFeed } from "../chat/message-feed.js?v=19";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=5";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
@@ -274,37 +274,30 @@ export async function renderChat({ id, incognito }) {
   host.append(page);
   messageFeed.mountScrollFollower(); // permanent pin/free-scroll + jump button
 
-  // Auto-focus composer textarea so it is always active and ready for typing
-  requestAnimationFrame(() => composer.focus());
-  setTimeout(() => composer.focus(), 150);
-
-  // Clicking anywhere on the empty chat background keeps composer focused
-  page.addEventListener("click", (e) => {
-    if (page.classList.contains("is-empty") && !e.target.closest("button, a, input, select, textarea, [role='menu'], [role='option'], .model-dropdown, .tools-menu, .attachment-menu")) {
+  // Auto-focus composer textarea so it is always active and hungry for input
+  const attemptFocus = () => {
+    try {
       composer.focus();
+    } catch {
+      /* ignore if not attached yet */
     }
-  });
+  };
+  attemptFocus();
+  requestAnimationFrame(attemptFocus);
+  setTimeout(attemptFocus, 80);
+  setTimeout(attemptFocus, 250);
+  setTimeout(attemptFocus, 500);
 
-  // Touch devices have no hardware keyboard — raise the on-screen one right
-  // away like claude.ai/ChatGPT do, so the app is immediately typeable.
-  // A load-time focus() works on Android; iOS Safari only honours focus
-  // inside a user gesture, so fall back to the first tap OUTSIDE the message
-  // stream (tapping a message must stay text-selection, not keyboard).
-  (function raiseKeyboardOnTouch() {
-    const coarse = window.matchMedia?.("(pointer: coarse)")?.matches || navigator.maxTouchPoints > 0;
-    if (!coarse) return;
-    const ta = composer.textarea;
-    const attempt = () => { try { ta.focus(); } catch { /* detached */ } };
-    setTimeout(attempt, 350); // let layout settle first
-    const gestureFocus = (e) => {
-      if (e.target?.closest?.(".chat-stream")) return;
-      attempt();
-      document.removeEventListener("touchend", gestureFocus);
-      document.removeEventListener("mousedown", gestureFocus);
-    };
-    document.addEventListener("touchend", gestureFocus, { passive: true });
-    document.addEventListener("mousedown", gestureFocus);
-  })();
+  // On touch/mobile devices, tapping anywhere outside interactive controls immediately focuses composer & raises keyboard
+  const handleUniversalFocus = (e) => {
+    if (e.target?.closest?.("button, a, input, select, textarea, [role='menu'], [role='option'], .model-dropdown, .tools-menu, .attachment-menu")) {
+      return;
+    }
+    attemptFocus();
+  };
+  page.addEventListener("click", handleUniversalFocus);
+  document.addEventListener("touchstart", handleUniversalFocus, { passive: true });
+  document.addEventListener("pointerdown", handleUniversalFocus, { passive: true });
 
   shell.setIncognitoActive?.(Boolean(incognito));
 

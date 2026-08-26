@@ -278,6 +278,7 @@ export class Composer {
       rows: 1,
       placeholder: greetingPlaceholder(),
       "aria-label": "Message",
+      autofocus: "",
       oninput: (e) => { this.autoSize(e.target); this.syncSendEnabled(); },
       onkeydown: (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -410,8 +411,9 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
+    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
     this.attachmentMenu.style.position = "fixed";
-    if (isPageEmpty) {
+    if (openDown) {
       this.attachmentMenu.style.top = `${rect.bottom + margin}px`;
       this.attachmentMenu.style.bottom = "auto";
     } else {
@@ -477,8 +479,9 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
+    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
     this.toolsMenu.style.position = "fixed";
-    if (isPageEmpty) {
+    if (openDown) {
       this.toolsMenu.style.top = `${rect.bottom + margin}px`;
       this.toolsMenu.style.bottom = "auto";
     } else {
@@ -564,7 +567,8 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
-    if (isPageEmpty) {
+    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
+    if (openDown) {
       this.modelDropdown.style.top = `${rect.bottom + 8}px`;
       this.modelDropdown.style.bottom = "auto";
     } else {
@@ -632,7 +636,8 @@ export class Composer {
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
     const isPageEmpty = document.querySelector(".chat-page.is-empty") !== null;
-    if (isPageEmpty) {
+    const openDown = isPageEmpty && (rect.bottom + 220 <= window.innerHeight || window.innerWidth > 768);
+    if (openDown) {
       this.effortDropdown.style.top = `${rect.bottom + 8}px`;
       this.effortDropdown.style.bottom = "auto";
     } else {

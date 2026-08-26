@@ -5082,23 +5082,25 @@ em { font-style: normal; }
 .model-badge.model-badge-button {
   appearance: none;
   background: transparent;
-  border: none;
-  border-radius: var(--r-sm);
-  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  padding: 5px 11px 5px 12px;
   height: auto;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font: inherit;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.2;
   color: var(--ink);
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.model-badge.model-badge-button:hover {
+.model-badge.model-badge-button:hover,
+.model-badge.model-badge-button[aria-expanded="true"] {
   background: var(--surface-soft);
+  border-color: var(--hairline-strong);
   color: var(--ink);
 }
 .model-badge .caret {
@@ -5438,19 +5440,23 @@ em { font-style: normal; }
 .menu-check svg { width: 15px; height: 15px; }
 
 .model-tag-new {
+  margin-left: auto;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  padding: 1px 5px;
+  justify-content: center;
+  padding: 1.5px 8px;
   border-radius: var(--r-pill);
-  background: var(--ink);
-  color: var(--canvas);
+  background: var(--surface-soft);
+  color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 7.5px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  line-height: 1.7;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+:root[data-theme="dark"] .model-tag-new {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e3e3e3;
 }
 
 /* =============================================================

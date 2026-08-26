@@ -503,7 +503,7 @@ export class Composer {
     clear(this.modelDropdown);
     for (const m of this.availableModels) {
       const active = this.currentModel === m.id;
-      const isDefault = m.id === this.defaultModel;
+      const isStanza = m.id === "thinking";
       const item = el("button", {
         type: "button",
         class: `model-dropdown-item${active ? " active" : ""}`,
@@ -514,6 +514,7 @@ export class Composer {
         el("span", { class: "menu-text" }, [
           el("span", { class: "menu-title" }, [
             el("span", { text: m.label }),
+            ...(isStanza ? [el("span", { class: "model-tag-new", text: "New" })] : []),
           ]),
           m.description ? el("span", { class: "menu-sub", text: m.description }) : null,
         ].filter(Boolean)),

@@ -12,6 +12,8 @@ global.document = document;
 global.Event = window.Event;
 global.HTMLElement = window.HTMLElement;
 global.Node = window.Node;
+global.requestAnimationFrame = (cb) => setTimeout(cb, 5);
+global.cancelAnimationFrame = (id) => clearTimeout(id);
 window.Element.prototype.scrollTo = undefined; // force fallback branch like old browsers
 
 const geom = { sh: 2000, st: 0, ch: 800 };
@@ -146,6 +148,7 @@ const bubble = msgMod.messageBubble({
 inner.append(bubble);
 const settled = bubble.querySelector(".reasoning-block");
 check("T3: settled messageBubble block collapsed", !!settled && !settled.hasAttribute("open"));
+check("T3: settled messageBubble block has rendered content", settled?.querySelector(".reasoning-content")?.textContent.includes("stored reasoning"));
 
 // ---- TEST 7: MessageFeed.render() reconciles DOM preserving existing nodes -
 const feed = new feedMod.MessageFeed({});
@@ -190,6 +193,16 @@ await new Promise((r) => setTimeout(r, 50)); // await 30ms initial-load snap
 
 check("T9: initial load snap moves scroll to bottom", geom.st === 8000);
 check("T9: initial load snap re-pins follower", feed.follower.pinned === true);
+
+// ---- TEST 10: streaming updates autoscroll via follower.chase() -------------
+feed.follower.attach();
+geom.sh = 5000;
+geom.st = 2000;
+feed.render({ generating: true, streamingText: "", streamingReasoning: "thinking" });
+feed.updateStreamingBubble("generating response text", "thinking completed");
+await raf();
+await new Promise((r) => setTimeout(r, 20)); // wait for rAF / tick flush
+check("T10: streaming token updates chase to bottom when pinned", geom.st === geom.sh);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

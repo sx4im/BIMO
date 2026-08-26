@@ -17,9 +17,9 @@ import { el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=48";
 import { searchOrb } from "../components/orb.js?v=1";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=31";
-import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=60";
+import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=61";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
-import { StreamingRenderer } from "./stream-renderer.js?v=7";
+import { StreamingRenderer } from "./stream-renderer.js?v=8";
 import { stripStrayCursors } from "./caret.js?v=1";
 import { ScrollFollower } from "./scroll-follower.js?v=4";
 
@@ -104,6 +104,7 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   // (its constructor seeds it with the current content).
   const renderer = new StreamingRenderer(bubble);
   renderer.buildReasoning = (opts) => reasoningDetails(opts); // manual: collapsed until clicked
+  bubble.__streamRenderer = renderer;
   article.__streamRenderer = renderer;
 
   if (text) {
@@ -182,7 +183,7 @@ export class MessageFeed {
   updateStreamingBubble(text, reasoning = "") {
     const bubble = this.streamInner.querySelector(".streaming-bubble[data-streaming='true']");
     if (!bubble) return false;
-    let renderer = bubble.__streamRenderer;
+    let renderer = bubble.__streamRenderer || bubble.closest(".message.streaming")?.__streamRenderer;
     if (!renderer) {
       // Bubble existed without its renderer (e.g. restored mid-stream).
       renderer = new StreamingRenderer(bubble);
@@ -191,6 +192,7 @@ export class MessageFeed {
     } else {
       renderer.done = false; // an explicit update means the stream is live
     }
+    renderer.feed = this;
     return renderer.update(text, reasoning);
   }
 
@@ -199,8 +201,9 @@ export class MessageFeed {
   // settled message replaces the streaming bubble.
   finishStreamingBubble(text, reasoning = "") {
     const bubble = this.streamInner.querySelector(".streaming-bubble[data-streaming='true']");
-    const renderer = bubble?.__streamRenderer;
+    const renderer = bubble?.__streamRenderer || bubble?.closest(".message.streaming")?.__streamRenderer;
     if (renderer) {
+      renderer.feed = this;
       renderer.done = false; // allow the finishing flush
       renderer.finish(text ?? "", reasoning);
       return true;

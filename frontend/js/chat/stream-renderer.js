@@ -175,6 +175,7 @@ export class StreamingRenderer {
         this.tailSrc = "";
       }
       this.renderedChars = 0;
+      this._chase();
       return;
     }
 

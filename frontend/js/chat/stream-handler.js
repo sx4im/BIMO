@@ -218,6 +218,9 @@ export class StreamHandler {
             if (this.lastReasoningSeconds != null) {
               msg.reasoning_seconds = this.lastReasoningSeconds;
             }
+            if (!msg.reasoning && this.streamingReasoning) {
+              msg.reasoning = this.streamingReasoning;
+            }
             this.cleanup();
             this.onAssistantMessage(msg);
           },

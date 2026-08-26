@@ -232,7 +232,13 @@ export function reasoningDetails({ reasoning, durationText = "", live = false, h
     text: durationText,
   });
   const summary = el("summary", {}, [mark, " Thought Process ", timer]);
-  const content = el("div", { class: "reasoning-content markdown-body" });
+  const content = el("div", {
+    class: "reasoning-content markdown-body",
+    html: reasoning ? renderMarkdown(reasoning) : "",
+  });
+  if (reasoning) {
+    content.dataset.src = content.innerHTML;
+  }
   const block = el("details", { class: "reasoning-block", open: open ? "" : null }, [summary, content]);
   return block;
 }

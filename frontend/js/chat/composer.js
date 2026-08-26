@@ -518,7 +518,7 @@ export class Composer {
           ]),
           m.description ? el("span", { class: "menu-sub", text: m.description }) : null,
         ].filter(Boolean)),
-        active ? el("span", { class: "menu-check", html: icon("check", { width: 16, height: 16 }) }) : null,
+        (active && !isStanza) ? el("span", { class: "menu-check", html: icon("check", { width: 16, height: 16 }) }) : null,
       ].filter(Boolean));
       this.modelDropdown.append(item);
     }

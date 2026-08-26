@@ -14,8 +14,8 @@ import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
 import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
-import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=8";
-import { MessageFeed } from "../chat/message-feed.js?v=14";
+import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=9";
+import { MessageFeed } from "../chat/message-feed.js?v=15";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=5";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {
@@ -330,7 +330,8 @@ export async function renderChat({ id, incognito }) {
     composer.element.style.display = "";
     header.style.display = "";
     const spinner = page.querySelector(".blade-spinner");
-    if (spinner) spinner.remove();
+    const isEmpty = messages.length === 0 && !composer.isGenerating && !searching && !imageGenerating && !streamHandler.isStreaming;
+    page.classList.toggle("is-empty", isEmpty);
 
     messageFeed.render({
       messages,

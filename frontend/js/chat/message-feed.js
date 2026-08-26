@@ -41,8 +41,7 @@ export function emptyStreamView({ incognito } = {}) {
   }
   return el("div", { class: "empty-stream" }, [
     el("div", { class: "mark", html: icon("spike", { width: 84, height: 84 }) }),
-    el("h2", { html: "Ask <span class=\"accent\">Bimo</span> anything." }),
-    el("p", { text: "Fast, multimodal, and built to think." }),
+    el("h2", { html: 'Ask <span class="accent">Bimo</span> anything.' }),
   ]);
 }
 

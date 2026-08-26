@@ -2802,6 +2802,69 @@ body:has(.app-shell),
   border-top: none;
 }
 
+/* Hide footer while on new/empty chat screen (composer is in center) */
+body:has(.chat-page.is-empty) .app-footer,
+.app-shell:has(.chat-page.is-empty) .app-footer {
+  display: none;
+}
+
+/* =============================================================
+   Empty chat (New conversation) — Centered Hero Layout (Claude/ChatGPT style)
+   ============================================================= */
+
+.chat-page.is-empty .chat-stream {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  overflow-y: visible;
+  padding: 0 24px;
+}
+
+.chat-page.is-empty .chat-stream .inner {
+  width: 100%;
+  max-width: 680px;
+  gap: 0;
+}
+
+.chat-page.is-empty .empty-stream {
+  padding: 0 0 24px;
+}
+
+.chat-page.is-empty .empty-stream .mark {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+}
+
+.chat-page.is-empty .empty-stream .mark svg {
+  width: 72px;
+  height: 72px;
+}
+
+.chat-page.is-empty .empty-stream h2 {
+  font-size: clamp(26px, 3.2vw, 36px);
+}
+
+.chat-page.is-empty .composer-wrap {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 24px 32px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .chat-page.is-empty .chat-stream { padding: 0 16px; }
+  .chat-page.is-empty .composer-wrap { padding: 0 16px 20px; }
+  .chat-page.is-empty .empty-stream .mark { width: 56px; height: 56px; margin-bottom: 12px; }
+  .chat-page.is-empty .empty-stream .mark svg { width: 56px; height: 56px; }
+  .chat-page.is-empty .empty-stream h2 { font-size: 24px; }
+}
+
 @media (max-width: 480px), (max-height: 700px) {
   .app-footer {
     /* Minimal footprint on small phones (iPhone SE/XR class): tiny padding,
@@ -2815,7 +2878,16 @@ body:has(.app-shell),
 
 /* Shares its width with the message column (.chat-stream .inner) so the input
    bar and the conversation above it line up on the same left/right edges. */
-.composer { max-width: 800px; margin: 0 auto; }
+.composer {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-page.is-empty .composer {
+  max-width: 680px;
+}
 
 .composer-box {
   display: flex;

@@ -15,7 +15,7 @@ import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=3";
-import { MessageFeed } from "../chat/message-feed.js?v=13";
+import { MessageFeed } from "../chat/message-feed.js?v=14";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=4";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {
@@ -298,8 +298,8 @@ export async function renderChat({ id, incognito }) {
 
   shell.setIncognitoActive?.(Boolean(incognito));
 
-  function renderUI() {
-    clear(messageFeed.streamInner);
+  function renderUI(opts = {}) {
+    const initial = Boolean(opts?.initial);
 
     if (loading) {
       messageFeed.stream.style.display = "none";
@@ -343,6 +343,7 @@ export async function renderChat({ id, incognito }) {
       statusPhrase: streamHandler.currentPhrase,
       enteringId,
       incognito,
+      initial,
     });
     enteringId = null;
   }
@@ -668,7 +669,7 @@ export async function renderChat({ id, incognito }) {
     history.replaceState(null, "", "#/app/chat");
     shell.setActiveConversation(null);
     composer.renderModelBadge(incognito);
-    renderUI();
+    renderUI({ initial: true });
   }
 
 
@@ -736,7 +737,7 @@ export async function renderChat({ id, incognito }) {
   Promise.all([loadModels(), loadMessages()]).then(() => {
     if (unmounted) return;
     loading = false;
-    renderUI();
+    renderUI({ initial: true });
   }).catch((err) => {
     if (unmounted) return;
     loading = false;

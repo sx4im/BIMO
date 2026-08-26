@@ -69,7 +69,12 @@ The browser client uses HTML, CSS, and plain ES modules without build tools, fra
 Python 3.11+, a Supabase account, and an NVIDIA API key.
 
 ### 1. Database setup
-Run the SQL scripts in `backend/migrations/` in numerical order inside your Supabase project SQL editor.
+Run the SQL scripts in `backend/migrations/` in numerical order inside your Supabase project SQL editor (`0001_init.sql` → `0005_conversation_pinned.sql`):
+1. `0001_init.sql` — base schema (profiles, conversations, messages, feedback, storage bucket, RLS)
+2. `0002_message_reasoning.sql` — adds `reasoning` column to messages
+3. `0003_usage_events.sql` — token metering and usage tracking
+4. `0004_onboarding.sql` — onboarding surveys and profile flags
+5. `0005_conversation_pinned.sql` — pinned conversation support
 
 ### 2. Start the backend
 ```bash

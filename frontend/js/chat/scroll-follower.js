@@ -31,17 +31,22 @@ export class ScrollFollower {
 
     this._lastTop = typeof scroller?.scrollTop === "number" ? scroller.scrollTop : null;
     this._lastHeight = typeof scroller?.scrollHeight === "number" ? scroller.scrollHeight : null;
+    this._lastViewport = typeof scroller?.clientHeight === "number" ? scroller.clientHeight : null;
 
     this._onScroll = () => {
       const el = this.scroller;
       if (!el) return;
       // Two rules keep user intent and layout noise apart:
       //  1. Only a genuine USER upward scroll may detach the pin — and a
-      //     gesture NEVER coincides with a scrollHeight change. When content
-      //     is written/removed (feed re-render, images loading), the browser
-      //     clamps scrollTop and fires a scroll event that looks exactly like
-      //     an upward drag; treating it as one silently killed auto-scroll
-      //     for the whole response.
+      //     gesture NEVER coincides with a layout-dimension change. When
+      //     content is written/removed (feed re-render, images loading) the
+      //     browser clamps scrollTop and fires a scroll event that looks
+      //     exactly like an upward drag; treating it as one silently killed
+      //     auto-scroll for the whole response. Viewport resizes (soft
+      //     keyboard, mobile URL bar, scroll-anchoring reflows) play the
+      //     same trick through clientHeight, so BOTH dimensions are
+      //     watched: churn in either means the event is layout noise,
+      //     never a drag.
       //  2. Re-pin happens ONLY on arrival at bottom, so a user gliding down
       //     manually is never teleported mid-scroll.
       const atBottom =
@@ -49,7 +54,10 @@ export class ScrollFollower {
       const heightChanged =
         this._lastHeight != null &&
         Math.abs(el.scrollHeight - this._lastHeight) > 1;
-      const goingUp = !heightChanged &&
+      const viewportChanged =
+        this._lastViewport != null &&
+        Math.abs(el.clientHeight - this._lastViewport) > 1;
+      const goingUp = !heightChanged && !viewportChanged &&
         this._lastTop != null && el.scrollTop < this._lastTop - 1;
 
       if (atBottom) {
@@ -60,6 +68,7 @@ export class ScrollFollower {
       // Everything else (downward drift, clamps, resizes): state untouched.
       this._lastTop = el.scrollTop;
       this._lastHeight = el.scrollHeight;
+      this._lastViewport = el.clientHeight;
     };
 
     // Keep the button centred over the composer across viewport changes.

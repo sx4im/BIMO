@@ -770,3 +770,101 @@ def test_plain_text_untouched():
 def test_channel_tokens_still_stripped_alongside_spans():
     src = '<|channel|>thought<|channel|><span class="hljs-keyword">int</span> x'
     assert _clean_llm_text(src) == "int x"
+
+
+# --------------------------------------------------------------------------
+# Supabase PGRST303 transient clock-skew retry & reasoning migration logging
+# --------------------------------------------------------------------------
+
+from postgrest.exceptions import APIError
+from app import store
+
+
+def test_store_pgrst303_retry_succeeds():
+    """PGRST303 (JWT issued at future) retries and succeeds if a healthy node responds."""
+    calls = 0
+
+    class _MockResult:
+        data = [{"id": "c1", "title": "Test Convo"}]
+
+    class _MockBuilder:
+        def execute(self):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise APIError({"code": "PGRST303", "message": "JWT issued at future"})
+            return _MockResult()
+
+    builder = _MockBuilder()
+    res = store._execute(builder, delay=0.01)
+    assert res.data[0]["id"] == "c1"
+    assert calls == 2
+
+
+def test_store_unrelated_apierror_not_retried():
+    """Any non-PGRST303 APIError code must propagate immediately without retry."""
+    calls = 0
+
+    class _MockBuilder:
+        def execute(self):
+            nonlocal calls
+            calls += 1
+            raise APIError({"code": "PGRST100", "message": "parsing failed"})
+
+    builder = _MockBuilder()
+    with pytest.raises(APIError) as exc_info:
+        store._execute(builder, delay=0.01)
+    assert exc_info.value.code == "PGRST100"
+    assert calls == 1
+
+
+def test_store_pgrst303_exhausted_retries_raises():
+    """If all 2 retries (3 total attempts) fail with PGRST303, the original APIError propagates."""
+    calls = 0
+
+    class _MockBuilder:
+        def execute(self):
+            nonlocal calls
+            calls += 1
+            raise APIError({"code": "PGRST303", "message": "JWT issued at future"})
+
+    builder = _MockBuilder()
+    with pytest.raises(APIError):
+        store._execute(builder, max_retries=2, delay=0.01)
+    assert calls == 3
+
+
+def test_store_add_message_missing_reasoning_fallback(monkeypatch, caplog):
+    """When inserting with reasoning fails on missing column, warning is logged and insert falls back."""
+    calls = 0
+
+    class _MockResult:
+        data = [{"id": "m1", "role": "assistant", "content": "Answer"}]
+
+    class _MockTable:
+        def insert(self, payload):
+            nonlocal calls
+            calls += 1
+            self.payload = payload
+            return self
+
+        def execute(self):
+            if "reasoning" in self.payload:
+                raise Exception("column messages.reasoning does not exist")
+            return _MockResult()
+
+    class _MockSupabase:
+        def table(self, name):
+            assert name == "messages"
+            return _MockTable()
+
+    monkeypatch.setattr(store, "supabase", lambda: _MockSupabase())
+    monkeypatch.setattr(store, "get_conversation", lambda cid, uid: {"id": cid})
+    monkeypatch.setattr(store, "touch_conversation", lambda cid, uid: None)
+
+    with caplog.at_level("WARNING"):
+        msg = store.add_message("c1", "u1", role="assistant", content="Answer", reasoning="Step 1")
+    assert msg["id"] == "m1"
+    assert "0002_message_reasoning.sql" in caplog.text
+    assert calls == 2
+

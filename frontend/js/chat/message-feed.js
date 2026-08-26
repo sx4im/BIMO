@@ -21,7 +21,7 @@ import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSk
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=2";
 import { StreamingRenderer } from "./stream-renderer.js?v=7";
 import { stripStrayCursors } from "./caret.js?v=1";
-import { ScrollFollower } from "./scroll-follower.js?v=3";
+import { ScrollFollower } from "./scroll-follower.js?v=4";
 
 export function emptyStreamView({ incognito } = {}) {
   if (incognito) {
@@ -138,6 +138,14 @@ export class MessageFeed {
     this.streamInner = el("div", { class: "inner" });
     this.stream.append(this.streamInner);
 
+    // Track existing message DOM nodes across renders so unchanged bubbles
+    // are never torn down or re-parsed.
+    this._messageNodes = new Map();
+    this._emptyNode = null;
+    this._searchingNode = null;
+    this._imageGeneratingNode = null;
+    this._streamingNode = null;
+
     // Permanent scroll-followership for this feed's lifetime. The page mounts
     // it once its DOM is attached (see mountScrollFollower()).
     this.follower = new ScrollFollower(this.stream);
@@ -225,17 +233,43 @@ export class MessageFeed {
     enteringId = null,
     incognito = false,
     statusPhrase = "",
+    initial = false,
   }) {
-    clear(this.streamInner);
-
     if (!messages.length && !generating && !searching && !imageGenerating) {
-      this.streamInner.append(emptyStreamView({ incognito }));
+      for (const [, entry] of this._messageNodes) entry.element.remove();
+      this._messageNodes.clear();
+      if (this._searchingNode) { this._searchingNode.remove(); this._searchingNode = null; }
+      if (this._imageGeneratingNode) { this._imageGeneratingNode.remove(); this._imageGeneratingNode = null; }
+      if (this._streamingNode) { this._streamingNode.remove(); this._streamingNode = null; }
+      if (!this._emptyNode || !this._emptyNode.isConnected) {
+        this._emptyNode = emptyStreamView({ incognito });
+        this.streamInner.append(this._emptyNode);
+      }
       return;
     }
 
+    if (this._emptyNode) {
+      this._emptyNode.remove();
+      this._emptyNode = null;
+    }
+
+    const currentMsgIds = new Set(messages.map((m) => m.id));
+
+    // Remove obsolete message bubbles
+    for (const [id, entry] of this._messageNodes) {
+      if (!currentMsgIds.has(id)) {
+        entry.element.remove();
+        this._messageNodes.delete(id);
+      }
+    }
+
+    // Reconcile message bubbles in order
+    let prevNode = null;
     for (const m of messages) {
-      this.streamInner.append(
-        messageBubble({
+      let entry = this._messageNodes.get(m.id);
+      if (entry && entry.message !== m) {
+        // Message updated (e.g. feedback changed)
+        const newNode = messageBubble({
           message: m,
           userName: user?.name,
           userAvatarUrl: user?.avatar_url,
@@ -246,23 +280,79 @@ export class MessageFeed {
           onExport: m.role === "assistant" ? this.onExport : undefined,
           onOpenDoc: m.role === "assistant" ? this.onOpenDoc : undefined,
           entering: enteringId != null && m.id === enteringId,
-        })
-      );
+        });
+        entry.element.replaceWith(newNode);
+        entry = { element: newNode, message: m };
+        this._messageNodes.set(m.id, entry);
+      } else if (!entry) {
+        // New message bubble
+        const newNode = messageBubble({
+          message: m,
+          userName: user?.name,
+          userAvatarUrl: user?.avatar_url,
+          onEdit: m.role === "user" ? this.onEditMessage : undefined,
+          onRetry: m.role === "user" ? this.onRetryMessage : undefined,
+          onFeedback: m.role === "assistant" ? this.onFeedback : undefined,
+          onRetryAssistant: m.role === "assistant" ? this.onRetryAssistantMessage : undefined,
+          onExport: m.role === "assistant" ? this.onExport : undefined,
+          onOpenDoc: m.role === "assistant" ? this.onOpenDoc : undefined,
+          entering: enteringId != null && m.id === enteringId,
+        });
+        entry = { element: newNode, message: m };
+        this._messageNodes.set(m.id, entry);
+        if (prevNode) {
+          prevNode.after(newNode);
+        } else {
+          this.streamInner.prepend(newNode);
+        }
+      } else {
+        // Unchanged existing bubble — preserve position
+        if (prevNode && prevNode.nextSibling !== entry.element) {
+          prevNode.after(entry.element);
+        } else if (!prevNode && this.streamInner.firstChild !== entry.element) {
+          this.streamInner.prepend(entry.element);
+        }
+      }
+      prevNode = entry.element;
     }
 
+    // Trailing nodes (searching / image gen / live stream)
     if (searching) {
-      this.streamInner.append(searchingBubbleNode());
-    } else if (imageGenerating) {
-      this.streamInner.append(imageGeneratingNode());
-    } else if (generating) {
-      const node = streamingBubbleNode(streamingText, streamingReasoning, statusPhrase);
-      node.__streamRenderer.feed = this; // renderer asks the follower to chase
-      this.streamInner.append(node);
+      if (!this._searchingNode || !this._searchingNode.isConnected) {
+        this._searchingNode = searchingBubbleNode();
+        this.streamInner.append(this._searchingNode);
+      }
+    } else if (this._searchingNode) {
+      this._searchingNode.remove();
+      this._searchingNode = null;
+    }
+
+    if (imageGenerating) {
+      if (!this._imageGeneratingNode || !this._imageGeneratingNode.isConnected) {
+        this._imageGeneratingNode = imageGeneratingNode();
+        this.streamInner.append(this._imageGeneratingNode);
+      }
+    } else if (this._imageGeneratingNode) {
+      this._imageGeneratingNode.remove();
+      this._imageGeneratingNode = null;
+    }
+
+    if (generating) {
+      if (!this._streamingNode || !this._streamingNode.isConnected) {
+        this._streamingNode = streamingBubbleNode(streamingText, streamingReasoning, statusPhrase);
+        this._streamingNode.__streamRenderer.feed = this;
+        this.streamInner.append(this._streamingNode);
+      }
+    } else if (this._streamingNode) {
+      this._streamingNode.remove();
+      this._streamingNode = null;
     }
 
     // Growth-aware follow: pinned users stay glued; detached users keep their
     // place and their jump button (repositioned above the composer).
     this.follower.notifyContentAppended();
-    setTimeout(() => this.scrollToBottom(), 30); // initial-load snap
+    if (initial) {
+      setTimeout(() => this.scrollToBottom(), 30); // initial-load snap
+    }
   }
 }

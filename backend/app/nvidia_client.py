@@ -832,16 +832,13 @@ def iter_response_with_fallback(
     """Wraps `iter_response` with automatic fallback to Stanza 2.5 if primary times out."""
     chosen_model = model or default_model()
     
-    aeon_id = get_aeon_model().lower()
     stanza_id = get_stanza_model().lower()
     nexos_id = get_nexos_model().lower()
     
     current_lower = chosen_model.lower()
     
-    # Auto-switch timeout for first token: Aeon 20s, Nexos 50s
-    if current_lower == aeon_id or "diffusiongemma" in current_lower or "gemma" in current_lower:
-        first_token_timeout = 20.0
-    elif current_lower == nexos_id or "inkling" in current_lower or "deepseek" in current_lower or "mistral-medium" in current_lower:
+    # Auto-switch timeout for first token: Nexos 50s
+    if current_lower == nexos_id or "inkling" in current_lower or "deepseek" in current_lower or "mistral-medium" in current_lower:
         first_token_timeout = 50.0
     else:
         first_token_timeout = None

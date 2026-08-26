@@ -517,7 +517,6 @@ export class Composer {
         el("span", { class: "menu-text" }, [
           el("span", { class: "menu-title" }, [
             el("span", { text: m.label }),
-            ...(isDefault ? [el("span", { class: "model-tag-new", text: "Default" })] : []),
           ]),
           m.description ? el("span", { class: "menu-sub", text: m.description }) : null,
         ].filter(Boolean)),

@@ -1,7 +1,7 @@
 """WhatsApp Cloud API integration for Bimo.
 
 Provides Webhook endpoints for Meta WhatsApp Cloud API to allow users to chat
-directly with Bimo (Aeon 2.0 model) over WhatsApp.
+directly with Bimo (Stanza 2.5 model) over WhatsApp.
 """
 
 from __future__ import annotations

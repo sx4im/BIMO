@@ -310,7 +310,7 @@ export function showOnboarding(auth) {
       el("h2", { class: "ob-title", text: "What's new in Bimo 5" }),
       el("div", { class: "ob-features" }, [
         feature("image", "Image generation", "Describe an image and Bimo creates it, right inside the chat."),
-        feature("zap", "Faster Aeon 2.0", "Our quick mode now answers in a fraction of the time."),
+        feature("zap", "Stanza 2.5", "All-round AI model for everyday questions, writing, and code."),
         feature("mic", "Voice assistant", "Speak to Bimo and hear it answer back, fully hands-free."),
       ]),
       el("div", { class: "ob-note" }, [

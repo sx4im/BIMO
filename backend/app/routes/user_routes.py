@@ -97,7 +97,7 @@ def auth_debug():
 @user_bp.get("/models")
 @require_user
 def list_models(user):  # noqa: ARG001
-    return jsonify({"models": UI_MODELS, "default": "fast"})
+    return jsonify({"models": UI_MODELS, "default": "thinking"})
 
 
 # ---------- Conversations ----------

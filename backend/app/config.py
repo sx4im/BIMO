@@ -9,22 +9,17 @@ from __future__ import annotations
 import os
 
 # Default foundation models
-DEFAULT_AEON_MODEL = "mistralai/mistral-small-4-119b-2603"
 DEFAULT_STANZA_MODEL = "nvidia/nemotron-3-super-120b-instruct"
 DEFAULT_NEXOS_MODEL = "thinkingmachines/inkling"
 DEFAULT_VISION_MODEL = "google/diffusiongemma-26b-a4b-it"
 DEFAULT_IMAGE_MODEL = "black-forest-labs/flux.2-klein-4b"
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_IMAGE_BASE_URL = "https://ai.api.nvidia.com/v1/genai"
-DEFAULT_MODEL = "meta/llama-3.1-8b-instruct"
+DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-instruct"
 
 # Internal model catalog
 IMAGE_MODEL_ID = "image"
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "openai/whisper-large-v3")
-
-
-def get_aeon_model() -> str:
-    return os.getenv("NVIDIA_AEON_MODEL", DEFAULT_AEON_MODEL).strip()
 
 
 def get_stanza_model() -> str:
@@ -41,7 +36,6 @@ def get_vision_model() -> str:
 
 def get_internal_models() -> list[dict]:
     return [
-        {"id": "fast", "label": "Aeon 2.0", "real_id": get_aeon_model()},
         {"id": "thinking", "label": "Stanza 2.5", "real_id": get_stanza_model()},
         {"id": "deep", "label": "Nexos 3.0", "real_id": get_nexos_model()},
     ]
@@ -63,14 +57,13 @@ VISION_MODEL = DEFAULT_VISION_MODEL
 
 # Frontend presentation catalog
 UI_MODELS = [
-    {"id": "fast", "label": "Aeon 2.0", "description": "Fast answers"},
-    {"id": "thinking", "label": "Stanza 2.5", "description": "Coding & Math"},
+    {"id": "thinking", "label": "Stanza 2.5", "description": "All-round help"},
     {"id": "deep", "label": "Nexos 3.0", "description": "Deep reasoning", "note": "This may take longer than usual."},
     {"id": "image", "label": "Iris 1.0", "description": "Image generation", "kind": "image"},
 ]
 
 # Usage limits and quotas
-USAGE_WEIGHTS = {"fast": 1.0, "thinking": 2.5, "deep": 5.0, "image": 5.0}
+USAGE_WEIGHTS = {"thinking": 1.0, "deep": 5.0, "image": 5.0}
 IMAGE_USAGE_TOKENS = 1500
 SESSION_WINDOW_S = 5 * 3600
 WEEKLY_WINDOW_S = 7 * 24 * 3600

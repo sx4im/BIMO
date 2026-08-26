@@ -53,7 +53,6 @@ from .config import (
     DEFAULT_IMAGE_BASE_URL,
     DEFAULT_IMAGE_MODEL,
     DEFAULT_MODEL,
-    get_aeon_model,
     get_nexos_model,
     get_stanza_model,
 )
@@ -708,9 +707,6 @@ def iter_response(
     reasoning_full: list[str] = []
     chunk_count = 0
     got_finish = False
-
-    aeon_model_id = get_aeon_model().lower()
-    is_aeon = chosen_model.lower() == aeon_model_id or "diffusiongemma" in chosen_model.lower()
     show_thought_ui = True
 
     try:

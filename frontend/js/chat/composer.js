@@ -19,8 +19,7 @@ export const REASONING_EFFORT_OPTIONS = [
 ];
 
 export const DEFAULT_AVAILABLE_MODELS = [
-  { id: "fast", label: "Aeon 2.0", description: "Fast answers" },
-  { id: "thinking", label: "Stanza 2.5", description: "Coding & Math" },
+  { id: "thinking", label: "Stanza 2.5", description: "All-round help" },
   { id: "deep", label: "Nexos 3.0", description: "Deep reasoning", note: "This may take longer than usual." },
   { id: "image", label: "Iris 1.0", description: "Image generation", kind: "image" },
 ];
@@ -77,8 +76,8 @@ export class Composer {
     this.pendingAttachments = [];
     this.uploadingFiles = [];
     this.availableModels = DEFAULT_AVAILABLE_MODELS;
-    this.currentModel = "fast";
-    this.defaultModel = "fast";
+    this.currentModel = "thinking";
+    this.defaultModel = "thinking";
     this.reasoningEffort = localStorage.getItem("bimo-reasoning-effort") || "medium";
     this.searchEnabled = false;
     this.studyMode = false;
@@ -108,7 +107,7 @@ export class Composer {
 
   _buildDOM() {
     // Model badge & dropdown
-    this.modelBadgeLabel = el("span", { class: "model-label", text: "Aeon 2.0" });
+    this.modelBadgeLabel = el("span", { class: "model-label", text: "Stanza 2.5" });
     this.modelDropdown = el("div", { class: "model-dropdown", role: "listbox", "aria-label": "Select model" });
     this.modelBadge = el("button", {
       type: "button",
@@ -467,7 +466,7 @@ export class Composer {
     if (kind === "search") {
       this.searchEnabled = !this.searchEnabled;
       if (this.searchEnabled && this.isImageMode()) {
-        this.currentModel = this.defaultModel || "fast";
+        this.currentModel = this.defaultModel || "thinking";
       }
       if (this.searchEnabled) toast("Web search on", { tone: "success", duration: 1500 });
       if (this.searchEnabled && this.studyMode) { this.studyMode = false; }
@@ -479,7 +478,7 @@ export class Composer {
     } else if (kind === "study") {
       this.studyMode = !this.studyMode;
       if (this.studyMode) {
-        this.currentModel = "fast";
+        this.currentModel = "thinking";
         this.searchEnabled = false;
         toast("Study mode on", { tone: "success", duration: 1800 });
       } else {
@@ -636,7 +635,7 @@ export class Composer {
     }
     this.modelBadgeWrap.style.display = "";
     const m = this.availableModels.find((x) => x.id === this.currentModel);
-    this.modelBadgeLabel.textContent = m ? m.label : "Aeon 2.0";
+    this.modelBadgeLabel.textContent = m ? m.label : "Stanza 2.5";
     this.effortBadgeWrap.style.display = "none";
   }
 

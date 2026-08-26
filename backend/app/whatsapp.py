@@ -16,7 +16,7 @@ import requests
 from flask import Blueprint, jsonify, request
 
 from . import nvidia_client
-from .config import get_aeon_model
+from .config import get_stanza_model
 from .prompts import WHATSAPP_SYSTEM_PROMPT
 
 logger = logging.getLogger("bimo.whatsapp")
@@ -119,13 +119,13 @@ def send_whatsapp_message(to_phone: str, text: str) -> bool:
 def _process_and_reply_async(sender_phone: str, user_prompt: str) -> None:
     """Worker function running in a background thread to process the AI model response."""
     try:
-        model_id = get_aeon_model()
+        model_id = get_stanza_model()
         messages = [
             {"role": "system", "content": WHATSAPP_SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
         ]
 
-        logger.info("Processing WhatsApp query for %s using Aeon 2.0 model (%s)", sender_phone, model_id)
+        logger.info("Processing WhatsApp query for %s using Stanza 2.5 model (%s)", sender_phone, model_id)
         
         response_chunks = []
         for chunk in nvidia_client.iter_response_with_fallback(messages, model=model_id, thinking=False):

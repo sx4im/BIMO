@@ -14,7 +14,7 @@ import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
 import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
-import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=3";
+import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=4";
 import { MessageFeed } from "../chat/message-feed.js?v=14";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=5";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
@@ -83,7 +83,7 @@ export async function renderChat({ id, incognito }) {
   let messages = [];
   let loading = false;
   let availableModels = DEFAULT_AVAILABLE_MODELS;
-  let defaultModel = "fast";
+  let defaultModel = "thinking";
 
 
   let enteringId = null;
@@ -483,7 +483,6 @@ export async function renderChat({ id, incognito }) {
     } catch (err) {
       if (err?.name !== "AbortError") {
         messages = messages.filter((x) => x.id !== optimisticUser.id);
-        toast(err.message || "Couldn't connect", { tone: "error" });
       }
     } finally {
       composer.isGenerating = false;

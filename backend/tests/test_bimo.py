@@ -208,21 +208,23 @@ def test_upload_type_allowlist():
 
 
 def test_models_catalog_shape():
-    """The UI_MODELS catalogue should expose the three chat modes plus the
+    """The UI_MODELS catalogue should expose the two chat modes plus the
     image-generation mode, and the ids must match KNOWN_MODEL_IDS exactly."""
     from app.main import UI_MODELS, KNOWN_MODEL_IDS
 
-    assert len(UI_MODELS) == 4
+    assert len(UI_MODELS) == 3
     ids = {m["id"] for m in UI_MODELS}
     assert ids == KNOWN_MODEL_IDS
-    assert "fast" in ids
+    assert "thinking" in ids
+    assert "deep" in ids
     assert "image" in ids
+    stanza = next(m for m in UI_MODELS if m["id"] == "thinking")
+    assert stanza["description"] == "All-round help"
 
 
 def test_real_model_ids_use_defaults():
     """Default NVIDIA model IDs when env vars are unset."""
     from app.main import (
-        DEFAULT_AEON_MODEL,
         DEFAULT_NEXOS_MODEL,
         DEFAULT_STANZA_MODEL,
         DEFAULT_VISION_MODEL,
@@ -231,7 +233,6 @@ def test_real_model_ids_use_defaults():
     )
     from app import nvidia_client
 
-    assert REAL_ID_MAP["fast"]     == DEFAULT_AEON_MODEL
     assert REAL_ID_MAP["thinking"] == DEFAULT_STANZA_MODEL
     assert REAL_ID_MAP["deep"]     == DEFAULT_NEXOS_MODEL
     assert VISION_MODEL            == DEFAULT_VISION_MODEL
@@ -243,7 +244,6 @@ def test_real_model_ids_use_defaults():
 
 def test_real_model_ids_follow_env(monkeypatch):
     """Each friendly lane reads its model id from the environment."""
-    monkeypatch.setenv("NVIDIA_AEON_MODEL", "vendor/aeon-custom")
     monkeypatch.setenv("NVIDIA_STANZA_MODEL", "vendor/stanza-custom")
     monkeypatch.setenv("NVIDIA_NEXOS_MODEL", "vendor/nexos-custom")
     monkeypatch.setenv("NVIDIA_VISION_MODEL", "vendor/vision-custom")
@@ -252,7 +252,6 @@ def test_real_model_ids_follow_env(monkeypatch):
     importlib.reload(main)
     importlib.reload(nvidia_client)
 
-    assert main.REAL_ID_MAP["fast"]     == "vendor/aeon-custom"
     assert main.REAL_ID_MAP["thinking"] == "vendor/stanza-custom"
     assert main.REAL_ID_MAP["deep"]     == "vendor/nexos-custom"
     assert main.VISION_MODEL            == "vendor/vision-custom"
@@ -268,21 +267,21 @@ def test_usage_weighting_and_windows(monkeypatch):
     old = (now - timedelta(hours=10)).isoformat()   # outside 5h, inside 7d
     recent = (now - timedelta(minutes=30)).isoformat()  # inside both
     events = [
-        {"model": "fast", "tokens": 1000, "created_at": recent},   # weight 1.0 -> 1000
-        {"model": "deep", "tokens": 1000, "created_at": recent},   # weight 5.0 -> 5000
-        {"model": "thinking", "tokens": 1000, "created_at": old},   # weight 2.5 -> 2500, weekly only
+        {"model": "thinking", "tokens": 1000, "created_at": recent},   # weight 1.0 -> 1000
+        {"model": "deep", "tokens": 1000, "created_at": recent},       # weight 5.0 -> 5000
+        {"model": "thinking", "tokens": 1000, "created_at": old},       # weight 1.0 -> 1000, weekly only
     ]
     monkeypatch.setattr(store, "recent_usage_events", lambda uid, since: events)
 
     s = main._usage_status("u1")
     assert s["session"]["used"] == 6000      # only the two recent events
-    assert s["weekly"]["used"] == 8500       # all three
+    assert s["weekly"]["used"] == 7000       # all three
     assert not s["blocked"]
     # Any nonzero usage must round UP to at least 1% — flooring used to stick at 0.
     assert s["session"]["percent"] >= 1
     monkeypatch.setattr(
         store, "recent_usage_events",
-        lambda uid, since: [{"model": "fast", "tokens": 1, "created_at": recent}],
+        lambda uid, since: [{"model": "thinking", "tokens": 1, "created_at": recent}],
     )
     assert main._usage_status("u1")["session"]["percent"] == 1
 

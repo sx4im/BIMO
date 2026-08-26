@@ -34,7 +34,7 @@ The browser client uses HTML, CSS, and plain ES modules without build tools, fra
 
 - **Passwordless authentication**: Sign in with Google through Supabase OAuth. Tokens are verified using ES256 JWTs against project JWKS keys.
 - **Live streaming**: Responses stream using Server-Sent Events with inline Markdown, syntax-highlighted code blocks, and KaTeX rendering.
-- **Model routing**: Switch between fast answers (Aeon 2.0), coding and math (Stanza 2.5), deep reasoning (Nexos 3.0), and image generation (Iris 1.0).
+- **Model routing**: Switch between all-round help (Stanza 2.5), deep reasoning (Nexos 3.0), and image generation (Iris 1.0).
 - **Document parsing**: Drop in PDF, DOCX, XLSX, PPTX, or ZIP files to extract text and analyze contents.
 - **Vision processing**: Attach images to route prompts to a vision model.
 - **Voice assistant**: Speech to text and text to speech powered by NVIDIA Riva.

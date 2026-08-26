@@ -206,7 +206,7 @@ def chat(user):
         if is_incognito:
             convo = {
                 "id": f"incognito_{uuid.uuid4().hex[:8]}",
-                "model": model or "fast",
+                "model": model or "thinking",
                 "system_prompt": system_prompt,
                 "title": "Incognito Chat",
             }
@@ -241,7 +241,7 @@ def chat(user):
             title_seed = (message_text or "Image conversation").strip().replace("\n", " ")[:80] or "New conversation"
             convo = {
                 "id": f"pending_{uuid.uuid4().hex[:8]}",
-                "model": model or "fast",
+                "model": model or "thinking",
                 "system_prompt": system_prompt,
                 "title": title_seed,
                 "_new": True,
@@ -363,7 +363,7 @@ def chat(user):
     else:
         batches.append(content_parts)
 
-    chosen_friendly = convo.get("model") or model or "fast"
+    chosen_friendly = convo.get("model") or model or "thinking"
     real_id_map = get_real_id_map()
     chosen_model = real_id_map.get(chosen_friendly, nvidia_client.default_model())
     if conversation_is_visual:

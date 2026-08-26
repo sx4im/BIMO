@@ -18,7 +18,6 @@ from flask_cors import CORS
 from . import nvidia_client, store, supabase_client, whatsapp
 from .auth import prewarm_jwks
 from .config import (
-    DEFAULT_AEON_MODEL,
     DEFAULT_IMAGE_MODEL,
     DEFAULT_NEXOS_MODEL,
     DEFAULT_STANZA_MODEL,

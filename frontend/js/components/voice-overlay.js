@@ -246,6 +246,8 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
     }
   }
 
+  let speechSilenceTimer = null;
+
   function startSpeechRecognition() {
     stopRecognition();
     try {
@@ -254,8 +256,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
 
-      let finalTranscript = "";
-      let silenceTimer = null;
+      let lastRecognizedText = "";
 
       recognition.onstart = () => {
         if (!active) { try { recognition.stop(); } catch {} return; }
@@ -264,26 +265,29 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
 
       recognition.onresult = (event) => {
         if (!active || turnInFlight) return;
+        let finalTranscript = "";
         let interimTranscript = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; ++i) {
           const res = event.results[i];
-          if (res.isFinal) {
-            finalTranscript += res[0].transcript + " ";
-          } else {
-            interimTranscript += res[0].transcript;
+          if (res && res[0]) {
+            if (res.isFinal) {
+              finalTranscript += res[0].transcript + " ";
+            } else {
+              interimTranscript += res[0].transcript;
+            }
           }
         }
-        const currentText = (finalTranscript + interimTranscript).trim();
+        const currentText = (finalTranscript + interimTranscript).replace(/\s+/g, " ").trim();
         if (currentText) {
+          lastRecognizedText = currentText;
           setTranscript(currentText);
-          if (silenceTimer) clearTimeout(silenceTimer);
-          silenceTimer = setTimeout(() => {
-            if (active && !turnInFlight) {
-              const textToSend = (finalTranscript + interimTranscript).trim();
-              if (textToSend) {
-                stopRecognition();
-                endTurn(textToSend);
-              }
+          if (speechSilenceTimer) clearTimeout(speechSilenceTimer);
+          speechSilenceTimer = setTimeout(() => {
+            if (active && !turnInFlight && lastRecognizedText) {
+              const textToSend = lastRecognizedText;
+              lastRecognizedText = "";
+              stopRecognition();
+              endTurn(textToSend);
             }
           }, 450);
         }
@@ -302,8 +306,10 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
 
       recognition.onend = () => {
         if (active && state === "listening" && !turnInFlight) {
-          const text = finalTranscript.trim();
+          const text = lastRecognizedText.trim();
           if (text) {
+            lastRecognizedText = "";
+            stopRecognition();
             endTurn(text);
           } else {
             try { recognition.start(); } catch {}
@@ -320,6 +326,10 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
   }
 
   function stopRecognition() {
+    if (speechSilenceTimer) {
+      clearTimeout(speechSilenceTimer);
+      speechSilenceTimer = null;
+    }
     if (recognition) {
       try {
         recognition.onresult = null;

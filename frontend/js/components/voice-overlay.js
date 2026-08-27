@@ -59,13 +59,13 @@ function voiceWaitPhrase() {
 // ponytail: these six constants ARE the calibration knob — if a noisy room
 // false-triggers, raise VAD_MIN_LEVEL/VAD_ENTER_FACTOR; if a soft talker still
 // isn't heard, lower them. No code change needed.
-const VAD_CALIBRATE_MS = 300;    // settle on the room level before judging speech
-const VAD_ENTER_FACTOR = 2.2;    // speech: level > floor * 2.2 (and > MIN)
-const VAD_EXIT_FACTOR  = 1.5;    // silence again below floor * 1.5 (hysteresis)
-const VAD_MIN_LEVEL    = 0.006;  // absolute gate so dead-quiet rooms don't fire on hiss
+const VAD_CALIBRATE_MS = 200;    // settle on the room level before judging speech
+const VAD_ENTER_FACTOR = 2.0;    // speech: level > floor * 2.0 (and > MIN)
+const VAD_EXIT_FACTOR  = 1.4;    // silence again below floor * 1.4 (hysteresis)
+const VAD_MIN_LEVEL    = 0.005;  // absolute gate so dead-quiet rooms don't fire on hiss
 const VAD_ENTER_FRAMES = 2;      // ~2 consecutive loud frames (~35 ms) to confirm speech
-const VAD_SILENCE_MS   = 1000;   // pause this long after speaking -> send the turn
-const VAD_NO_SPEECH_MS = 8000;   // never spoke -> release the mic, don't transcribe noise
+const VAD_SILENCE_MS   = 600;    // pause 600ms after speaking -> send the turn
+const VAD_NO_SPEECH_MS = 6000;   // never spoke -> release the mic, don't transcribe noise
 const VAD_MAX_TURN_MS  = 60000;  // hard safety cap per turn
 
 // Turn assistant markdown into something worth speaking: drop code, math,
@@ -99,6 +99,10 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
   let mediaRecorder = null;
   let mediaStream = null;
   let audioChunks = [];
+
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let speechRecSupported = !!SpeechRec;
 
   let audioCtx = null;
   let ttsSource = null;
@@ -235,10 +239,96 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
     setTranscript("");
     setState("listening", "Listening…");
     micBtn.classList.add("active");
-    startRecorder();
+    if (speechRecSupported) {
+      startSpeechRecognition();
+    } else {
+      startRecorder();
+    }
+  }
+
+  function startSpeechRecognition() {
+    stopRecognition();
+    try {
+      recognition = new SpeechRec();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+
+      let finalTranscript = "";
+      let silenceTimer = null;
+
+      recognition.onstart = () => {
+        if (!active) { try { recognition.stop(); } catch {} return; }
+        setState("listening", "Listening… speak now");
+      };
+
+      recognition.onresult = (event) => {
+        if (!active || turnInFlight) return;
+        let interimTranscript = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            finalTranscript += res[0].transcript + " ";
+          } else {
+            interimTranscript += res[0].transcript;
+          }
+        }
+        const currentText = (finalTranscript + interimTranscript).trim();
+        if (currentText) {
+          setTranscript(currentText);
+          if (silenceTimer) clearTimeout(silenceTimer);
+          silenceTimer = setTimeout(() => {
+            if (active && !turnInFlight) {
+              const textToSend = (finalTranscript + interimTranscript).trim();
+              if (textToSend) {
+                stopRecognition();
+                endTurn(textToSend);
+              }
+            }
+          }, 450);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("[bimo-voice] Web Speech error:", event?.error);
+        if (event?.error === "not-allowed" || event?.error === "service-not-allowed") {
+          toast("Mic denied", { tone: "error" });
+          setState("idle", "Tap the mic to talk");
+        } else if (event?.error !== "no-speech") {
+          speechRecSupported = false;
+          startRecorder();
+        }
+      };
+
+      recognition.onend = () => {
+        if (active && state === "listening" && !turnInFlight) {
+          const text = finalTranscript.trim();
+          if (text) {
+            endTurn(text);
+          } else {
+            try { recognition.start(); } catch {}
+          }
+        }
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.warn("[bimo-voice] Web Speech init failed, using MediaRecorder fallback:", err);
+      speechRecSupported = false;
+      startRecorder();
+    }
   }
 
   function stopRecognition() {
+    if (recognition) {
+      try {
+        recognition.onresult = null;
+        recognition.onerror = null;
+        recognition.onend = null;
+        recognition.stop();
+      } catch {}
+      recognition = null;
+    }
     stopVAD();
   }
 
@@ -511,24 +601,36 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
     const playQueue = [];
     let resolveDone;
     const donePromise = new Promise((r) => { resolveDone = r; });
-    const SENTENCE_RE = /[^.!?…\n]*[.!?…\n]+/g;
+    const FIRST_SPLIT_RE = /[^.!?…,\n;:]+[.!?…,\n;:]+/g;
+    const SENTENCE_RE = /[^.!?…\n]+[.!?…\n]+/g;
     // Coalesce sentences AFTER the first clip so a long reply is a few /tts
     // calls, not dozens (the backend rate-limits /tts). The first clip flushes
     // immediately, so time-to-first-audio stays low.
-    const MIN_CHUNK_CHARS = 140;
+    const MIN_CHUNK_CHARS = 100;
     let pendingBuf = "";
 
     function pushText(soFar) {
       if (cancelled || typeof soFar !== "string") return;
       const pending = soFar.slice(offset);
       let m, lastEnd = 0;
-      SENTENCE_RE.lastIndex = 0;
-      while ((m = SENTENCE_RE.exec(pending))) {
-        lastEnd = SENTENCE_RE.lastIndex;
+      const regex = !queuedSpeech ? FIRST_SPLIT_RE : SENTENCE_RE;
+      regex.lastIndex = 0;
+      while ((m = regex.exec(pending))) {
+        lastEnd = regex.lastIndex;
         pendingBuf += m[0];
         if (!queuedSpeech || pendingBuf.length >= MIN_CHUNK_CHARS) flushBuf();
       }
       offset += lastEnd;
+
+      // If pendingBuf without punctuation is already 35+ chars and has spaces, flush early for immediate audio!
+      if (!queuedSpeech && pending.length > 35 && /\s/.test(pending)) {
+        const lastSpace = pending.lastIndexOf(" ");
+        if (lastSpace > 20) {
+          pendingBuf += pending.slice(0, lastSpace);
+          offset += lastSpace;
+          flushBuf();
+        }
+      }
     }
     function finish(finalText) {
       if (cancelled) { resolveDone(); return; }

@@ -868,14 +868,24 @@ def test_store_add_message_missing_reasoning_fallback(monkeypatch, caplog):
     assert calls == 2
 
 
-def test_aeon_voice_model_properties():
-    from app.config import UI_MODELS, KNOWN_MODEL_IDS, ALL_VALID_MODEL_IDS, get_real_id_map, get_stanza_model
+def test_aeon_voice_model_properties(monkeypatch):
+    from app.config import (
+        UI_MODELS,
+        KNOWN_MODEL_IDS,
+        ALL_VALID_MODEL_IDS,
+        get_real_id_map,
+        get_aeon_model,
+        DEFAULT_AEON_MODEL,
+    )
 
     # Aeon should not be in UI dropdown
     ui_ids = {m["id"] for m in UI_MODELS}
     assert "aeon" not in ui_ids
     assert "aeon" in ALL_VALID_MODEL_IDS
-    assert get_real_id_map()["aeon"] == get_stanza_model()
+    assert get_real_id_map()["aeon"] == DEFAULT_AEON_MODEL
+
+    monkeypatch.setenv("NVIDIA_AEON_MODEL", "google/diffusiongemma-26b-a4b-it")
+    assert get_aeon_model() == "google/diffusiongemma-26b-a4b-it"
 
 
 def test_chat_aeon_model_stream(client, monkeypatch):

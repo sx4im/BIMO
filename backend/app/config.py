@@ -12,6 +12,7 @@ import os
 DEFAULT_STANZA_MODEL = "nvidia/nemotron-3-super-120b-instruct"
 DEFAULT_NEXOS_MODEL = "thinkingmachines/inkling"
 DEFAULT_VISION_MODEL = "google/diffusiongemma-26b-a4b-it"
+DEFAULT_AEON_MODEL = "google/diffusiongemma-26b-a4b-it"
 DEFAULT_IMAGE_MODEL = "black-forest-labs/flux.2-klein-4b"
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_IMAGE_BASE_URL = "https://ai.api.nvidia.com/v1/genai"
@@ -35,11 +36,15 @@ def get_vision_model() -> str:
     return os.getenv("NVIDIA_VISION_MODEL", DEFAULT_VISION_MODEL).strip()
 
 
+def get_aeon_model() -> str:
+    return os.getenv("NVIDIA_AEON_MODEL", DEFAULT_AEON_MODEL).strip()
+
+
 def get_internal_models() -> list[dict]:
     return [
         {"id": "thinking", "label": "Stanza 2.5", "real_id": get_stanza_model()},
         {"id": "deep", "label": "Nexos 3.0", "real_id": get_nexos_model()},
-        {"id": "aeon", "label": "Aeon Voice", "real_id": get_stanza_model()},
+        {"id": "aeon", "label": "Aeon Voice", "real_id": get_aeon_model()},
     ]
 
 

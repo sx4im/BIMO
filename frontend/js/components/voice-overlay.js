@@ -231,7 +231,10 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
     globe.className = `voice-globe ${next}`;
     if (label != null) statusText.textContent = label;
   }
-  function setTranscript(t) { transcriptText.textContent = t || ""; }
+  function setTranscript(t) {
+    transcriptText.textContent = t || "";
+    transcriptText.scrollTop = transcriptText.scrollHeight;
+  }
 
   // ---------- listening ----------
   function startListening() {
@@ -247,6 +250,19 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
   }
 
   let speechSilenceTimer = null;
+
+  function dedupeRepeatedPhrases(str) {
+    if (!str) return "";
+    let clean = str.replace(/\s+/g, " ").trim();
+    // 1. Remove duplicate single words immediately repeated ("I I" -> "I")
+    clean = clean.replace(/\b(\w+)\s+\1\b/gi, "$1");
+    // 2. Remove duplicate 2-5 word phrases immediately repeated
+    for (let len = 5; len >= 1; len--) {
+      const pattern = new RegExp(`\\b((?:\\w+\\s+){${len - 1}}\\w+)\\s+\\1\\b`, "gi");
+      clean = clean.replace(pattern, "$1");
+    }
+    return clean.trim();
+  }
 
   function extractCleanTranscript(results) {
     if (!results || !results.length) return "";
@@ -271,7 +287,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
         combined = combined ? `${combined} ${text}` : text;
       }
     }
-    return combined.replace(/\s+/g, " ").trim();
+    return dedupeRepeatedPhrases(combined);
   }
 
   function startSpeechRecognition() {

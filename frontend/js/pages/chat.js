@@ -91,6 +91,7 @@ export async function renderChat({ id, incognito }) {
   let imageGenerating = false;
   let imagePollTimer = null;
   let voiceHandle = null;
+  let activeVoiceOnDelta = null;
   let unmounted = false;
   let reconciling = false;
 
@@ -208,6 +209,9 @@ export async function renderChat({ id, incognito }) {
       renderUI();
     },
     onToken: ({ delta, streamingText, streamingReasoning }) => {
+      if (activeVoiceOnDelta) {
+        try { activeVoiceOnDelta(streamingText); } catch {}
+      }
       if (!document.hidden) {
         messageFeed.updateStreamingBubble(streamingText, streamingReasoning);
       }
@@ -705,20 +709,26 @@ export async function renderChat({ id, incognito }) {
     voiceHandle = openVoiceOverlay({
       token: auth.token,
       sendTurn: async (text, opts) => {
-        await handleComposerSubmit({
-          text,
-          attachments: [],
-          model: composer.currentModel,
-          reasoningEffort: composer.reasoningEffort,
-          searchEnabled: composer.searchEnabled,
-          studyMode: composer.studyMode,
-        });
-        for (let i = messages.length - 1; i >= 0; i--) {
-          if (messages[i].role === "assistant") return messages[i].content || "";
+        activeVoiceOnDelta = opts?.onDelta || null;
+        try {
+          await handleComposerSubmit({
+            text,
+            attachments: [],
+            model: "aeon",
+            reasoningEffort: "off",
+            searchEnabled: false,
+            studyMode: false,
+          });
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].role === "assistant") return messages[i].content || "";
+          }
+          return "";
+        } finally {
+          activeVoiceOnDelta = null;
         }
-        return "";
       },
       onClose: () => {
+        activeVoiceOnDelta = null;
         voiceHandle = null;
         loadConversations();
       },

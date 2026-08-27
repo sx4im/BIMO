@@ -867,3 +867,61 @@ def test_store_add_message_missing_reasoning_fallback(monkeypatch, caplog):
     assert "0002_message_reasoning.sql" in caplog.text
     assert calls == 2
 
+
+def test_aeon_voice_model_properties():
+    from app.config import UI_MODELS, KNOWN_MODEL_IDS, ALL_VALID_MODEL_IDS, get_real_id_map, get_stanza_model
+
+    # Aeon should not be in UI dropdown
+    ui_ids = {m["id"] for m in UI_MODELS}
+    assert "aeon" not in ui_ids
+    assert "aeon" in ALL_VALID_MODEL_IDS
+    assert get_real_id_map()["aeon"] == get_stanza_model()
+
+
+def test_chat_aeon_model_stream(client, monkeypatch):
+    import time
+    import jwt
+    from app import store
+    from app.prompts import AEON_SYSTEM_PROMPT
+
+    claims = {
+        "sub": "test_aeon_user",
+        "email": "aeon@test.com",
+        "aud": "authenticated",
+        "iss": "https://example.supabase.co/auth/v1",
+        "exp": int(time.time()) + 3600,
+    }
+    token = jwt.encode(claims, "test-jwt-secret", algorithm="HS256")
+
+    monkeypatch.setattr(store, "get_conversation", lambda cid, uid: {"id": cid, "user_id": uid, "model": "aeon"})
+    monkeypatch.setattr(store, "get_messages", lambda cid, limit=None: [])
+    monkeypatch.setattr(store, "add_message", lambda *args, **kwargs: {"id": "m_aeon", "role": kwargs.get("role", "assistant")})
+    monkeypatch.setattr(store, "touch_conversation", lambda cid, uid: None)
+    monkeypatch.setattr(store, "record_usage", lambda *args, **kwargs: None)
+
+    captured_kwargs = {}
+    def mock_iter_response_with_fallback(messages, **kwargs):
+        captured_kwargs.update(kwargs)
+        captured_kwargs["messages"] = messages
+        yield {"type": "delta", "data": "Linear algebra is the study of vectors and matrices in simple terms."}
+        yield {"type": "done", "content": "Linear algebra is the study of vectors and matrices in simple terms."}
+
+    monkeypatch.setattr("app.nvidia_client.iter_response_with_fallback", mock_iter_response_with_fallback)
+
+    resp = client.post(
+        "/chat",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "conversation_id": "c_aeon_test",
+            "message": "tell me about linear algebra",
+            "model": "aeon",
+        },
+    )
+    assert resp.status_code == 200
+    assert captured_kwargs.get("thinking") is False
+    assert captured_kwargs.get("max_tokens") == 300
+    # Verify AEON_SYSTEM_PROMPT is used
+    sys_msgs = [m["content"] for m in captured_kwargs.get("messages", []) if m["role"] == "system"]
+    assert any("You are Aeon" in m for m in sys_msgs)
+
+

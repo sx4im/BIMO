@@ -16,12 +16,14 @@ from flask import Blueprint, Response, request, stream_with_context
 from .. import document_processor, nvidia_client, store
 from ..auth import require_user
 from ..config import (
+    ALL_VALID_MODEL_IDS,
     KNOWN_MODEL_IDS,
     SESSION_LIMIT,
     get_real_id_map,
     get_vision_model,
 )
 from ..limiter import limiter
+from ..prompts import AEON_SYSTEM_PROMPT
 from .helpers import (
     bad_request,
     estimate_tokens,
@@ -169,7 +171,7 @@ def chat(user):
         return bad_request("attachments must be a list", 422)
     if model is not None and not isinstance(model, str):
         return bad_request("model must be a string", 422)
-    if model and model not in KNOWN_MODEL_IDS:
+    if model and model not in ALL_VALID_MODEL_IDS:
         return bad_request("unknown model", 422)
     reasoning_effort = payload.get("reasoning_effort")
     if reasoning_effort is not None and not isinstance(reasoning_effort, str):
@@ -370,10 +372,13 @@ def chat(user):
         chosen_model = get_vision_model()
 
     use_thinking = True
-    lower_model = chosen_model.lower()
-    if "deepseek" in lower_model or "minimax" in lower_model or "nemotron" in lower_model:
-        if reasoning_effort == "low" or is_trivial_prompt(message_text):
-            use_thinking = False
+    if chosen_friendly == "aeon":
+        use_thinking = False
+    else:
+        lower_model = chosen_model.lower()
+        if "deepseek" in lower_model or "minimax" in lower_model or "nemotron" in lower_model:
+            if reasoning_effort == "low" or is_trivial_prompt(message_text):
+                use_thinking = False
 
     is_first_turn = not history
     cancel_event = _register_cancel(stream_id, user.id) if stream_id else threading.Event()
@@ -468,10 +473,13 @@ def chat(user):
                             history, batch_content,
                         )
                     else:
+                        active_sys_prompt = convo.get("system_prompt")
+                        if chosen_friendly == "aeon" and not active_sys_prompt:
+                            active_sys_prompt = AEON_SYSTEM_PROMPT
                         messages_payload = nvidia_client.build_messages(
                             history,
                             batch_content,
-                            system_prompt=convo.get("system_prompt"),
+                            system_prompt=active_sys_prompt,
                         )
                 else:
                     messages_payload = nvidia_client.build_continuation_messages(
@@ -491,11 +499,13 @@ def chat(user):
 
                 batch_reply = ""
                 try:
+                    max_tokens_override = 300 if chosen_friendly == "aeon" else None
                     for ev in nvidia_client.iter_response_with_fallback(
                         messages_payload,
                         model=chosen_model,
                         reasoning_effort=reasoning_effort,
                         thinking=use_thinking,
+                        max_tokens=max_tokens_override,
                     ):
                         if cancel_event.is_set():
                             logger.info("chat: generation cancelled by user for convo=%s", convo.get("id"))

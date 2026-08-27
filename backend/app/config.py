@@ -19,6 +19,7 @@ DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-instruct"
 
 # Internal model catalog
 IMAGE_MODEL_ID = "image"
+AEON_MODEL_ID = "aeon"
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "openai/whisper-large-v3")
 
 
@@ -38,6 +39,7 @@ def get_internal_models() -> list[dict]:
     return [
         {"id": "thinking", "label": "Stanza 2.5", "real_id": get_stanza_model()},
         {"id": "deep", "label": "Nexos 3.0", "real_id": get_nexos_model()},
+        {"id": "aeon", "label": "Aeon Voice", "real_id": get_stanza_model()},
     ]
 
 
@@ -46,6 +48,12 @@ def get_real_id_map() -> dict[str, str]:
 
 
 def get_known_model_ids() -> set[str]:
+    # Returns the set of models shown in UI catalog
+    return {"thinking", "deep", IMAGE_MODEL_ID}
+
+
+def get_all_valid_model_ids() -> set[str]:
+    # Returns all valid models accepted by the server
     return set(get_real_id_map().keys()) | {IMAGE_MODEL_ID}
 
 
@@ -53,9 +61,10 @@ def get_known_model_ids() -> set[str]:
 _INTERNAL_MODELS = get_internal_models()
 REAL_ID_MAP = get_real_id_map()
 KNOWN_MODEL_IDS = get_known_model_ids()
+ALL_VALID_MODEL_IDS = get_all_valid_model_ids()
 VISION_MODEL = DEFAULT_VISION_MODEL
 
-# Frontend presentation catalog
+# Frontend presentation catalog (Aeon is excluded from UI dropdown)
 UI_MODELS = [
     {"id": "thinking", "label": "Stanza 2.5", "description": "All-round help"},
     {"id": "deep", "label": "Nexos 3.0", "description": "Deep reasoning", "note": "This may take longer than usual."},
@@ -63,7 +72,7 @@ UI_MODELS = [
 ]
 
 # Usage limits and quotas
-USAGE_WEIGHTS = {"thinking": 1.0, "deep": 5.0, "image": 5.0}
+USAGE_WEIGHTS = {"thinking": 1.0, "deep": 5.0, "image": 5.0, "aeon": 1.0}
 IMAGE_USAGE_TOKENS = 1500
 SESSION_WINDOW_S = 5 * 3600
 WEEKLY_WINDOW_S = 7 * 24 * 3600

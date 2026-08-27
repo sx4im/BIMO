@@ -64,8 +64,8 @@ const VAD_ENTER_FACTOR = 2.0;    // speech: level > floor * 2.0 (and > MIN)
 const VAD_EXIT_FACTOR  = 1.4;    // silence again below floor * 1.4 (hysteresis)
 const VAD_MIN_LEVEL    = 0.005;  // absolute gate so dead-quiet rooms don't fire on hiss
 const VAD_ENTER_FRAMES = 2;      // ~2 consecutive loud frames (~35 ms) to confirm speech
-const VAD_SILENCE_MS   = 600;    // pause 600ms after speaking -> send the turn
-const VAD_NO_SPEECH_MS = 6000;   // never spoke -> release the mic, don't transcribe noise
+const VAD_SILENCE_MS   = 2500;   // wait 2.5s of silence so user can pause and think naturally
+const VAD_NO_SPEECH_MS = 8000;   // never spoke -> release the mic, don't transcribe noise
 const VAD_MAX_TURN_MS  = 60000;  // hard safety cap per turn
 
 // Turn assistant markdown into something worth speaking: drop code, math,
@@ -248,6 +248,32 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
 
   let speechSilenceTimer = null;
 
+  function extractCleanTranscript(results) {
+    if (!results || !results.length) return "";
+    let combined = "";
+    for (let i = 0; i < results.length; i++) {
+      const item = results[i];
+      if (!item || !item[0]) continue;
+      const text = (item[0].transcript || "").trim();
+      if (!text) continue;
+
+      const lowerText = text.toLowerCase();
+      const lowerCombined = combined.toLowerCase();
+
+      // Mobile browsers (Chrome Android) often send cumulative phrases in each result index.
+      if (combined && lowerText.startsWith(lowerCombined)) {
+        combined = text;
+      } else if (combined && lowerCombined.startsWith(lowerText)) {
+        // Keep existing longer text
+      } else if (combined && (lowerCombined.endsWith(lowerText) || lowerText.endsWith(lowerCombined))) {
+        combined = text.length > combined.length ? text : combined;
+      } else {
+        combined = combined ? `${combined} ${text}` : text;
+      }
+    }
+    return combined.replace(/\s+/g, " ").trim();
+  }
+
   function startSpeechRecognition() {
     stopRecognition();
     try {
@@ -265,19 +291,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
 
       recognition.onresult = (event) => {
         if (!active || turnInFlight) return;
-        let finalTranscript = "";
-        let interimTranscript = "";
-        for (let i = 0; i < event.results.length; ++i) {
-          const res = event.results[i];
-          if (res && res[0]) {
-            if (res.isFinal) {
-              finalTranscript += res[0].transcript + " ";
-            } else {
-              interimTranscript += res[0].transcript;
-            }
-          }
-        }
-        const currentText = (finalTranscript + interimTranscript).replace(/\s+/g, " ").trim();
+        const currentText = extractCleanTranscript(event.results);
         if (currentText) {
           lastRecognizedText = currentText;
           setTranscript(currentText);
@@ -289,7 +303,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
               stopRecognition();
               endTurn(textToSend);
             }
-          }, 450);
+          }, 2500); // 2.5s of quiet gives user natural time to pause and think
         }
       };
 

@@ -360,10 +360,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
 
       recognition.onerror = (event) => {
         console.warn("[bimo-voice] Web Speech error:", event?.error);
-        if (event?.error === "not-allowed" || event?.error === "service-not-allowed") {
-          toast("Mic denied", { tone: "error" });
-          setState("idle", "Tap the mic to talk");
-        } else if (event?.error !== "no-speech") {
+        if (event?.error === "not-allowed" || event?.error === "service-not-allowed" || event?.error !== "no-speech") {
           speechRecSupported = false;
           startRecorder();
         }
@@ -377,7 +374,12 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
             stopRecognition();
             endTurn(text);
           } else {
-            try { recognition.start(); } catch {}
+            try {
+              recognition.start();
+            } catch {
+              speechRecSupported = false;
+              startRecorder();
+            }
           }
         }
       };
@@ -415,13 +417,6 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
       return;
     }
     try {
-      // autoGainControl MUST be off here: this overlay's VAD compares the
-      // voice-band level to a tracked noise floor, and AGC pumps gain up in
-      // quiet gaps — inflating that floor until normal-volume laptop speech no
-      // longer stands out (the "Didn't hear anything" bug). Off = true dynamic
-      // range, so speech clears the relative gate. Riva transcribes normal-
-      // volume audio fine without AGC. Hints, not `exact`, so unsupported keys
-      // are ignored.
       mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -454,8 +449,8 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
       const vadCtx = audioCtx || new Ctx();
       vadSource = vadCtx.createMediaStreamSource(mediaStream);
       vadAnalyser = vadCtx.createAnalyser();
-      vadAnalyser.fftSize = 1024;
-      vadAnalyser.smoothingTimeConstant = 0.5;
+      vadAnalyser.fftSize = 512;
+      vadAnalyser.smoothingTimeConstant = 0.2;
       vadSource.connect(vadAnalyser);
       const bins = new Uint8Array(vadAnalyser.frequencyBinCount);
       // Voice band ≈ 200–3500 Hz: ignores low rumble (handling, wind, mains
@@ -479,7 +474,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
         vadAnalyser.getByteFrequencyData(bins);
         let sum = 0;
         for (let i = loBin; i <= hiBin; i++) sum += bins[i];
-        const level = sum / (hiBin - loBin + 1) / 255; // 0..1 voice-band level
+        const level = sum / (hiBin - loBin + 1) / 255;
         const now = performance.now();
         const elapsed = now - startedAt;
 
@@ -501,47 +496,42 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
         const enterAt = Math.max(noiseFloor * VAD_ENTER_FACTOR, VAD_MIN_LEVEL);
         const exitAt = Math.max(noiseFloor * VAD_EXIT_FACTOR, VAD_MIN_LEVEL * 0.7);
 
-        // Throttled diagnostics: while tuning, watch that `level` exceeds
-        // `enterAt` during speech. If a soft talker isn't heard, lower
-        // VAD_MIN_LEVEL / VAD_ENTER_FACTOR using these real numbers.
+        // Throttled diagnostics
         if (now - lastLogAt > 500) {
           lastLogAt = now;
           console.log(
             `[bimo-voice] VAD level=${level.toFixed(3)} floor=${noiseFloor.toFixed(3)} ` +
-            `enterAt=${enterAt.toFixed(3)} speaking=${speaking}`,
+            `enter=${enterAt.toFixed(3)} speak=${speaking}`
           );
         }
 
         if (!speaking) {
-          loudFrames = level >= enterAt ? loudFrames + 1 : 0;
-          if (loudFrames >= VAD_ENTER_FRAMES) {
-            speaking = true;
-            vadHadSpeech = true;
-            silenceStart = 0;
-            setState("listening", "Listening…");
+          if (level >= enterAt) {
+            loudFrames += 1;
+            if (loudFrames >= VAD_ENTER_FRAMES) {
+              speaking = true;
+              vadHadSpeech = true;
+              loudFrames = 0;
+              silenceStart = 0;
+            }
+          } else {
+            loudFrames = 0;
+            if (elapsed >= VAD_NO_SPEECH_MS) {
+              stopRecorder();
+              return;
+            }
           }
-        } else if (level < exitAt) {
+        } else if (level <= exitAt) {
           if (!silenceStart) silenceStart = now;
-          else if (now - silenceStart > VAD_SILENCE_MS) {
-            console.log("[bimo-voice] VAD: end of speech, stopping recorder");
-            stopVAD();
-            stopRecorder();   // -> onRecorderStop transcribes
+          else if (now - silenceStart >= VAD_SILENCE_MS) {
+            stopRecorder();
             return;
           }
         } else {
           silenceStart = 0;
         }
 
-        // Never spoke at all → release the mic instead of recording the room.
-        if (!vadHadSpeech && elapsed > VAD_NO_SPEECH_MS) {
-          console.log("[bimo-voice] VAD: no speech detected, releasing mic");
-          stopVAD();
-          stopRecorder();   // onRecorderStop sees vadHadSpeech=false and skips
-          return;
-        }
-        // Hard cap so a stuck turn can't record forever.
-        if (elapsed > VAD_MAX_TURN_MS) {
-          stopVAD();
+        if (elapsed >= VAD_MAX_TURN_MS) {
           stopRecorder();
           return;
         }
@@ -595,9 +585,6 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
       setState("idle", vadHadSpeech ? "Tap the mic to talk" : "Didn't hear anything — tap the mic to talk");
       return;
     }
-    if (!vadHadSpeech) {
-      console.log(`[bimo-voice] VAD missed speech; transcribing ${Math.round(took)}ms take anyway`);
-    }
     setState("thinking", "Transcribing…");
     try {
       const blob = new Blob(audioChunks, { type: recorder?.mimeType || "audio/webm" });
@@ -639,23 +626,22 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
     if (!active) { speech?.cancel(); return; }
     setTranscript("");
 
-    if (!speech) { startListening(); return; }   // no audio context → text only
+    if (!speech) { startListening(); return; }
     speech.finish(reply);
     const spoke = speech.hasAudio();
     await speech.done();
     if (activeSpeech === speech) activeSpeech = null;
     if (!active || speech.cancelled) return;      // barge-in/close already drives next state
-    if (spoke) afterSpeaking();
-    else if (speech.hadSpeech() && !spoke) {
-      setState("idle", "Couldn't play speech — tap the mic to continue");
-    } else startListening();
+    afterSpeaking();
   }
 
   function afterSpeaking() {
-    // Cooldown prevents the mic from catching room echo/reverb from the
-    // just-finished speech and looping back into a new turn.
     setState("idle", "");
-    setTimeout(() => { if (active && state === "idle") startListening(); }, TTS_COOLDOWN_MS);
+    setTimeout(() => {
+      if (active && !turnInFlight) {
+        startListening();
+      }
+    }, TTS_COOLDOWN_MS);
   }
 
   // ---------- speaking (pipelined TTS via Web Audio) ----------

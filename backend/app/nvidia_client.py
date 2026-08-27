@@ -936,9 +936,10 @@ def generate_title(user_message: str, assistant_reply: str) -> Optional[str]:
     if not user_snippet:
         return None
     try:
-        client = _client(DEFAULT_MODEL)
+        model_to_use = get_stanza_model() or default_model()
+        client = _client(model_to_use)
         completion = client.chat.completions.create(
-            model=DEFAULT_MODEL,
+            model=model_to_use,
             messages=[
                 {"role": "system", "content": TITLE_PROMPT},
                 {

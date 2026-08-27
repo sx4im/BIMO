@@ -14,9 +14,10 @@ import re
 import threading
 import requests
 from flask import Blueprint, jsonify, request
+from typing import Optional
 
 from . import nvidia_client
-from .config import get_stanza_model
+from .config import get_aeon_model, get_stanza_model
 from .prompts import WHATSAPP_SYSTEM_PROMPT
 
 logger = logging.getLogger("bimo.whatsapp")
@@ -40,7 +41,7 @@ def is_whatsapp_configured() -> bool:
     return bool(token and phone_id)
 
 
-def verify_meta_signature(raw_payload: bytes, signature_header: str | None) -> bool:
+def verify_meta_signature(raw_payload: bytes, signature_header: Optional[str]) -> bool:
     """Validate Meta's X-Hub-Signature-256 HMAC-SHA256 against WHATSAPP_APP_SECRET."""
     secret = os.getenv("WHATSAPP_APP_SECRET", WHATSAPP_APP_SECRET).strip()
     if not secret:
@@ -53,48 +54,41 @@ def verify_meta_signature(raw_payload: bytes, signature_header: str | None) -> b
 
 
 def format_for_whatsapp(text: str) -> str:
-    """Converts standard Markdown into WhatsApp syntax."""
+    """Format markdown reply for clean display on WhatsApp."""
     if not text:
         return ""
-    # Convert markdown links [label](url) to plain URL for WhatsApp native link rendering
-    def _clean_link(match: re.Match) -> str:
-        label, url = match.group(1).strip(), match.group(2).strip()
-        if label == url or label.startswith("http"):
-            return url
-        return f"{label}: {url}"
-
-    formatted = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", _clean_link, text)
-    # Convert **bold** to *bold*
-    formatted = re.sub(r"\*\*(.*?)\*\*", r"*\1*", formatted)
-    # Convert __italic__ to _italic_
-    formatted = re.sub(r"__(.*?)__", r"_\1_", formatted)
-    return formatted
+    # Strip markdown headings e.g. '### Heading' -> '*Heading*'
+    text = re.sub(r"^#{1,6}\s*(.+)$", r"*\1*", text, flags=re.MULTILINE)
+    # Strip code block backticks if any
+    text = re.sub(r"```[a-zA-Z]*\n([\s\S]*?)\n```", r"```\n\1\n```", text)
+    # Clean up double blank lines
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 
-def send_whatsapp_message(to_phone: str, text: str) -> bool:
-    """Sends a text message reply to a WhatsApp user via Meta Graph API."""
-    token = os.environ.get("WHATSAPP_TOKEN", WHATSAPP_TOKEN).strip()
-    if not token:
-        logger.error("Cannot send WhatsApp message: WHATSAPP_TOKEN is missing.")
+def send_whatsapp_message(to_phone: str, message_text: str) -> bool:
+    """Send an outbound text message via Meta Graph API."""
+    token = os.getenv("WHATSAPP_TOKEN", WHATSAPP_TOKEN).strip()
+    url = get_graph_url()
+
+    if not token or not url:
+        logger.warning("WhatsApp message not sent: WHATSAPP_TOKEN or WHATSAPP_PHONE_ID is not configured.")
         return False
 
-    # Clean phone number: Meta API requires digits only without leading '+'
-    clean_phone = re.sub(r"\D", "", to_phone)
+    clean_phone = re.sub(r"[^\d]", "", to_phone)
     if not clean_phone:
         logger.error("Invalid recipient phone number: %s", to_phone)
         return False
 
-    url = get_graph_url()
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
 
-    # Split message into chunks if it exceeds WhatsApp's 3900 character limit
-    max_len = 3900
-    chunks = [text[i:i + max_len] for i in range(0, len(text), max_len)] if text else [""]
-
+    # Split into multiple messages if length exceeds WhatsApp 4096 char limit
+    chunks = [message_text[i:i + 4000] for i in range(0, len(message_text), 4000)] or [message_text]
     success = True
+
     for chunk in chunks:
         payload = {
             "messaging_product": "whatsapp",
@@ -119,16 +113,21 @@ def send_whatsapp_message(to_phone: str, text: str) -> bool:
 def _process_and_reply_async(sender_phone: str, user_prompt: str) -> None:
     """Worker function running in a background thread to process the AI model response."""
     try:
-        model_id = get_stanza_model()
+        model_id = get_aeon_model()
         messages = [
             {"role": "system", "content": WHATSAPP_SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
         ]
 
-        logger.info("Processing WhatsApp query for %s using Stanza 2.5 model (%s)", sender_phone, model_id)
+        logger.info("Processing WhatsApp query for %s using Aeon model (%s)", sender_phone, model_id)
         
         response_chunks = []
-        for chunk in nvidia_client.iter_response_with_fallback(messages, model=model_id, thinking=False):
+        for chunk in nvidia_client.iter_response_with_fallback(
+            messages,
+            model=model_id,
+            thinking=False,
+            max_tokens=400,
+        ):
             chunk_type = chunk.get("type")
             if chunk_type == "delta":
                 response_chunks.append(chunk.get("data", ""))

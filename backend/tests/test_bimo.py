@@ -634,6 +634,32 @@ def test_whatsapp_signature_verification(monkeypatch):
     assert verify_meta_signature(payload, valid_sig) is False
 
 
+def test_whatsapp_uses_aeon_model(monkeypatch):
+    from app import whatsapp
+
+    sent_messages = []
+    def mock_send(to_phone, msg):
+        sent_messages.append((to_phone, msg))
+        return True
+
+    captured_kwargs = {}
+    def mock_iter_response_with_fallback(messages, **kwargs):
+        captured_kwargs.update(kwargs)
+        captured_kwargs["messages"] = messages
+        yield {"type": "delta", "data": "Hello from Aeon on WhatsApp!"}
+
+    monkeypatch.setattr(whatsapp, "send_whatsapp_message", mock_send)
+    monkeypatch.setattr("app.nvidia_client.iter_response_with_fallback", mock_iter_response_with_fallback)
+    monkeypatch.setenv("NVIDIA_AEON_MODEL", "google/diffusiongemma-26b-a4b-it")
+
+    whatsapp._process_and_reply_async("1234567890", "hi")
+    assert captured_kwargs.get("model") == "google/diffusiongemma-26b-a4b-it"
+    assert captured_kwargs.get("thinking") is False
+    assert captured_kwargs.get("max_tokens") == 400
+    assert len(sent_messages) == 1
+    assert "Hello from Aeon on WhatsApp!" in sent_messages[0][1]
+
+
 def test_document_processor_zip_bomb_and_traversal():
     """ZIP extractor must reject suspicious decompression ratios and path traversal."""
     import io

@@ -251,43 +251,78 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
 
   let speechSilenceTimer = null;
 
-  function dedupeRepeatedPhrases(str) {
+  function dedupeWordsAndPhrases(str) {
     if (!str) return "";
-    let clean = str.replace(/\s+/g, " ").trim();
-    // 1. Remove duplicate single words immediately repeated ("I I" -> "I")
-    clean = clean.replace(/\b(\w+)\s+\1\b/gi, "$1");
-    // 2. Remove duplicate 2-5 word phrases immediately repeated
-    for (let len = 5; len >= 1; len--) {
-      const pattern = new RegExp(`\\b((?:\\w+\\s+){${len - 1}}\\w+)\\s+\\1\\b`, "gi");
-      clean = clean.replace(pattern, "$1");
+    // 1. Split into words and eliminate immediate single-word stutter ("I I" -> "I")
+    const words = str.trim().split(/\s+/);
+    const uniqueWords = [];
+    for (let i = 0; i < words.length; i++) {
+      const w = words[i];
+      const cleanW = w.toLowerCase().replace(/[^a-z0-9]/gi, "");
+      const prevClean = uniqueWords.length ? uniqueWords[uniqueWords.length - 1].toLowerCase().replace(/[^a-z0-9]/gi, "") : "";
+      if (cleanW && cleanW === prevClean) continue;
+      uniqueWords.push(w);
     }
-    return clean.trim();
+
+    let cleaned = uniqueWords.join(" ");
+
+    // 2. Eliminate immediate multi-word phrase stutter ("I said tomorrow I said tomorrow" -> "I said tomorrow")
+    for (let n = 6; n >= 2; n--) {
+      const wList = cleaned.split(/\s+/);
+      if (wList.length < n * 2) continue;
+      for (let i = 0; i <= wList.length - n * 2; i++) {
+        const p1 = wList.slice(i, i + n).join(" ").toLowerCase().replace(/[^a-z0-9 ]/gi, "");
+        const p2 = wList.slice(i + n, i + n * 2).join(" ").toLowerCase().replace(/[^a-z0-9 ]/gi, "");
+        if (p1 && p1 === p2) {
+          wList.splice(i + n, n);
+          cleaned = wList.join(" ");
+          i--;
+        }
+      }
+    }
+    return cleaned.replace(/\s+/g, " ").trim();
   }
 
   function extractCleanTranscript(results) {
     if (!results || !results.length) return "";
-    let combined = "";
+    
+    // On Android Chrome, the last item in results frequently contains the full progressive sentence.
+    const lastItem = results[results.length - 1];
+    const lastText = (lastItem && lastItem[0] && lastItem[0].transcript || "").trim();
+
+    // Check if results are progressive snapshots of the same sentence
+    let isProgressive = false;
+    if (results.length > 1 && lastText) {
+      const firstText = (results[0] && results[0][0] && results[0][0].transcript || "").trim();
+      if (firstText && lastText.toLowerCase().startsWith(firstText.toLowerCase().slice(0, Math.min(10, firstText.length)))) {
+        isProgressive = true;
+      }
+    }
+
+    if (isProgressive && lastText) {
+      return dedupeWordsAndPhrases(lastText);
+    }
+
+    // Standard / Desktop Chrome: distinct chunk assembly
+    const parts = [];
     for (let i = 0; i < results.length; i++) {
       const item = results[i];
       if (!item || !item[0]) continue;
       const text = (item[0].transcript || "").trim();
       if (!text) continue;
 
-      const lowerText = text.toLowerCase();
-      const lowerCombined = combined.toLowerCase();
+      const lowerText = text.toLowerCase().replace(/[^a-z0-9 ]/gi, "");
+      const prevText = parts.length ? parts[parts.length - 1].toLowerCase().replace(/[^a-z0-9 ]/gi, "") : "";
 
-      // Mobile browsers (Chrome Android) often send cumulative phrases in each result index.
-      if (combined && lowerText.startsWith(lowerCombined)) {
-        combined = text;
-      } else if (combined && lowerCombined.startsWith(lowerText)) {
-        // Keep existing longer text
-      } else if (combined && (lowerCombined.endsWith(lowerText) || lowerText.endsWith(lowerCombined))) {
-        combined = text.length > combined.length ? text : combined;
+      if (parts.length && lowerText.startsWith(prevText)) {
+        parts[parts.length - 1] = text;
+      } else if (parts.length && prevText.startsWith(lowerText)) {
+        // keep existing
       } else {
-        combined = combined ? `${combined} ${text}` : text;
+        parts.push(text);
       }
     }
-    return dedupeRepeatedPhrases(combined);
+    return dedupeWordsAndPhrases(parts.join(" "));
   }
 
   function startSpeechRecognition() {

@@ -179,8 +179,7 @@
 :root[data-theme="dark"] .doc-modal-dl-menu,
 :root[data-theme="dark"] .confirm-modal-card,
 :root[data-theme="dark"] .modal,
-:root[data-theme="dark"] .ob-card,
-:root[data-theme="dark"] .stream-jump-pill {
+:root[data-theme="dark"] .ob-card {
   background: var(--surface-dark-elevated);
 }
 
@@ -6778,7 +6777,7 @@ em {
   }
 }
 
-/* Floating jump-to-latest button — Claude style: a small dark CIRCLE with a
+/* Floating jump-to-latest button — a circular button with a
    single down chevron, no text. Anchored inside .chat-page, horizontally
    centred over the COMPOSER (message bar) itself — the renderer measures the
    composer's live rect and sets left/bottom inline — hovering just above it,
@@ -6792,16 +6791,43 @@ em {
   display: grid;
   place-items: center;
   z-index: 60;
+  cursor: pointer;
   color: var(--ink);
-  background: var(--surface-dark-elevated);
+  background: var(--input-bar);
   border: 1px solid var(--hairline-strong);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: 0 2px 8px rgba(20, 20, 19, 0.08), 0 1px 2px rgba(20, 20, 19, 0.04);
   transform: translateX(-50%);
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
   animation: streamJumpPillIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .stream-jump-pill:hover {
-  background: var(--surface-cream-strong);
+  background: var(--surface-soft);
+  color: var(--ink);
+  border-color: var(--hairline-strong);
+  box-shadow: 0 4px 14px rgba(20, 20, 19, 0.14);
+  transform: translateX(-50%) translateY(-1px);
+}
+
+.stream-jump-pill:active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.stream-jump-pill:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary-soft), 0 2px 8px rgba(20, 20, 19, 0.08);
+}
+
+:root[data-theme="dark"] .stream-jump-pill {
+  background: var(--surface-dark-elevated);
+  border-color: var(--hairline-strong);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="dark"] .stream-jump-pill:hover {
+  background: var(--surface-active);
+  color: var(--ink);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
 
 .stream-jump-pill .pill-ic {

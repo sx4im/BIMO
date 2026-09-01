@@ -504,8 +504,7 @@ export class Composer {
             el("span", { class: "menu-title", text: it.label }),
             el("span", { class: "menu-sub", text: it.desc }),
           ]),
-          it.active ? el("span", { class: "menu-check", html: icon("check", { width: 16, height: 16 }) }) : null,
-        ].filter(Boolean))
+        ])
       );
     }
   }
@@ -540,21 +539,16 @@ export class Composer {
       if (this.searchEnabled && this.isImageMode()) {
         this.currentModel = this.defaultModel || "thinking";
       }
-      if (this.searchEnabled) toast("Web search on", { tone: "success", duration: 1500 });
       if (this.searchEnabled && this.studyMode) { this.studyMode = false; }
     } else if (kind === "generate") {
       this.currentModel = "image";
       this.searchEnabled = false;
       this.studyMode = false;
-      toast("Image mode on", { tone: "success", duration: 1800 });
     } else if (kind === "study") {
       this.studyMode = !this.studyMode;
       if (this.studyMode) {
         this.currentModel = "thinking";
         this.searchEnabled = false;
-        toast("Study mode on", { tone: "success", duration: 1800 });
-      } else {
-        toast("Study mode off", { duration: 1200 });
       }
     }
     this.updateComposerForMode();
@@ -623,10 +617,6 @@ export class Composer {
     this.extendedThinking = !this.extendedThinking;
     localStorage.setItem("bimo-extended-thinking", this.extendedThinking ? "1" : "0");
     this.reasoningEffort = this.getReasoningEffort();
-    toast(this.extendedThinking ? "Extended thinking on" : "Extended thinking off", {
-      tone: this.extendedThinking ? "success" : undefined,
-      duration: 1500,
-    });
     this.closeModelDropdown();
     this.renderModelBadge();
   }
@@ -696,8 +686,7 @@ export class Composer {
         el("span", { class: "menu-text" }, [
           el("span", { class: "menu-title", text: opt.label }),
         ]),
-        active ? el("span", { class: "menu-check", html: icon("check", { width: 16, height: 16 }) }) : null,
-      ].filter(Boolean));
+      ]);
       this.effortDropdown.append(item);
     }
   }

@@ -9,14 +9,14 @@ from __future__ import annotations
 import os
 
 # Default foundation models
-DEFAULT_STANZA_MODEL = "meta/muse-glimmer-30b"
-DEFAULT_NEXOS_MODEL = "thinkingmachines/inkling"
+DEFAULT_STANZA_MODEL = "nvidia/nemotron-3-super-120b-a12b"
+DEFAULT_NEXOS_MODEL = "openai/gpt-oss-120b"
 DEFAULT_VISION_MODEL = "google/diffusiongemma-26b-a4b-it"
 DEFAULT_AEON_MODEL = "google/diffusiongemma-26b-a4b-it"
 DEFAULT_IMAGE_MODEL = "black-forest-labs/flux.2-klein-4b"
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_IMAGE_BASE_URL = "https://ai.api.nvidia.com/v1/genai"
-DEFAULT_MODEL = "meta/muse-glimmer-30b"
+DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 # Internal model catalog
 IMAGE_MODEL_ID = "image"

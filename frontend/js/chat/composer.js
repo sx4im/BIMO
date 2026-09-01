@@ -587,9 +587,6 @@ export class Composer {
         "aria-selected": active ? "true" : "false",
         onclick: () => this.selectModelFromDropdown(m.id),
       }, [
-        el("span", { class: "menu-check-slot" }, [
-          active ? el("span", { class: "menu-check", html: icon("check", { width: 14, height: 14 }) }) : null,
-        ].filter(Boolean)),
         el("span", { class: "menu-text" }, [
           el("span", { class: "menu-title" }, [
             el("span", { text: m.label }),
@@ -614,9 +611,6 @@ export class Composer {
         this.toggleExtendedThinking();
       },
     }, [
-      el("span", { class: "menu-check-slot" }, [
-        extendedActive ? el("span", { class: "menu-check", html: icon("check", { width: 14, height: 14 }) }) : null,
-      ].filter(Boolean)),
       el("span", { class: "menu-text" }, [
         el("span", { class: "menu-title", text: "Extended thinking" }),
         el("span", { class: "menu-sub", text: "Complex problem solving" }),

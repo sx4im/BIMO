@@ -623,6 +623,7 @@ def iter_response(
             max_tokens = 16384
         if thinking:
             effort = reasoning_effort or "medium"
+            kwargs["reasoning_effort"] = effort
             kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": effort}}
         else:
             kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": False}}
@@ -633,6 +634,7 @@ def iter_response(
         kwargs["top_p"] = 0.95
         if thinking:
             effort = reasoning_effort or "high"
+            kwargs["reasoning_effort"] = effort
             kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": effort}}
         else:
             kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": False}}
@@ -642,6 +644,7 @@ def iter_response(
         messages = _nemotron_set_reasoning(messages, thinking)
         if thinking:
             effort = reasoning_effort or "low"
+            kwargs["reasoning_effort"] = effort
             kwargs["extra_body"] = {
                 "chat_template_kwargs": {
                     "thinking": True,

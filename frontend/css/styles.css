@@ -7241,8 +7241,32 @@ em {
    (openModelDropdown). */
 .model-dropdown {
   position: fixed;
-  min-width: 215px;
-  width: 215px;
+  min-width: 225px;
+  width: 225px;
+}
+
+.model-dropdown-divider {
+  height: 1px;
+  background: var(--hairline);
+  margin: 5px 4px;
+}
+
+:root[data-theme="dark"] .model-dropdown-divider {
+  background: var(--hairline-dark);
+}
+
+.menu-check-slot {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16.5px;
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.menu-check-slot svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* =============================================================

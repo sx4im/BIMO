@@ -22,7 +22,6 @@ export const REASONING_EFFORT_OPTIONS = [
 export const DEFAULT_AVAILABLE_MODELS = [
   { id: "thinking", label: "Stanza 2.5", description: "All-round help" },
   { id: "deep", label: "Nexos 3.0", description: "Deep reasoning", note: "This may take longer than usual." },
-  { id: "image", label: "Iris 1.0", description: "Image generation", kind: "image" },
 ];
 
 let _pageGreetingPlaceholder = null;
@@ -81,7 +80,8 @@ export class Composer {
     this.availableModels = DEFAULT_AVAILABLE_MODELS;
     this.currentModel = "thinking";
     this.defaultModel = "thinking";
-    this.reasoningEffort = localStorage.getItem("bimo-reasoning-effort") || "medium";
+    this.extendedThinking = localStorage.getItem("bimo-extended-thinking") === "1";
+    this.reasoningEffort = this.getReasoningEffort();
     this.searchEnabled = false;
     this.studyMode = false;
     this.isGenerating = false;
@@ -386,7 +386,7 @@ export class Composer {
           text,
           attachments: this.pendingAttachments.slice(),
           model: this.currentModel,
-          reasoningEffort: this.reasoningEffort,
+          reasoningEffort: this.getReasoningEffort(),
           searchEnabled: this.searchEnabled,
           studyMode: this.studyMode,
         });
@@ -414,6 +414,16 @@ export class Composer {
 
   isImageMode() {
     return this.currentModel === "image";
+  }
+
+  getReasoningEffort(model = this.currentModel) {
+    if (this.extendedThinking) {
+      return "high";
+    }
+    if (model === "deep") {
+      return "medium";
+    }
+    return "low";
   }
 
   autoSize(node) {
@@ -567,6 +577,7 @@ export class Composer {
   renderModelDropdown() {
     clear(this.modelDropdown);
     for (const m of this.availableModels) {
+      if (m.id === "image") continue;
       const active = this.currentModel === m.id;
       const isStanza = m.id === "thinking";
       const item = el("button", {
@@ -576,6 +587,9 @@ export class Composer {
         "aria-selected": active ? "true" : "false",
         onclick: () => this.selectModelFromDropdown(m.id),
       }, [
+        el("span", { class: "menu-check-slot" }, [
+          active ? el("span", { class: "menu-check", html: icon("check", { width: 14, height: 14 }) }) : null,
+        ].filter(Boolean)),
         el("span", { class: "menu-text" }, [
           el("span", { class: "menu-title" }, [
             el("span", { text: m.label }),
@@ -583,16 +597,50 @@ export class Composer {
           ]),
           m.description ? el("span", { class: "menu-sub", text: m.description }) : null,
         ].filter(Boolean)),
-        (active && !isStanza) ? el("span", { class: "menu-check", html: icon("check", { width: 16, height: 16 }) }) : null,
-      ].filter(Boolean));
+      ]);
       this.modelDropdown.append(item);
     }
+
+    this.modelDropdown.append(el("div", { class: "model-dropdown-divider" }));
+
+    const extendedActive = Boolean(this.extendedThinking);
+    const extendedItem = el("button", {
+      type: "button",
+      class: `model-dropdown-item extended-thinking-item${extendedActive ? " active" : ""}`,
+      role: "checkbox",
+      "aria-checked": extendedActive ? "true" : "false",
+      onclick: (e) => {
+        e.stopPropagation();
+        this.toggleExtendedThinking();
+      },
+    }, [
+      el("span", { class: "menu-check-slot" }, [
+        extendedActive ? el("span", { class: "menu-check", html: icon("check", { width: 14, height: 14 }) }) : null,
+      ].filter(Boolean)),
+      el("span", { class: "menu-text" }, [
+        el("span", { class: "menu-title", text: "Extended thinking" }),
+        el("span", { class: "menu-sub", text: "Complex problem solving" }),
+      ]),
+    ]);
+    this.modelDropdown.append(extendedItem);
+  }
+
+  toggleExtendedThinking() {
+    this.extendedThinking = !this.extendedThinking;
+    localStorage.setItem("bimo-extended-thinking", this.extendedThinking ? "1" : "0");
+    this.reasoningEffort = this.getReasoningEffort();
+    toast(this.extendedThinking ? "Extended thinking on" : "Extended thinking off", {
+      tone: this.extendedThinking ? "success" : undefined,
+      duration: 1500,
+    });
+    this.closeModelDropdown();
+    this.renderModelBadge();
   }
 
   positionModelDropdown() {
     const rect = this.modelBadge.getBoundingClientRect();
     const margin = 8;
-    const width = Math.min(215, window.innerWidth - margin * 2);
+    const width = Math.min(225, window.innerWidth - margin * 2);
     let left = rect.left;
     const maxLeft = window.innerWidth - width - margin;
     if (left > maxLeft) left = Math.max(margin, maxLeft);
@@ -632,6 +680,7 @@ export class Composer {
     if (!picked) return;
     this.currentModel = picked;
     if (picked === "image") this.searchEnabled = false;
+    this.reasoningEffort = this.getReasoningEffort();
     this.renderModelBadge();
     this.renderToolsMenu();
     this.updateComposerForMode();
@@ -712,8 +761,12 @@ export class Composer {
       return;
     }
     this.modelBadgeWrap.style.display = "";
-    const m = this.availableModels.find((x) => x.id === this.currentModel);
-    this.modelBadgeLabel.textContent = m ? m.label : "Stanza 2.5";
+    if (this.isImageMode()) {
+      this.modelBadgeLabel.textContent = "Iris 1.0";
+    } else {
+      const m = this.availableModels.find((x) => x.id === this.currentModel);
+      this.modelBadgeLabel.textContent = m ? m.label : "Stanza 2.5";
+    }
     this.effortBadgeWrap.style.display = "none";
   }
 

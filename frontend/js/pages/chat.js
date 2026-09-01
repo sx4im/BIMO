@@ -14,7 +14,7 @@ import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
 import { openDocViewerModal } from "../components/doc-modal.js?v=3";
 import * as api from "../api.js?v=56";
 
-import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=17";
+import { Composer, DEFAULT_AVAILABLE_MODELS } from "../chat/composer.js?v=18";
 import { MessageFeed } from "../chat/message-feed.js?v=25";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=5";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
@@ -382,7 +382,7 @@ export async function renderChat({ id, incognito }) {
     try {
       const data = await api.listModels(auth.token);
       if (Array.isArray(data?.models)) {
-        availableModels = data.models;
+        availableModels = data.models.filter((m) => m.id !== "image");
         defaultModel = data.default || defaultModel;
         composer.availableModels = availableModels;
         composer.defaultModel = defaultModel;
@@ -493,6 +493,7 @@ export async function renderChat({ id, incognito }) {
     messageFeed.follower.attach();
     messageFeed.scrollToBottom();
 
+    const activeModel = model || conversation?.model || defaultModel;
     try {
       await streamHandler.executeStream({
         payload: {
@@ -500,9 +501,9 @@ export async function renderChat({ id, incognito }) {
           augmented_message: llmMessage !== text ? llmMessage : undefined,
           conversation_id: (!incognito && id) ? id : undefined,
           attachments,
-          model: model || conversation?.model || defaultModel,
+          model: activeModel,
           system_prompt: studyMode ? STUDY_SYSTEM_PROMPT : (conversation?.system_prompt || undefined),
-          reasoning_effort: (model || conversation?.model) === "deep" ? reasoningEffort : undefined,
+          reasoning_effort: reasoningEffort || (activeModel === "deep" ? "medium" : "low"),
           incognito,
         },
         streamId,
@@ -640,7 +641,7 @@ export async function renderChat({ id, incognito }) {
         text: message.content,
         attachments: [],
         model: composer.currentModel,
-        reasoningEffort: composer.reasoningEffort,
+        reasoningEffort: composer.getReasoningEffort(),
         searchEnabled: composer.searchEnabled,
         studyMode: composer.studyMode,
       });
@@ -666,7 +667,7 @@ export async function renderChat({ id, incognito }) {
         text: userMsg.content,
         attachments: userMsg.attachments || [],
         model: composer.currentModel,
-        reasoningEffort: composer.reasoningEffort,
+        reasoningEffort: composer.getReasoningEffort(),
         searchEnabled: composer.searchEnabled,
         studyMode: composer.studyMode,
       });

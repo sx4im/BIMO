@@ -208,16 +208,15 @@ def test_upload_type_allowlist():
 
 
 def test_models_catalog_shape():
-    """The UI_MODELS catalogue should expose the two chat modes plus the
-    image-generation mode, and the ids must match KNOWN_MODEL_IDS exactly."""
+    """The UI_MODELS catalogue should expose the two chat modes,
+    and the ids must match KNOWN_MODEL_IDS exactly."""
     from app.main import UI_MODELS, KNOWN_MODEL_IDS
 
-    assert len(UI_MODELS) == 3
+    assert len(UI_MODELS) == 2
     ids = {m["id"] for m in UI_MODELS}
     assert ids == KNOWN_MODEL_IDS
     assert "thinking" in ids
     assert "deep" in ids
-    assert "image" in ids
     stanza = next(m for m in UI_MODELS if m["id"] == "thinking")
     assert stanza["description"] == "All-round help"
 
@@ -468,6 +467,21 @@ def test_iter_response_thinking_toggle_for_deepseek(monkeypatch):
     assert captured["extra_body"]["chat_template_kwargs"]["thinking"] is False
     assert captured["top_p"] == 0.95
     assert captured["temperature"] == 1.0
+
+    # Nemotron-3-Super supports reasoning_effort, enable_thinking, and directive
+    list(nvidia_client.iter_response([{"role": "user", "content": "hard problem"}],
+                                     model="nvidia/nemotron-3-super-120b-a12b", thinking=True,
+                                     reasoning_effort="high"))
+    assert captured["extra_body"]["chat_template_kwargs"]["thinking"] is True
+    assert captured["extra_body"]["chat_template_kwargs"]["enable_thinking"] is True
+    assert captured["extra_body"]["chat_template_kwargs"]["reasoning_effort"] == "high"
+
+    # GPT-OSS supports reasoning_effort
+    list(nvidia_client.iter_response([{"role": "user", "content": "hard problem"}],
+                                     model="openai/gpt-oss-120b", thinking=True,
+                                     reasoning_effort="medium"))
+    assert captured["extra_body"]["chat_template_kwargs"]["thinking"] is True
+    assert captured["extra_body"]["chat_template_kwargs"]["reasoning_effort"] == "medium"
 
 
 def test_qwen_stanza_gets_full_token_budget(monkeypatch):
@@ -959,5 +973,82 @@ def test_chat_aeon_model_stream(client, monkeypatch):
     # Verify AEON_SYSTEM_PROMPT is used
     sys_msgs = [m["content"] for m in captured_kwargs.get("messages", []) if m["role"] == "system"]
     assert any("You are Aeon" in m for m in sys_msgs)
+
+
+def test_chat_default_reasoning_efforts(client, monkeypatch):
+    import time
+    import jwt
+    from app import store
+
+    claims = {
+        "sub": "test_effort_user",
+        "email": "effort@test.com",
+        "aud": "authenticated",
+        "iss": "https://example.supabase.co/auth/v1",
+        "exp": int(time.time()) + 3600,
+    }
+    token = jwt.encode(claims, "test-jwt-secret", algorithm="HS256")
+
+    monkeypatch.setattr("app.routes.chat_routes.get_usage_status", lambda uid: {"blocked": False, "session": {"used": 0, "limit": 100000}, "weekly": {"used": 0, "limit": 1000000}})
+    monkeypatch.setattr(store, "recent_usage_events", lambda *args, **kwargs: [])
+    monkeypatch.setattr(store, "get_conversation", lambda cid, uid: {"id": cid, "user_id": uid, "model": "deep" if "2" in cid else "thinking"})
+    monkeypatch.setattr(store, "get_messages", lambda cid, limit=None: [])
+    monkeypatch.setattr(store, "add_message", lambda *args, **kwargs: {"id": "m_test", "role": kwargs.get("role", "assistant")})
+    monkeypatch.setattr(store, "touch_conversation", lambda cid, uid: None)
+    monkeypatch.setattr(store, "record_usage", lambda *args, **kwargs: None)
+
+    captured_kwargs = {}
+    def mock_iter_response_with_fallback(messages, **kwargs):
+        captured_kwargs.clear()
+        captured_kwargs.update(kwargs)
+        yield {"type": "delta", "data": "Test answer"}
+        yield {"type": "done", "content": "Test answer"}
+
+    monkeypatch.setattr("app.nvidia_client.iter_response_with_fallback", mock_iter_response_with_fallback)
+
+    monkeypatch.setattr("app.nvidia_client.generate_title", lambda *a, **k: "Title")
+
+    # 1. Stanza default reasoning effort is 'low'
+    resp = client.post(
+        "/chat",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"conversation_id": "c_1", "message": "explain gravity", "model": "thinking"},
+    )
+    assert resp.status_code == 200
+    list(resp.response)
+    assert captured_kwargs.get("reasoning_effort") == "low"
+    assert captured_kwargs.get("thinking") is True
+
+    # 2. Nexos default reasoning effort is 'medium'
+    resp = client.post(
+        "/chat",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"conversation_id": "c_2", "message": "explain gravity", "model": "deep"},
+    )
+    assert resp.status_code == 200
+    list(resp.response)
+    assert captured_kwargs.get("reasoning_effort") == "medium"
+    assert captured_kwargs.get("thinking") is True
+
+    # 3. Extended thinking sets reasoning effort to 'high' for both
+    resp = client.post(
+        "/chat",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"conversation_id": "c_1", "message": "explain gravity", "model": "thinking", "reasoning_effort": "high"},
+    )
+    assert resp.status_code == 200
+    list(resp.response)
+    assert captured_kwargs.get("reasoning_effort") == "high"
+
+    resp = client.post(
+        "/chat",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"conversation_id": "c_2", "message": "explain gravity", "model": "deep", "reasoning_effort": "high"},
+    )
+    assert resp.status_code == 200
+    list(resp.response)
+    assert captured_kwargs.get("reasoning_effort") == "high"
+
+
 
 

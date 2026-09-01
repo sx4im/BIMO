@@ -54,7 +54,7 @@ def get_real_id_map() -> dict[str, str]:
 
 def get_known_model_ids() -> set[str]:
     # Returns the set of models shown in UI catalog
-    return {"thinking", "deep", IMAGE_MODEL_ID}
+    return {"thinking", "deep"}
 
 
 def get_all_valid_model_ids() -> set[str]:
@@ -69,11 +69,10 @@ KNOWN_MODEL_IDS = get_known_model_ids()
 ALL_VALID_MODEL_IDS = get_all_valid_model_ids()
 VISION_MODEL = DEFAULT_VISION_MODEL
 
-# Frontend presentation catalog (Aeon is excluded from UI dropdown)
+# Frontend presentation catalog (Aeon and Image are excluded from UI dropdown)
 UI_MODELS = [
     {"id": "thinking", "label": "Stanza 2.5", "description": "All-round help"},
     {"id": "deep", "label": "Nexos 3.0", "description": "Deep reasoning", "note": "This may take longer than usual."},
-    {"id": "image", "label": "Iris 1.0", "description": "Image generation", "kind": "image"},
 ]
 
 # Usage limits and quotas

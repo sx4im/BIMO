@@ -371,13 +371,19 @@ def chat(user):
     if conversation_is_visual:
         chosen_model = get_vision_model()
 
+    if reasoning_effort is None:
+        if chosen_friendly == "thinking":
+            reasoning_effort = "low"
+        elif chosen_friendly == "deep":
+            reasoning_effort = "medium"
+
     use_thinking = True
     if chosen_friendly == "aeon":
         use_thinking = False
     else:
         lower_model = chosen_model.lower()
         if "deepseek" in lower_model or "minimax" in lower_model or "nemotron" in lower_model:
-            if reasoning_effort == "low" or is_trivial_prompt(message_text):
+            if is_trivial_prompt(message_text) and reasoning_effort != "high":
                 use_thinking = False
 
     is_first_turn = not history

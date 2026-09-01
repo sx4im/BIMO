@@ -618,7 +618,7 @@ def iter_response(
     chosen_model = (model or default_model()).strip()
     kwargs = {}
 
-    if any(k in chosen_model.lower() for k in ("deepseek", "inkling", "thinking", "mistral")):
+    if any(k in chosen_model.lower() for k in ("deepseek", "inkling", "thinking", "mistral", "gpt-oss", "oss", "nexos")):
         if max_tokens is None:
             max_tokens = 16384
         if thinking:
@@ -640,6 +640,30 @@ def iter_response(
         if max_tokens is None:
             max_tokens = 16384
         messages = _nemotron_set_reasoning(messages, thinking)
+        if thinking:
+            effort = reasoning_effort or "low"
+            kwargs["extra_body"] = {
+                "chat_template_kwargs": {
+                    "thinking": True,
+                    "enable_thinking": True,
+                    "reasoning_effort": effort,
+                }
+            }
+        else:
+            kwargs["extra_body"] = {
+                "chat_template_kwargs": {
+                    "thinking": False,
+                    "enable_thinking": False,
+                }
+            }
+    elif any(k in chosen_model.lower() for k in ("muse", "stanza")):
+        if max_tokens is None:
+            max_tokens = 16384
+        if thinking:
+            effort = reasoning_effort or "low"
+            kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": effort}}
+        else:
+            kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": False}}
     elif "mistral" in chosen_model.lower():
         if max_tokens is None:
             max_tokens = 16384

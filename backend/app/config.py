@@ -12,10 +12,11 @@ import os
 DEFAULT_STANZA_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 DEFAULT_NEXOS_MODEL = "openai/gpt-oss-120b"
 DEFAULT_VISION_MODEL = "google/diffusiongemma-26b-a4b-it"
-DEFAULT_AEON_MODEL = "google/diffusiongemma-26b-a4b-it"
+DEFAULT_AEON_MODEL = "qwen/qwen3.8-27b"
 DEFAULT_IMAGE_MODEL = "black-forest-labs/flux.2-klein-4b"
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_IMAGE_BASE_URL = "https://ai.api.nvidia.com/v1/genai"
+DEFAULT_GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 
 # Internal model catalog
@@ -37,7 +38,12 @@ def get_vision_model() -> str:
 
 
 def get_aeon_model() -> str:
-    return os.getenv("NVIDIA_AEON_MODEL", DEFAULT_AEON_MODEL).strip()
+    return (
+        os.getenv("GROQ_AEON_MODEL")
+        or os.getenv("GROQ_MODEL")
+        or os.getenv("NVIDIA_AEON_MODEL")
+        or DEFAULT_AEON_MODEL
+    ).strip()
 
 
 def get_internal_models() -> list[dict]:

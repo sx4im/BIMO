@@ -648,6 +648,33 @@ def test_whatsapp_signature_verification(monkeypatch):
     assert verify_meta_signature(payload, valid_sig) is False
 
 
+def test_whatsapp_uses_aeon_model_groq(monkeypatch):
+    from app import whatsapp
+
+    sent_messages = []
+    def mock_send(to_phone, msg):
+        sent_messages.append((to_phone, msg))
+        return True
+
+    captured_groq = {}
+    def mock_generate_groq(model_id, messages, groq_key):
+        captured_groq["model_id"] = model_id
+        captured_groq["messages"] = messages
+        captured_groq["groq_key"] = groq_key
+        return "Hello from Groq Aeon on WhatsApp!"
+
+    monkeypatch.setattr(whatsapp, "send_whatsapp_message", mock_send)
+    monkeypatch.setattr(whatsapp, "_generate_groq_reply", mock_generate_groq)
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test123")
+    monkeypatch.setenv("GROQ_AEON_MODEL", "qwen/qwen3.8-27b")
+
+    whatsapp._process_and_reply_async("1234567890", "hi")
+    assert captured_groq.get("model_id") == "qwen/qwen3.8-27b"
+    assert captured_groq.get("groq_key") == "gsk_test123"
+    assert len(sent_messages) == 1
+    assert "Hello from Groq Aeon on WhatsApp!" in sent_messages[0][1]
+
+
 def test_whatsapp_uses_aeon_model(monkeypatch):
     from app import whatsapp
 
@@ -662,12 +689,13 @@ def test_whatsapp_uses_aeon_model(monkeypatch):
         captured_kwargs["messages"] = messages
         yield {"type": "delta", "data": "Hello from Aeon on WhatsApp!"}
 
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
     monkeypatch.setattr(whatsapp, "send_whatsapp_message", mock_send)
     monkeypatch.setattr("app.nvidia_client.iter_response_with_fallback", mock_iter_response_with_fallback)
-    monkeypatch.setenv("NVIDIA_AEON_MODEL", "google/diffusiongemma-26b-a4b-it")
+    monkeypatch.setenv("GROQ_AEON_MODEL", "qwen/qwen3.8-27b")
 
     whatsapp._process_and_reply_async("1234567890", "hi")
-    assert captured_kwargs.get("model") == "google/diffusiongemma-26b-a4b-it"
+    assert captured_kwargs.get("model") == "qwen/qwen3.8-27b"
     assert captured_kwargs.get("thinking") is False
     assert captured_kwargs.get("max_tokens") == 400
     assert len(sent_messages) == 1

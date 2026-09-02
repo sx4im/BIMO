@@ -73,4 +73,12 @@ services:
         sync: false
       - key: WHATSAPP_VERIFY_TOKEN
         value: bimo_whatsapp_verify_token_2026
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+      # Groq AI for WhatsApp Aeon model
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_AEON_MODEL
+        value: qwen/qwen3.8-27b
+
 

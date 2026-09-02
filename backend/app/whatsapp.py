@@ -16,8 +16,10 @@ import requests
 from flask import Blueprint, jsonify, request
 from typing import Optional
 
+from openai import OpenAI
+
 from . import nvidia_client
-from .config import get_aeon_model, get_stanza_model
+from .config import DEFAULT_GROQ_BASE_URL, get_aeon_model, get_stanza_model
 from .prompts import WHATSAPP_SYSTEM_PROMPT
 
 logger = logging.getLogger("bimo.whatsapp")
@@ -110,6 +112,21 @@ def send_whatsapp_message(to_phone: str, message_text: str) -> bool:
     return success
 
 
+def _generate_groq_reply(model_id: str, messages: list[dict], groq_key: str) -> str:
+    """Generate a chat completion using Groq's low-latency API."""
+    base_url = os.getenv("GROQ_BASE_URL", DEFAULT_GROQ_BASE_URL).strip()
+    client = OpenAI(api_key=groq_key, base_url=base_url, timeout=20.0)
+    resp = client.chat.completions.create(
+        model=model_id,
+        messages=messages,
+        max_tokens=400,
+        temperature=0.7,
+    )
+    if resp.choices and resp.choices[0].message:
+        return resp.choices[0].message.content or ""
+    return ""
+
+
 def _process_and_reply_async(sender_phone: str, user_prompt: str) -> None:
     """Worker function running in a background thread to process the AI model response."""
     try:
@@ -120,21 +137,36 @@ def _process_and_reply_async(sender_phone: str, user_prompt: str) -> None:
         ]
 
         logger.info("Processing WhatsApp query for %s using Aeon model (%s)", sender_phone, model_id)
-        
-        response_chunks = []
-        for chunk in nvidia_client.iter_response_with_fallback(
-            messages,
-            model=model_id,
-            thinking=False,
-            max_tokens=400,
-        ):
-            chunk_type = chunk.get("type")
-            if chunk_type == "delta":
-                response_chunks.append(chunk.get("data", ""))
-            elif chunk_type == "done" and not response_chunks:
-                response_chunks.append(chunk.get("content", ""))
 
-        raw_reply = "".join(response_chunks).strip()
+        raw_reply = ""
+        groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        if groq_key:
+            try:
+                logger.info("Executing Groq chat completion for WhatsApp (%s)", model_id)
+                raw_reply = _generate_groq_reply(model_id, messages, groq_key)
+                if raw_reply:
+                    logger.info("Successfully generated reply via Groq (%d chars)", len(raw_reply))
+            except Exception as exc:
+                logger.warning("Groq inference failed for WhatsApp (%s), falling back to NVIDIA: %s", model_id, exc)
+        else:
+            logger.info("GROQ_API_KEY not set, falling back to NVIDIA for WhatsApp")
+
+        if not raw_reply:
+            response_chunks = []
+            for chunk in nvidia_client.iter_response_with_fallback(
+                messages,
+                model=model_id,
+                thinking=False,
+                max_tokens=400,
+            ):
+                chunk_type = chunk.get("type")
+                if chunk_type == "delta":
+                    response_chunks.append(chunk.get("data", ""))
+                elif chunk_type == "done" and not response_chunks:
+                    response_chunks.append(chunk.get("content", ""))
+
+            raw_reply = "".join(response_chunks).strip()
+
         if not raw_reply:
             raw_reply = "I received your message! How can I help you today?"
 

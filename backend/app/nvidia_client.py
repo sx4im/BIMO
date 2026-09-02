@@ -619,7 +619,7 @@ def iter_response(
     chosen_model = (model or default_model()).strip()
     kwargs = {}
 
-    if any(k in chosen_model.lower() for k in ("deepseek", "inkling", "thinking", "mistral", "gpt-oss", "oss", "nexos")):
+    if any(k in chosen_model.lower() for k in ("deepseek", "inkling", "thinking", "mistral", "gpt-oss", "oss", "nexos", "gemma", "diffusiongemma", "google")):
         if max_tokens is None:
             max_tokens = 16384
         if thinking:
@@ -665,24 +665,31 @@ def iter_response(
             max_tokens = 16384
         if thinking:
             effort = reasoning_effort or "low"
+            kwargs["reasoning_effort"] = effort
             kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": effort}}
         else:
             kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": False}}
-    elif "mistral" in chosen_model.lower():
-        if max_tokens is None:
-            max_tokens = 16384
-    elif "step" in chosen_model.lower():
-        if max_tokens is None:
-            max_tokens = 16384
     elif "qwen" in chosen_model.lower():
         if max_tokens is None:
             max_tokens = 16384
+        if thinking and reasoning_effort:
+            kwargs["reasoning_effort"] = reasoning_effort
+            kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": reasoning_effort}}
+    elif "step" in chosen_model.lower():
+        if max_tokens is None:
+            max_tokens = 16384
+        if thinking and reasoning_effort:
+            kwargs["reasoning_effort"] = reasoning_effort
+            kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": reasoning_effort}}
     elif "llama" in chosen_model.lower():
         if max_tokens is None:
             max_tokens = 4096
     else:
         if max_tokens is None:
             max_tokens = max_output_tokens()
+        if thinking and reasoning_effort:
+            kwargs["reasoning_effort"] = reasoning_effort
+            kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": reasoning_effort}}
 
     t_sdk_start = time.time()
     try:

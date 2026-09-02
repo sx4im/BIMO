@@ -503,7 +503,7 @@ export async function renderChat({ id, incognito }) {
           attachments,
           model: activeModel,
           system_prompt: studyMode ? STUDY_SYSTEM_PROMPT : (conversation?.system_prompt || undefined),
-          reasoning_effort: reasoningEffort || (activeModel === "deep" ? "medium" : "low"),
+          reasoning_effort: reasoningEffort || composer.getReasoningEffort(activeModel),
           incognito,
         },
         streamId,

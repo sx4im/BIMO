@@ -380,11 +380,6 @@ def chat(user):
     use_thinking = True
     if chosen_friendly == "aeon":
         use_thinking = False
-    else:
-        lower_model = chosen_model.lower()
-        if "deepseek" in lower_model or "minimax" in lower_model or "nemotron" in lower_model:
-            if is_trivial_prompt(message_text) and reasoning_effort != "high":
-                use_thinking = False
 
     is_first_turn = not history
     cancel_event = _register_cancel(stream_id, user.id) if stream_id else threading.Event()

@@ -625,9 +625,20 @@ def iter_response(
         if thinking:
             effort = reasoning_effort or "medium"
             kwargs["reasoning_effort"] = effort
-            kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": True, "reasoning_effort": effort}}
+            kwargs["extra_body"] = {
+                "chat_template_kwargs": {
+                    "thinking": True,
+                    "enable_thinking": True,
+                    "reasoning_effort": effort,
+                }
+            }
         else:
-            kwargs["extra_body"] = {"chat_template_kwargs": {"thinking": False}}
+            kwargs["extra_body"] = {
+                "chat_template_kwargs": {
+                    "thinking": False,
+                    "enable_thinking": False,
+                }
+            }
     elif "minimax" in chosen_model.lower():
         if max_tokens is None:
             max_tokens = 16384

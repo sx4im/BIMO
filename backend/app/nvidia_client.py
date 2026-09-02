@@ -392,9 +392,10 @@ def list_models() -> list[dict]:
 def test_call() -> dict:
     """Minimal chat completion to verify the key + the configured model."""
     try:
-        client = _client()
+        model_to_test = default_model() or get_stanza_model() or DEFAULT_MODEL
+        client = _client(model_to_test)
         completion = client.chat.completions.create(
-            model=DEFAULT_MODEL,
+            model=model_to_test,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Say 'API test OK' and nothing else."},

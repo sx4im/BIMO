@@ -22,6 +22,10 @@ from . import nvidia_client
 from .config import DEFAULT_GROQ_BASE_URL, get_aeon_model, get_stanza_model
 from .prompts import WHATSAPP_SYSTEM_PROMPT
 
+from collections import deque
+import sqlite3
+import time
+
 logger = logging.getLogger("bimo.whatsapp")
 
 whatsapp_bp = Blueprint("whatsapp", __name__)
@@ -30,6 +34,98 @@ WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "").strip()
 WHATSAPP_PHONE_ID = os.getenv("WHATSAPP_PHONE_ID", "").strip()
 WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "bimo_whatsapp_verify_token_2026").strip()
 WHATSAPP_APP_SECRET = os.getenv("WHATSAPP_APP_SECRET", "").strip()
+
+# Shared multi-worker SQLite database for WhatsApp conversation memory.
+# Lives in /tmp/ so all gunicorn worker processes share the exact same state without external DB requirements.
+_DB_PATH = os.getenv("WHATSAPP_DB_PATH", "/tmp/bimo_whatsapp_context.db")
+_db_lock = threading.Lock()
+_MAX_HISTORY_TURNS = 40  # up to 40 messages (20 user + 20 assistant turns)
+_HISTORY_TTL_SECONDS = 24 * 3600  # 24 hours conversation memory window
+
+
+def _init_whatsapp_db() -> None:
+    """Initialize the SQLite context table and enable WAL mode for fast concurrency across workers."""
+    with _db_lock:
+        try:
+            conn = sqlite3.connect(_DB_PATH, timeout=10.0)
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS whatsapp_messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    phone TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    created_at REAL NOT NULL
+                );
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_phone_time ON whatsapp_messages(phone, created_at);")
+            conn.commit()
+            conn.close()
+        except Exception as exc:
+            logger.exception("Failed to initialize WhatsApp SQLite database: %s", exc)
+
+
+_init_whatsapp_db()
+
+
+def _get_phone_history(phone: str) -> list[dict]:
+    """Retrieve recent conversation history for a phone number across all worker processes."""
+    cutoff = time.time() - _HISTORY_TTL_SECONDS
+    with _db_lock:
+        try:
+            conn = sqlite3.connect(_DB_PATH, timeout=10.0)
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT role, content FROM whatsapp_messages
+                WHERE phone = ? AND created_at >= ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (phone, cutoff, _MAX_HISTORY_TURNS),
+            )
+            rows = cursor.fetchall()
+            conn.close()
+            # Reverse so it's in chronological order
+            return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
+        except Exception as exc:
+            logger.warning("Error reading WhatsApp history for %s: %s", phone, exc)
+            return []
+
+
+def _append_phone_history(phone: str, role: str, content: str) -> None:
+    """Store a message turn in SQLite, immediately visible to all gunicorn workers."""
+    if not content:
+        return
+    now = time.time()
+    with _db_lock:
+        try:
+            conn = sqlite3.connect(_DB_PATH, timeout=10.0)
+            conn.execute(
+                "INSERT INTO whatsapp_messages (phone, role, content, created_at) VALUES (?, ?, ?, ?)",
+                (phone, role, content, now),
+            )
+            # Prune ancient messages for this phone to prevent unbounded growth
+            conn.execute(
+                "DELETE FROM whatsapp_messages WHERE phone = ? AND created_at < ?",
+                (phone, now - _HISTORY_TTL_SECONDS * 2),
+            )
+            conn.commit()
+            conn.close()
+        except Exception as exc:
+            logger.warning("Error saving WhatsApp message for %s: %s", phone, exc)
+
+
+def _clear_phone_history(phone: str) -> None:
+    """Reset conversation context for a phone number."""
+    with _db_lock:
+        try:
+            conn = sqlite3.connect(_DB_PATH, timeout=10.0)
+            conn.execute("DELETE FROM whatsapp_messages WHERE phone = ?", (phone,))
+            conn.commit()
+            conn.close()
+        except Exception as exc:
+            logger.warning("Error clearing WhatsApp history for %s: %s", phone, exc)
 
 
 def get_graph_url() -> str:
@@ -131,12 +227,15 @@ def _process_and_reply_async(sender_phone: str, user_prompt: str) -> None:
     """Worker function running in a background thread to process the AI model response."""
     try:
         model_id = get_aeon_model()
-        messages = [
-            {"role": "system", "content": WHATSAPP_SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ]
+        prior_turns = _get_phone_history(sender_phone)
+        messages = [{"role": "system", "content": WHATSAPP_SYSTEM_PROMPT}]
+        messages.extend(prior_turns)
+        messages.append({"role": "user", "content": user_prompt})
 
-        logger.info("Processing WhatsApp query for %s using Aeon model (%s)", sender_phone, model_id)
+        logger.info(
+            "Processing WhatsApp query for %s using Aeon model (%s, context_turns=%d)",
+            sender_phone, model_id, len(prior_turns),
+        )
 
         raw_reply = ""
         groq_key = os.getenv("GROQ_API_KEY", "").strip()
@@ -169,6 +268,9 @@ def _process_and_reply_async(sender_phone: str, user_prompt: str) -> None:
 
         if not raw_reply:
             raw_reply = "I received your message! How can I help you today?"
+
+        _append_phone_history(sender_phone, "user", user_prompt)
+        _append_phone_history(sender_phone, "assistant", raw_reply)
 
         formatted_reply = format_for_whatsapp(raw_reply)
         send_whatsapp_message(sender_phone, formatted_reply)

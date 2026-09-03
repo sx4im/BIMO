@@ -702,6 +702,39 @@ def test_whatsapp_uses_aeon_model(monkeypatch):
     assert "Hello from Aeon on WhatsApp!" in sent_messages[0][1]
 
 
+def test_whatsapp_maintains_conversation_context(monkeypatch):
+    from app import whatsapp
+
+    sent_messages = []
+    def mock_send(to_phone, msg):
+        sent_messages.append((to_phone, msg))
+        return True
+
+    captured_messages = []
+    def mock_generate_groq(model_id, messages, groq_key):
+        captured_messages.append(list(messages))
+        return f"Reply #{len(captured_messages)}"
+
+    monkeypatch.setattr(whatsapp, "send_whatsapp_message", mock_send)
+    monkeypatch.setattr(whatsapp, "_generate_groq_reply", mock_generate_groq)
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test123")
+
+    # Turn 1
+    whatsapp._process_and_reply_async("9876543210", "My name is Saim")
+    assert len(captured_messages) == 1
+    assert captured_messages[0][-1] == {"role": "user", "content": "My name is Saim"}
+
+    # Turn 2: must include turn 1 history
+    whatsapp._process_and_reply_async("9876543210", "What is my name?")
+    assert len(captured_messages) == 2
+    # Check that turn 1 user & assistant are passed in messages
+    roles = [m["role"] for m in captured_messages[1]]
+    assert roles == ["system", "user", "assistant", "user"]
+    assert captured_messages[1][1] == {"role": "user", "content": "My name is Saim"}
+    assert captured_messages[1][2] == {"role": "assistant", "content": "Reply #1"}
+    assert captured_messages[1][3] == {"role": "user", "content": "What is my name?"}
+
+
 def test_document_processor_zip_bomb_and_traversal():
     """ZIP extractor must reject suspicious decompression ratios and path traversal."""
     import io

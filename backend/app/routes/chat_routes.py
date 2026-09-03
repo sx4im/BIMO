@@ -608,11 +608,17 @@ def chat(user):
     threading.Thread(target=_pump, name="bimo-chat-gen", daemon=True).start()
 
     def drain():
-        while True:
-            chunk = sse_queue.get()
-            if chunk is _DONE:
-                break
-            yield chunk
+        try:
+            while True:
+                chunk = sse_queue.get()
+                if chunk is _DONE:
+                    break
+                yield chunk
+        finally:
+            # If the HTTP client aborts, closes browser tab, or drops connection,
+            # Flask terminates drain() via GeneratorExit. Signal cancel_event so
+            # background generation loop immediately halts instead of leaking API tokens.
+            cancel_event.set()
 
     return Response(
         stream_with_context(drain()),

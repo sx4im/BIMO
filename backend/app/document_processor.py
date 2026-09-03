@@ -87,68 +87,79 @@ def _extract_pdf(file_bytes: bytes, max_pages: int = 30) -> list[dict]:
     parts: list[dict] = []
     text_chunks: list[str] = []
 
-    doc = fitz.open(stream=file_bytes, filetype="pdf")
-    total_pages = len(doc)
-    pages_to_process = min(total_pages, max_pages)
+    doc = None
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        total_pages = len(doc)
+        pages_to_process = min(total_pages, max_pages)
 
-    if total_pages > max_pages:
-        text_chunks.append(f"[PDF has {total_pages} pages; showing first {max_pages}]")
+        if total_pages > max_pages:
+            text_chunks.append(f"[PDF has {total_pages} pages; showing first {max_pages}]")
 
-    # Adaptive DPI: lighter for large page counts or large file sizes.
-    file_mb = len(file_bytes) / (1024 * 1024)
-    if file_mb > 15 or pages_to_process > 5:
-        dpi = 120
-    elif file_mb > 8 or pages_to_process > 3:
-        dpi = 150
-    else:
-        dpi = 170
-    zoom = dpi / 72
-    mat = fitz.Matrix(zoom, zoom)
-
-    total_img_bytes = 0
-    max_per_page_kb = 350  # per-page soft cap
-
-    for page_num in range(pages_to_process):
-        page = doc.load_page(page_num)
-        # text
-        txt = page.get_text()
-        if txt.strip():
-            text_chunks.append(f"--- Page {page_num + 1} ---\n{txt.strip()}")
-        # image
-        pix = page.get_pixmap(matrix=mat)
-
-        if _has_pil:
-            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            # If page is still too large, downscale proportionally.
-            scale = 1.0
-            while True:
-                bio = io.BytesIO()
-                w, h = int(pix.width * scale), int(pix.height * scale)
-                if scale < 1.0:
-                    img_resized = img.resize((w, h), _resample)
-                else:
-                    img_resized = img
-                img_resized.save(bio, format="JPEG", quality=60, optimize=True)
-                img_bytes = bio.getvalue()
-                if len(img_bytes) <= max_per_page_kb * 1024 or scale <= 0.5:
-                    break
-                scale -= 0.15
-            mime = "image/jpeg"
+        # Adaptive DPI: lighter for large page counts or large file sizes.
+        file_mb = len(file_bytes) / (1024 * 1024)
+        if file_mb > 15 or pages_to_process > 5:
+            dpi = 120
+        elif file_mb > 8 or pages_to_process > 3:
+            dpi = 150
         else:
-            img_bytes = pix.tobytes("png")
-            mime = "image/png"
+            dpi = 170
+        zoom = dpi / 72
+        mat = fitz.Matrix(zoom, zoom)
 
-        total_img_bytes += len(img_bytes)
-        parts.append(_image_part(img_bytes, mime))
-        logger.info(
-            "pdf: page %d/%d dpi=%d scale=%.2f %s=%.1fKB total=%.1fMB",
-            page_num + 1, pages_to_process, dpi,
-            scale if _has_pil else 1.0,
-            mime.split("/")[1].upper(), len(img_bytes) / 1024,
-            total_img_bytes / (1024 * 1024),
-        )
+        total_img_bytes = 0
+        max_per_page_kb = 350  # per-page soft cap
 
-    doc.close()
+        for page_num in range(pages_to_process):
+            page = doc.load_page(page_num)
+            # text
+            txt = page.get_text()
+            if txt.strip():
+                text_chunks.append(f"--- Page {page_num + 1} ---\n{txt.strip()}")
+            # image
+            pix = page.get_pixmap(matrix=mat)
+
+            try:
+                if _has_pil:
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                    # If page is still too large, downscale proportionally.
+                    scale = 1.0
+                    while True:
+                        bio = io.BytesIO()
+                        w, h = int(pix.width * scale), int(pix.height * scale)
+                        if scale < 1.0:
+                            img_resized = img.resize((w, h), _resample)
+                        else:
+                            img_resized = img
+                        img_resized.save(bio, format="JPEG", quality=60, optimize=True)
+                        img_bytes = bio.getvalue()
+                        if len(img_bytes) <= max_per_page_kb * 1024 or scale <= 0.5:
+                            break
+                        scale -= 0.15
+                    mime = "image/jpeg"
+                else:
+                    img_bytes = pix.tobytes("png")
+                    mime = "image/png"
+
+                total_img_bytes += len(img_bytes)
+                parts.append(_image_part(img_bytes, mime))
+                logger.info(
+                    "pdf: page %d/%d dpi=%d scale=%.2f %s=%.1fKB total=%.1fMB",
+                    page_num + 1, pages_to_process, dpi,
+                    scale if _has_pil else 1.0,
+                    mime.split("/")[1].upper(), len(img_bytes) / 1024,
+                    total_img_bytes / (1024 * 1024),
+                )
+            finally:
+                pix = None
+    except Exception as exc:
+        logger.warning("pdf extraction error: %s", exc)
+    finally:
+        if doc is not None:
+            try:
+                doc.close()
+            except Exception:
+                pass
 
     if text_chunks:
         parts.insert(0, _text_part("\n\n".join(text_chunks)))

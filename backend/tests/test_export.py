@@ -82,6 +82,18 @@ Check the official docs at [Bimo AI](https://bimo.ai).
 """
 
 
+def test_export_preserves_currency_without_latex_math():
+    """Sentences containing multiple currency values must not be rendered as LaTeX math."""
+    from app.export_service import parse_inline_spans
+
+    text = "The budget is between $50 and $100 total."
+    spans = parse_inline_spans(text)
+    math_spans = [s for s in spans if getattr(s, "math", False)]
+    assert len(math_spans) == 0
+    full_text = "".join(s.text for s in spans)
+    assert "$50 and $100" in full_text
+
+
 def test_unauthorized_export_request(client):
     res = client.post("/export", json={"markdown": "hello", "format": "md"})
     assert res.status_code == 401

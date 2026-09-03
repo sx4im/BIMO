@@ -719,13 +719,16 @@ def test_whatsapp_maintains_conversation_context(monkeypatch):
     monkeypatch.setattr(whatsapp, "_generate_groq_reply", mock_generate_groq)
     monkeypatch.setenv("GROQ_API_KEY", "gsk_test123")
 
+    test_phone = "9876543210_test_suite"
+    whatsapp._clear_phone_history(test_phone)
+
     # Turn 1
-    whatsapp._process_and_reply_async("9876543210", "My name is Saim")
+    whatsapp._process_and_reply_async(test_phone, "My name is Saim")
     assert len(captured_messages) == 1
     assert captured_messages[0][-1] == {"role": "user", "content": "My name is Saim"}
 
     # Turn 2: must include turn 1 history
-    whatsapp._process_and_reply_async("9876543210", "What is my name?")
+    whatsapp._process_and_reply_async(test_phone, "What is my name?")
     assert len(captured_messages) == 2
     # Check that turn 1 user & assistant are passed in messages
     roles = [m["role"] for m in captured_messages[1]]
@@ -791,6 +794,21 @@ def test_store_download_attachment_ownership_guard(monkeypatch):
 
     with pytest.raises(PermissionError):
         store.download_attachment("user-123/photo.png", user_id="")
+
+
+def test_build_continuation_messages_exists():
+    """chat_routes.py calls build_continuation_messages for batch_idx > 0."""
+    from app import nvidia_client
+
+    assert hasattr(nvidia_client, "build_continuation_messages")
+    msgs = nvidia_client.build_continuation_messages(
+        [{"role": "user", "content": "Page 1"}, {"role": "assistant", "content": "Analysis 1"}],
+        [{"type": "text", "text": "Page 2 text"}],
+    )
+    # 1 system + 2 history turns + 1 current user batch = 4
+    assert len(msgs) == 4
+    assert msgs[0]["role"] == "system"
+    assert msgs[-1]["role"] == "user"
 
 
 def test_rate_limit_key_isolation(client):

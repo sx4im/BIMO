@@ -560,6 +560,10 @@ def build_vision_continuation_messages(
     return _coerce_alternating(out)
 
 
+# Alias for backward-compatibility with chat_routes batching
+build_continuation_messages = build_vision_continuation_messages
+
+
 def build_messages(
     history: Iterable[dict],
     user_content,

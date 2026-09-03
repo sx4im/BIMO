@@ -108,7 +108,7 @@ def parse_inline_spans(text: str) -> List[InlineSpan]:
     pattern = re.compile(
         r"(?P<code>`(?P<code_inner>[^`\n]+)`)|\b"
         r"(?P<link>\[(?P<link_text>[^\]]+)\]\((?P<link_url>[^)]+)\))|"
-        r"(?P<math_d>\$(?P<math_inner>[^$\n]+)\$)|"
+        r"(?P<math_d>(?<!\w)\$(?!\s)(?!\d+(?:[.,]\d+)?(?:\s|$))(?P<math_inner>[^$\n]+?)(?<!\s)\$(?!\w))|"
         r"(?P<math_p>\\\((?P<math_p_inner>[^)]+)\\\))|"
         r"(?P<bold_italic>(?:\*\*\*|___)(?P<bi_inner>.+?)(?:\*\*\*|___))|"
         r"(?P<bold>(?:\*\*|__)(?P<b_inner>.+?)(?:\*\*|__))|"

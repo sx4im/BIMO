@@ -90,12 +90,140 @@ class HorizontalRuleBlock(Block):
     pass
 
 
-# --- Inline Parser ---
+# --- Inline Parser & Unicode / Math Normalizers ---
+
+def normalize_unicode_for_export(text: str) -> str:
+    """Normalize problematic Unicode characters that fail in standard PDF document fonts.
+
+    Replaces non-breaking hyphens, special dashes, and non-standard symbols with their
+    clean, renderable ASCII/typography equivalents so fonts never draw missing-glyph black boxes (■).
+    """
+    if not text:
+        return ""
+
+    replacements = {
+        "‑": "-",   # non-breaking hyphen
+        "‐": "-",   # hyphen
+        "‒": "-",   # figure dash
+        "–": "–",   # en dash
+        "—": "—",   # em dash
+        "―": "—",   # horizontal bar
+        "−": "-",   # minus sign
+        "­": "",    # soft hyphen
+        " ": " ",   # non-breaking space
+        "​": "",    # zero-width space
+        "‌": "",    # zero-width non-joiner
+        "‍": "",    # zero-width joiner
+        "﻿": "",    # byte order mark
+        "…": "...", # ellipsis
+        "‘": "'",   # left single quote
+        "’": "'",   # right single quote
+        "“": '"',   # left double quote
+        "”": '"',   # right double quote
+        "•": "•",   # bullet
+    }
+    for old, new in replacements.items():
+        if old in text:
+            text = text.replace(old, new)
+
+    # Unicode superscript characters to HTML <sup>
+    sup_map = {
+        "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
+        "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
+        "⁺": "+", "⁻": "-", "⁼": "=", "⁽": "(", "⁾": ")",
+        "ⁿ": "n", "ⁱ": "i",
+    }
+    # Unicode subscript characters to HTML <sub>
+    sub_map = {
+        "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4",
+        "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9",
+        "₊": "+", "₋": "-", "₌": "=", "₍": "(", "₎": ")",
+        "ₐ": "a", "ₑ": "e", "ₒ": "o", "ₓ": "x", "ₕ": "h",
+        "ₖ": "k", "ₗ": "l", "ₘ": "m", "ₙ": "n", "ₚ": "p",
+        "ₛ": "s", "ₜ": "t",
+    }
+    for char, val in sup_map.items():
+        if char in text:
+            text = text.replace(char, f"<sup>{val}</sup>")
+    for char, val in sub_map.items():
+        if char in text:
+            text = text.replace(char, f"<sub>{val}</sub>")
+
+    return text
+
+
+def typeset_math_to_html(raw_math: str) -> str:
+    """Typeset LaTeX math and chemical expressions into beautiful HTML formatting.
+
+    Converts formulas like $H_2O$, $CO_2$, $C_6H_{12}O_6$, $x^2+1$ and complex equations
+    into proper subscripts, superscripts, arrows, and cleanly spaced operators.
+    """
+    s = raw_math.strip()
+
+    # 1. Chemical reaction arrows with labels: \xrightarrow[below]{above}
+    s = re.sub(r"\\xrightarrow\[([^\]]*)\]\{([^}]*)\}", r" &mdash;[ \2 / \1 ]&rarr; ", s)
+    s = re.sub(r"\\xrightarrow\{([^}]*)\}", r" &mdash;[ \1 ]&rarr; ", s)
+    s = re.sub(r"\\(?:rightarrow|to|longrightarrow)", " &rarr; ", s)
+    s = re.sub(r"\\(?:leftarrow|longleftarrow)", " &larr; ", s)
+    s = re.sub(r"\\(?:leftrightarrow|rightleftharpoons)", " &#8644; ", s)
+
+    # 2. Text wrappers: \text{...}, \mathrm{...}
+    s = re.sub(r"\\(?:text|mathrm|mathbf|mathit|textsf)\{([^}]*)\}", r" \1 ", s)
+
+    # 3. Common math symbols & operators
+    s = re.sub(r"\\times", " &times; ", s)
+    s = re.sub(r"\\pm", " &plusmn; ", s)
+    s = re.sub(r"\\mp", " &#8723; ", s)
+    s = re.sub(r"\\div", " &divide; ", s)
+    s = re.sub(r"\\cdot", " &sdot; ", s)
+    s = re.sub(r"\\neq", " &ne; ", s)
+    s = re.sub(r"\\leq", " &le; ", s)
+    s = re.sub(r"\\geq", " &ge; ", s)
+    s = re.sub(r"\\approx", " &asymp; ", s)
+    s = re.sub(r"\\equiv", " &equiv; ", s)
+    s = re.sub(r"\\infty", " &infin; ", s)
+    s = re.sub(r"\\Delta", " &Delta; ", s)
+    s = re.sub(r"\\pi", " &pi; ", s)
+    s = re.sub(r"\\alpha", " &alpha; ", s)
+    s = re.sub(r"\\beta", " &beta; ", s)
+    s = re.sub(r"\\gamma", " &gamma; ", s)
+    s = re.sub(r"\\theta", " &theta; ", s)
+    s = re.sub(r"\\lambda", " &lambda; ", s)
+    s = re.sub(r"\\mu", " &mu; ", s)
+    s = re.sub(r"\\sigma", " &sigma; ", s)
+    s = re.sub(r"\\partial", " &part; ", s)
+    s = re.sub(r"\\nabla", " &nabla; ", s)
+    s = re.sub(r"\\in", " &isin; ", s)
+    s = re.sub(r"\\notin", " &notin; ", s)
+
+    # 4. Spacing commands
+    s = re.sub(r"\\[,;!]", " ", s)
+    s = re.sub(r"\\(?:quad|qquad|enspace|thinspace)", "  ", s)
+
+    # 5. Fractions & roots
+    s = re.sub(r"\\frac\{([^}]*)\}\{([^}]*)\}", r"(\1 / \2)", s)
+    s = re.sub(r"\\sqrt\{([^}]*)\}", r"&radic;(\1)", s)
+
+    # 6. Subscripts & superscripts (with braces or single alphanumeric character)
+    s = re.sub(r"_\{([^}]*)\}", r"<sub>\1</sub>", s)
+    s = re.sub(r"_([a-zA-Z0-9])", r"<sub>\1</sub>", s)
+    s = re.sub(r"\^\{([^}]*)\}", r"<sup>\1</sup>", s)
+    s = re.sub(r"\^([a-zA-Z0-9+–-])", r"<sup>\1</sup>", s)
+
+    # 7. Strip remaining LaTeX macros e.g. \left, \right, brackets
+    s = re.sub(r"\\(?:left|right)\b[.|()\[\]]?", "", s)
+    s = re.sub(r"\\[a-zA-Z]+", "", s)
+    s = re.sub(r"[{}]", "", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
 
 def parse_inline_spans(text: str) -> List[InlineSpan]:
     """Tokenize markdown inline text into styled spans."""
     if not text:
         return []
+
+    text = normalize_unicode_for_export(text)
 
     # Combined regex for inline elements:
     # 1. Inline code: `code`
@@ -160,13 +288,16 @@ def inline_spans_to_reportlab_xml(spans: List[InlineSpan]) -> str:
     """Convert inline spans to safe XML markup for ReportLab Paragraphs."""
     out = []
     for span in spans:
+        if span.math:
+            typeset = typeset_math_to_html(span.text)
+            out.append(f'<font color="#b45739"><b>{typeset}</b></font>')
+            continue
+
         escaped = saxutils.escape(span.text)
         # Convert newlines to <br/>
         escaped = escaped.replace("\n", "<br/>")
         if span.code:
             escaped = f'<font name="Courier" color="#141413" backColor="#f0ede6">&nbsp;{escaped}&nbsp;</font>'
-        if span.math:
-            escaped = f'<font name="Courier" color="#b45739"><b>{escaped}</b></font>'
         if span.strike:
             escaped = f"<strike>{escaped}</strike>"
         if span.bold:
@@ -631,11 +762,19 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
     story = []
 
     # Title & Metadata
-    story.append(Paragraph(saxutils.escape(clean_title), title_style))
+    clean_title_norm = normalize_unicode_for_export(clean_title)
+    # If the markdown content already starts with an H1 (# Title), avoid duplicating it as the body heading
+    blocks = parse_markdown_to_blocks(markdown_content)
+    if blocks and isinstance(blocks[0], HeadingBlock) and blocks[0].level == 1:
+        first_h1_norm = normalize_unicode_for_export(blocks[0].text).strip()
+        if first_h1_norm.lower() == clean_title_norm.lower() or not clean_title_norm:
+            clean_title_norm = first_h1_norm
+            blocks.pop(0)
+
+    story.append(Paragraph(saxutils.escape(clean_title_norm), title_style))
     story.append(Paragraph(saxutils.escape(f"Generated on {date_str} · Bimo AI Assistant"), meta_style))
     story.append(HRFlowable(width="100%", thickness=0.75, color=c_hairline, spaceAfter=14))
 
-    blocks = parse_markdown_to_blocks(markdown_content)
     content_width = letter[0] - 96  # 612 - 96 = 516 pt
 
     for block in blocks:
@@ -691,13 +830,12 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
             story.append(Spacer(1, 8))
 
         elif isinstance(block, MathBlock):
-            escaped_math = saxutils.escape(block.latex).replace("\n", "<br/>")
-            math_p = Paragraph(f"<b>{escaped_math}</b>", ParagraphStyle(
+            math_html = typeset_math_to_html(block.latex)
+            math_p = Paragraph(f'<font color="#b45739"><b>{math_html}</b></font>', ParagraphStyle(
                 "MathBlockStyle",
-                fontName="Courier",
-                fontSize=9.5,
-                leading=13,
-                textColor=colors.HexColor("#b45739"),
+                fontName="Helvetica",
+                fontSize=11,
+                leading=15,
                 alignment=1,  # Centered
             ))
             math_tbl = Table([[math_p]], colWidths=[content_width])
@@ -897,10 +1035,18 @@ def export_docx(title: Optional[str], markdown_content: str, generated_at: Optio
         paragraph._p.append(hyperlink)
 
     # Document Title & Metadata
+    clean_title_norm = normalize_unicode_for_export(clean_title)
+    blocks = parse_markdown_to_blocks(markdown_content)
+    if blocks and isinstance(blocks[0], HeadingBlock) and blocks[0].level == 1:
+        first_h1_norm = normalize_unicode_for_export(blocks[0].text).strip()
+        if first_h1_norm.lower() == clean_title_norm.lower() or not clean_title_norm:
+            clean_title_norm = first_h1_norm
+            blocks.pop(0)
+
     title_p = doc.add_paragraph()
     title_p.paragraph_format.space_before = Pt(0)
     title_p.paragraph_format.space_after = Pt(2)
-    title_run = title_p.add_run(clean_title)
+    title_run = title_p.add_run(clean_title_norm)
     title_run.bold = True
     title_run.font.size = Pt(20)
     title_run.font.color.rgb = RGBColor(20, 20, 19)
@@ -919,8 +1065,6 @@ def export_docx(title: Optional[str], markdown_content: str, generated_at: Optio
     div_p.paragraph_format.space_after = Pt(14)
     pBdr = parse_xml(f'<w:pBdr {nsdecls("w")}><w:bottom w:val="single" w:sz="6" w:space="1" w:color="E6DFD8"/></w:pBdr>')
     div_p._p.get_or_add_pPr().append(pBdr)
-
-    blocks = parse_markdown_to_blocks(markdown_content)
 
     for block in blocks:
         if isinstance(block, HeadingBlock):

@@ -40,17 +40,11 @@ export function extractDocumentArtifact(rawContent) {
     };
   }
 
-  // 2. Standard markdown headers (# Title, ## Section)
-  const h1Match = trimmed.match(/^(?:[\s\S]*?\n)?#\s+([^\n]+)/);
-  const mdHeadings = trimmed.match(/#{1,3}\s+[^\n]+/g) || [];
+  // 2. Standard markdown H1 title on line 1 (# Title)
+  const h1Match = trimmed.match(/^#\s+([^\n]+)/);
 
-  // 3. Common uppercase or bold section patterns (e.g. PROFESSIONAL SUMMARY, TECHNICAL SKILLS, EXPERIENCE)
-  const sectionKeywords = /(?:PROFESSIONAL SUMMARY|TECHNICAL SKILLS|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EXPERIENCE|EDUCATION|PROJECTS|SKILLS|OBJECTIVE|OVERVIEW|SUMMARY|INTRODUCTION|KEY FINDINGS|METHODOLOGY|CONCLUSION|RESULTS|DISCUSSION|REFERENCES|TABLE OF CONTENTS|BACKGROUND|AI ENGINEER RESUME|RESUME|CURRICULUM VITAE)/i;
-  const capsHeadingMatch = trimmed.match(/^[A-Z\s\[\]_-]{4,35}$/m);
-  const boldHeadingMatch = trimmed.match(/^\*\*[A-Za-z0-9\s:\[\]_-]{3,40}\*\*/m);
-
-  const hasSections = mdHeadings.length >= 2 || (sectionKeywords.test(trimmed) && (Boolean(capsHeadingMatch) || Boolean(boldHeadingMatch) || mdHeadings.length >= 1));
-  const isStructuredDoc = Boolean(h1Match || (hasSections && trimmed.length > 140));
+  // 3. Fallback: only if explicit document fence is used
+  const isStructuredDoc = Boolean(fenceMatch || h1Match);
 
   if (!isStructuredDoc) {
     return { isDoc: false, text: cleaned };
@@ -61,22 +55,6 @@ export function extractDocumentArtifact(rawContent) {
     const introText = h1Index > 0 ? stripExportDisclaimers(trimmed.substring(0, h1Index)) : "";
     const docContent = trimmed.substring(h1Index).trim();
     const title = h1Match[1].replace(/[*_`#]/g, "").trim();
-
-    return {
-      isDoc: true,
-      introText,
-      docTitle: title || "Bimo AI Document",
-      docContent,
-    };
-  }
-
-  // First heading or first capitalized line / bracketed name / bold title
-  const firstHeadingMatch = trimmed.match(/^(?:[\s\S]*?\n)?(#{1,3}\s+[^\n]+|\*\*[A-Za-z0-9\s:\[\]_-]{3,40}\*\*|^\[[A-Za-z0-9\s_-]+\]|^[A-Z\s]{4,30}$)/m);
-  if (firstHeadingMatch) {
-    const headerIndex = trimmed.indexOf(firstHeadingMatch[0]);
-    const introText = headerIndex > 0 ? stripExportDisclaimers(trimmed.substring(0, headerIndex)) : "";
-    const docContent = trimmed.substring(headerIndex).trim();
-    let title = firstHeadingMatch[1].replace(/[*_`#\[\]]/g, "").trim();
 
     return {
       isDoc: true,

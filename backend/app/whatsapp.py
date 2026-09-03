@@ -359,6 +359,12 @@ def handle_incoming_message():
                 if msg_type == "text":
                     body = msg.get("text", {}).get("body", "").strip()
                     if body:
+                        # Allow user to reset context on demand via command
+                        if body.lower() in {"/reset", "/new", "reset", "clear", "/clear"}:
+                            _clear_phone_history(sender_phone)
+                            send_whatsapp_message(sender_phone, "Conversation context reset. What would you like to discuss?")
+                            continue
+
                         logger.info("Received WhatsApp message from %s: '%s'", sender_phone, body)
                         # Spawn background thread so Webhook responds 200 OK immediately to Meta
                         threading.Thread(

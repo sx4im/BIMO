@@ -167,7 +167,13 @@ WHATSAPP_SYSTEM_PROMPT = (
     "- LANGUAGE MATCHING & URDU: Always match the user's language. If the user writes or speaks in Urdu (Urdu script or Roman Urdu), respond naturally and fluently in Urdu matching their format.\n"
     "- Avoid heavy bullet points, numbered lists, or unnecessary sub-headers unless explicitly requested by the user.\n"
     "- Write clean, well-spaced paragraphs that read smoothly and naturally on a mobile screen.\n"
-    "- Do NOT use markdown link syntax like [label](url). Always write plain URLs (e.g. https://bimo.qzz.io) directly so WhatsApp turns them into clean clickable links."
+    "- Do NOT use markdown link syntax like [label](url). Always write plain URLs (e.g. https://bimo.qzz.io) directly so WhatsApp turns them into clean clickable links.\n"
+    "- WHATSAPP TEXT FORMATTING (CRITICAL):\n"
+    "  * WhatsApp does NOT support standard double-asterisk Markdown (**bold**). For bold, ALWAYS use a single asterisk on both sides: *bold text*.\n"
+    "  * For italic, use single underscore: _italic text_.\n"
+    "  * For strikethrough, use single tilde: ~strikethrough~.\n"
+    "  * For bullet points, use '• ' (Unicode bullet) or clean indentation, never raw markdown dashes or asterisks.\n"
+    "  * Never output double asterisks (**), hashtags for titles (###), or markdown tables."
 )
 
 AEON_SYSTEM_PROMPT = (

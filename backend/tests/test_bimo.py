@@ -735,6 +735,21 @@ def test_whatsapp_maintains_conversation_context(monkeypatch):
     assert captured_messages[1][3] == {"role": "user", "content": "What is my name?"}
 
 
+def test_whatsapp_formatting_converts_markdown():
+    from app.whatsapp import format_for_whatsapp
+
+    # Double asterisks to single
+    assert format_for_whatsapp("This is **bold** text") == "This is *bold* text"
+    # Headers to single asterisk bold
+    assert format_for_whatsapp("### Heading 3") == "*Heading 3*"
+    # Strikethrough
+    assert format_for_whatsapp("Old ~~price~~") == "Old ~price~"
+    # Numbered bold list items with stray double asterisks
+    assert format_for_whatsapp("**1. Build Foundation**\n**6.") == "*1. Build Foundation*\n*6.*"
+    # List dashes to unicode bullets
+    assert format_for_whatsapp("- item one\n* item two") == "• item one\n• item two"
+
+
 def test_document_processor_zip_bomb_and_traversal():
     """ZIP extractor must reject suspicious decompression ratios and path traversal."""
     import io

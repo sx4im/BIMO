@@ -152,14 +152,41 @@ def verify_meta_signature(raw_payload: bytes, signature_header: Optional[str]) -
 
 
 def format_for_whatsapp(text: str) -> str:
-    """Format markdown reply for clean display on WhatsApp."""
+    """Format markdown reply for clean display on WhatsApp.
+
+    WhatsApp Formatting Spec:
+      - Bold: *text* (Markdown **text** or __text__ must be converted to *text*)
+      - Italic: _text_ (Markdown *text* converted if single, but avoid colliding with bold)
+      - Strikethrough: ~text~ (Markdown ~~text~~ -> ~text~)
+      - Monospace/Code inline: `text`
+      - Code block: ```code```
+      - Headings: # Heading -> *Heading*
+      - Bullets: - item -> • item
+    """
     if not text:
         return ""
-    # Strip markdown headings e.g. '### Heading' -> '*Heading*'
+
+    # 1. Strip markdown headings e.g. '### Heading' -> '*Heading*'
     text = re.sub(r"^#{1,6}\s*(.+)$", r"*\1*", text, flags=re.MULTILINE)
-    # Strip code block backticks if any
+
+    # 2. Convert standard Markdown bold **text** or __text__ to WhatsApp bold *text*
+    text = re.sub(r"\*\*(.+?)\*\*", r"*\1*", text)
+    text = re.sub(r"__(.+?)__", r"*\1*", text)
+
+    # 3. Convert strikethrough ~~text~~ to ~text~
+    text = re.sub(r"~~(.+?)~~", r"~\1~", text)
+
+    # 4. Convert markdown list dashes '- ' or '* ' at line starts to WhatsApp bullet point '• '
+    text = re.sub(r"^[-*]\s+", r"• ", text, flags=re.MULTILINE)
+
+    # 5. Clean up stray double asterisks left at start or end of lines e.g. '**6.' -> '*6.*'
+    text = re.sub(r"\*\*(\d+[\.\)])", r"*\1*", text)
+    text = re.sub(r"\*\*", r"*", text)
+
+    # 6. Ensure code blocks have clean formatting
     text = re.sub(r"```[a-zA-Z]*\n([\s\S]*?)\n```", r"```\n\1\n```", text)
-    # Clean up double blank lines
+
+    # 7. Clean up excessive blank lines
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 

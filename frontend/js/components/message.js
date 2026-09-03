@@ -21,18 +21,40 @@ export function extractDocumentArtifact(rawContent) {
   const cleaned = stripExportDisclaimers(rawContent);
   const trimmed = cleaned.trim();
 
-  // Explicit document fence: :::document ... ::: or ```document ... ```
-  const fenceMatch = trimmed.match(/^:::document(?:\s+([^\n]+))?\n([\s\S]+?)\n:::/i)
-    || trimmed.match(/^```document(?:\s+([^\n]+))?\n([\s\S]+?)\n```/i);
+  // 1. Explicit document fence anywhere in the response: :::document ... ::: or ```document ... ```
+  const fenceMatch = trimmed.match(/(?:^|\n):::document(?:\s+([^\n]+))?\n([\s\S]+?)\n:::/i)
+    || trimmed.match(/(?:^|\n)```document(?:\s+([^\n]+))?\n([\s\S]+?)\n```/i);
   if (fenceMatch) {
+    const matchIndex = trimmed.indexOf(fenceMatch[0]);
+    const introText = matchIndex > 0 ? trimmed.substring(0, matchIndex).trim() : "";
     const title = (fenceMatch[1] || "").replace(/[*_`#]/g, "").trim() || "Document";
     const docContent = fenceMatch[2].trim();
     return {
       isDoc: true,
-      introText: "",
+      introText,
       docTitle: title,
       docContent,
     };
+  }
+
+  // 2. Structured Document Heuristic: if model generated a top-level H1 title and multiple structured sections
+  const h1Match = trimmed.match(/^(?:[^\n]{0,120}\n+)?#\s+([^\n]+)/);
+  if (h1Match) {
+    const h1Index = trimmed.indexOf(h1Match[0]);
+    const docContent = trimmed.substring(h1Index).trim();
+    const title = h1Match[1].replace(/[*_`#]/g, "").trim();
+
+    // Check for substantial document markers (at least 2 H2 sections and > 300 chars)
+    const h2Count = (docContent.match(/\n##\s+/g) || []).length;
+    if (docContent.length >= 300 && h2Count >= 2) {
+      const introText = h1Index > 0 ? trimmed.substring(0, h1Index).trim() : "";
+      return {
+        isDoc: true,
+        introText,
+        docTitle: title || "Bimo AI Document",
+        docContent,
+      };
+    }
   }
 
   return { isDoc: false, text: cleaned };

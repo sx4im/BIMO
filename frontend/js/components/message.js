@@ -8,7 +8,10 @@ import { openImageModal } from "./image-modal.js?v=30";
 function stripExportDisclaimers(text) {
   if (!text) return "";
   return text
-    .replace(/(?:I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce|download|send)\s+(?:a\s+)?(?:actual\s+)?(?:downloadable\s+)?(?:\.?(?:pdf|word|docx|doc|file|document))[^\n.]*\.(?:\s*However[^\n.]*\.)?|While\s+I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce)[^\n.]*\.(?:\s*you\s+can[^\n.]*\.)?)/gi, "")
+    // 1. Strip leading disclaimers like "I cannot generate or send actual .doc files..." or "Here is the content ready to copy..."
+    .replace(/^(?:I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce|download|send)\s+(?:a\s+)?(?:actual\s+)?(?:downloadable\s+)?(?:\.?(?:pdf|word|docx|doc|file|document))[^\n.]*\.(?:\s*However[^\n.]*\.)?|While\s+I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce)[^\n.]*\.(?:\s*you\s+can[^\n.]*\.)?|Here(?:\s+is|\s+'s)\s+(?:a|the)?\s*(?:complete|ats-friendly)?\s*(?:ai|professional)?\s*(?:resume|document|template|content)[^\n:]*:\s*\n*)/gi, "")
+    // 2. Strip trailing guide / instructions like "To create your .doc file: \n 1. Select all text..." and "Need adjustments? Tell me..."
+    .replace(/(?:\n+---\s*\n+|\n+)\*{0,2}To\s+create\s+your\s+\.?doc(?:\s+file)?:\*{0,2}[\s\S]*$/gi, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }

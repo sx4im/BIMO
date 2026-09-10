@@ -1,6 +1,6 @@
-"""NVIDIA AI Foundation client for Bimo.
+"""NVIDIA AI Foundation client for BMO.
 
-Bimo talks to NVIDIA's OpenAI-compatible chat-completions endpoint
+BMO talks to NVIDIA's OpenAI-compatible chat-completions endpoint
 (https://integrate.api.nvidia.com/v1) via the **official OpenAI Python SDK**,
 which NVIDIA's own documentation specifies as the supported client. Using
 the SDK rather than hand-rolled ``requests`` calls eliminates whole classes

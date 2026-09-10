@@ -56,7 +56,7 @@ export function extractDocumentArtifact(rawContent) {
   return {
     isDoc: true,
     introText,
-    docTitle: title || "Bimo AI Document",
+    docTitle: title || "BMO AI Document",
     docContent,
   };
 }
@@ -103,7 +103,7 @@ export function docArtifactCard({
   onOpenDoc,
   onExportFormat,
 }) {
-  const cleanTitle = (title || "Bimo AI Document").trim();
+  const cleanTitle = (title || "BMO AI Document").trim();
 
   const docIcon = el("div", {
     class: "doc-card-icon",

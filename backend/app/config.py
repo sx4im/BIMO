@@ -1,4 +1,4 @@
-"""Central configuration and constants for Bimo.
+"""Central configuration and constants for BMO.
 
 Holds internal model mappings, quotas, upload allowlists, and environment
 defaults. Eliminates circular imports across gateways and client wrappers.

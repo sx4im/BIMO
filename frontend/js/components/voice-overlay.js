@@ -1,4 +1,4 @@
-// Full-screen voice assistant (Bimo Voice).
+// Full-screen voice assistant (BMO Voice).
 //
 // Flow: open -> listen (live transcription) -> on silence, send the turn ->
 // voice-themed wait text while the reply streams -> read the reply aloud
@@ -117,7 +117,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
   let discardTake = false;    // drop the in-flight recording on stop (typed turn)
   let recordStartedAt = 0;    // performance.now() when the current take began
 
-  const TTS_COOLDOWN_MS = 350; // pause after Bimo speaks before listening again
+  const TTS_COOLDOWN_MS = 350; // pause after BMO speaks before listening again
 
   // ---------- DOM ----------
   // The orb is a muted, looping video of the iridescent bubble. CSS blends its
@@ -176,10 +176,10 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
   });
 
   const overlay = el("div", {
-    class: "voice-overlay", role: "dialog", "aria-modal": "true", "aria-label": "Bimo Voice",
+    class: "voice-overlay", role: "dialog", "aria-modal": "true", "aria-label": "BMO Voice",
   }, [
     el("header", { class: "voice-header" }, [
-      el("span", { class: "voice-title" }, [el("strong", { text: "Bimo" }), el("span", { text: " Voice" })]),
+      el("span", { class: "voice-title" }, [el("strong", { text: "BMO" }), el("span", { text: " Voice" })]),
     ]),
     el("div", { class: "voice-stage" }, [globe, statusText, transcriptText]),
     el("div", { class: "voice-bar" }, [
@@ -611,7 +611,7 @@ export function openVoiceOverlay({ token, sendTurn, onClose } = {}) {
     setState("thinking", voiceWaitPhrase());
 
     // Pipeline the reply into TTS: each sentence is synthesized and spoken AS
-    // it streams from the model, so Bimo starts talking after the first
+    // it streams from the model, so BMO starts talking after the first
     // sentence instead of waiting for the whole reply + one big TTS call.
     const speech = audioCtx ? createSpeechStream() : null;
     activeSpeech = speech;

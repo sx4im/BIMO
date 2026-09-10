@@ -1,4 +1,4 @@
-// "What's new in Bimo 5" — a one-time, blocking onboarding modal.
+// "What's new in BMO 5" — a one-time, blocking onboarding modal.
 //
 // Shown once per user (tracked by profiles.onboarding_seen in Supabase, with a
 // localStorage backstop). The overlay covers the whole app so the background
@@ -151,7 +151,7 @@ export function showOnboarding(auth) {
   function intro() {
     return [
       el("img", { class: "ob-confetti", src: "/assets/celebration.png", alt: "", "aria-hidden": "true" }),
-      el("h2", { class: "ob-title", text: "Bimo 5 is here" }),
+      el("h2", { class: "ob-title", text: "BMO 5 is here" }),
       el("p", { class: "ob-sub", text: "A few new things to show you, plus two quick questions. About 30 seconds." }),
       el("div", { class: "ob-actions" }, [
         el("button", { type: "button", class: "btn ghost", text: "Not now", onclick: finish }),
@@ -250,7 +250,7 @@ export function showOnboarding(auth) {
 
     return [
       el("h2", { class: "ob-title", text: "What do you do?" }),
-      el("p", { class: "ob-sub", text: "Pick the one closest to how you'll use Bimo." }),
+      el("p", { class: "ob-sub", text: "Pick the one closest to how you'll use BMO." }),
       el("div", { class: "ob-field" }, [grid, otherInput]),
       el("div", { class: "ob-actions" }, [
         el("button", { type: "button", class: "btn ghost", text: "Back", onclick: () => go(1) }),
@@ -307,18 +307,18 @@ export function showOnboarding(auth) {
         ]),
       ]);
     return [
-      el("h2", { class: "ob-title", text: "What's new in Bimo 5" }),
+      el("h2", { class: "ob-title", text: "What's new in BMO 5" }),
       el("div", { class: "ob-features" }, [
-        feature("image", "Image generation", "Describe an image and Bimo creates it, right inside the chat."),
-        feature("globe", "Web search", "Bimo automatically searches the live web whenever an answer needs fresh information."),
-        feature("mic", "Voice assistant", "Speak to Bimo and hear it answer back, fully hands-free."),
+        feature("image", "Image generation", "Describe an image and BMO creates it, right inside the chat."),
+        feature("globe", "Web search", "BMO automatically searches the live web whenever an answer needs fresh information."),
+        feature("mic", "Voice assistant", "Speak to BMO and hear it answer back, fully hands-free."),
       ]),
       el("div", { class: "ob-note" }, [
         el("span", { class: "ic", html: icon("info", { width: 16, height: 16 }) }),
-        el("span", { text: "To keep Bimo fast on limited server compute, we've added usage limits. You'll find them under Settings, Plan usage." }),
+        el("span", { text: "To keep BMO fast on limited server compute, we've added usage limits. You'll find them under Settings, Plan usage." }),
       ]),
       el("div", { class: "ob-actions" }, [
-        el("button", { type: "button", class: "btn primary wide", text: "Start using Bimo", onclick: finish }),
+        el("button", { type: "button", class: "btn primary wide", text: "Start using BMO", onclick: finish }),
       ]),
     ];
   }

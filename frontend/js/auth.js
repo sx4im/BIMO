@@ -1,4 +1,4 @@
-// Bimo auth — Supabase session wrapper.
+// BMO auth — Supabase session wrapper.
 //
 // All authentication goes through Supabase Google OAuth. Supabase persists the
 // session itself (storageKey "bimo-auth"), so this module just normalises the

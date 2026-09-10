@@ -6,21 +6,21 @@ A streaming AI chat workspace and agent built on a plain JavaScript frontend and
 
 [![Live demo](https://img.shields.io/badge/Live_demo-bimo.qzz.io-d97757?style=flat-square)](https://bimo.qzz.io)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/sx4im/BIMO?style=flat-square)](https://github.com/sx4im/BIMO/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/sx4im/BIMO?style=flat-square)](https://github.com/sx4im/BIMO/network/members)
-[![Issues](https://img.shields.io/github/issues/sx4im/BIMO?style=flat-square)](https://github.com/sx4im/BIMO/issues)
+[![GitHub stars](https://img.shields.io/github/stars/sx4im/BMO?style=flat-square)](https://github.com/sx4im/BMO/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/sx4im/BMO?style=flat-square)](https://github.com/sx4im/BMO/network/members)
+[![Issues](https://img.shields.io/github/issues/sx4im/BMO?style=flat-square)](https://github.com/sx4im/BMO/issues)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-gateway-000000?style=flat-square&logo=flask)](https://flask.palletsprojects.com/)
 
-[Live demo](https://bimo.qzz.io) | [Report an issue](https://github.com/sx4im/BIMO/issues)
+[Live demo](https://bimo.qzz.io) | [Report an issue](https://github.com/sx4im/BMO/issues)
 
 </div>
 
 ---
 
-## What is Bimo
+## What is BMO
 
-Bimo is a proprietary AI chat app and agent workspace. It streams responses token by token over Server-Sent Events, renders Markdown, code blocks, and math formulas as they arrive, and supports image generation, document parsing, and voice interaction.
+BMO is a proprietary AI chat app and agent workspace. It streams responses token by token over Server-Sent Events, renders Markdown, code blocks, and math formulas as they arrive, and supports image generation, document parsing, and voice interaction.
 
 The browser client uses HTML, CSS, and plain ES modules without build tools, frameworks, or bundlers. The backend is a Flask gateway that authenticates Supabase user tokens, enforces rate limits, and routes inference to NVIDIA endpoints.
 
@@ -37,7 +37,7 @@ The browser client uses HTML, CSS, and plain ES modules without build tools, fra
 - **Model routing**: Switch between all-round help (Stanza 2.5 powered by Mistral AI), deep reasoning (Nexos 3.0), and image generation (Iris 1.0).
 - **Document parsing**: Drop in PDF, DOCX, XLSX, PPTX, or ZIP files to extract text and analyze contents.
 - **Vision processing**: Attach images to route prompts to a vision model.
-- **Autonomous web search**: Bimo decides on its own when a question needs live results and searches via TinyFish. A search card above the answer shows the query it ran, the pages it read with their freshness, and how long the search took. Full page scraping for pasted URLs.
+- **Autonomous web search**: BMO decides on its own when a question needs live results and searches via TinyFish. A search card above the answer shows the query it ran, the pages it read with their freshness, and how long the search took. Full page scraping for pasted URLs.
 - **Voice assistant**: Speech to text and text to speech powered by NVIDIA Riva.
 - **Server cancellation**: Stopping a response halts generation on the server immediately using an internal stream registry.
 
@@ -97,7 +97,7 @@ Open `http://localhost:5500` in your browser. Configure your Supabase URL and ba
 ## Project structure
 
 ```text
-BIMO/
+BMO/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                Flask gateway, streaming routes, model map

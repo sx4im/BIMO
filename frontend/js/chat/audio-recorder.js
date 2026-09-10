@@ -1,5 +1,5 @@
 /**
- * Audio recorder and voice transcriber for Bimo composer.
+ * Audio recorder and voice transcriber for BMO composer.
  * Captures microphone stream, converts to 16 kHz mono WAV, and transcribes via API.
  */
 

@@ -66,7 +66,7 @@ export async function renderLanding() {
               class: "btn inverted sm nav-action-btn",
               style: "justify-content: center; background: #fbf9f5 !important; color: #141413 !important; border-color: #fbf9f5 !important;",
               onclick: startSignIn,
-              text: "Try Bimo",
+              text: "Try BMO",
             }),
           ]),
         ]),
@@ -84,7 +84,7 @@ export async function renderLanding() {
               `<span class="line">Your private</span><span class="line"><span class="accent">AI</span> conversation lab.</span>`
             }),
             el("p", { class: "hero-desc",
-              text: "Bimo is a streaming AI chat workspace. Sign in with Google, pick a mode per chat, attach images, and talk to it by voice."
+              text: "BMO is a streaming AI chat workspace. Sign in with Google, pick a mode per chat, attach images, and talk to it by voice."
             }),
             el("div", { class: "hero-actions" }, [
               el("button", {

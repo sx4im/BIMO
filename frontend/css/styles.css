@@ -1,5 +1,5 @@
 /* =============================================================
-   Bimo — streaming AI chat workspace
+   BMO — streaming AI chat workspace
    Warm-canvas editorial design system. Cream / coral / dark navy.
    Fraunces (display serif) · Inter (body) · JetBrains Mono (code).
    Adapted from the attached Claude-design-analysis spec.
@@ -1005,7 +1005,7 @@ body:has(.app-shell),
 }
 
 .logo .mark {
-  height: 24px;
+  height: 32px;
   width: auto;
   color: #000000;
   display: inline-flex;
@@ -1161,7 +1161,7 @@ body:has(.app-shell),
 }
 
 .landing-nav-bar .logo .mark {
-  height: 28px;
+  height: 32px;
   width: auto;
 }
 
@@ -1981,7 +1981,7 @@ body:has(.app-shell),
 }
 
 .sidebar-head .logo .mark {
-  height: 26px;
+  height: 32px;
   width: auto;
 }
 
@@ -4232,7 +4232,7 @@ body:has(.chat-page.is-empty) .tools-menu,
 }
 
 /* ---------- Search card ----------
-   The record of a web search: the query, the pages Bimo read, and the round
+   The record of a web search: the query, the pages BMO read, and the round
    trip time. Chromeless by design — it reads as a trail of steps in the
    conversation, not a panel sitting on top of it. */
 .search-card {
@@ -4457,7 +4457,7 @@ body:has(.chat-page.is-empty) .tools-menu,
   }
 }
 
-/* Bimo's spoken line before it goes off to search. It leads the sequence, so
+/* BMO's spoken line before it goes off to search. It leads the sequence, so
    the search bubble below is held back briefly and reads as a reaction to it. */
 .message.assistant .bubble.search-preamble {
   width: fit-content;
@@ -5086,10 +5086,10 @@ body:has(.chat-page.is-empty) .tools-menu,
 }
 
 .profile-row .who .name {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: 20px;
-  letter-spacing: -0.015em;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 
@@ -5540,7 +5540,7 @@ body:has(.chat-page.is-empty) .tools-menu,
 }
 
 /* =============================================================
-   Onboarding / "What's new in Bimo 5" modal — blocking overlay
+   Onboarding / "What's new in BMO 5" modal — blocking overlay
    ============================================================= */
 .ob-overlay {
   position: fixed;
@@ -5975,7 +5975,7 @@ body:has(.chat-page.is-empty) .tools-menu,
 
   /* Sections / heroes — pull oversized whitespace back */
   .landing-nav-bar .logo .mark {
-    height: 24px;
+    height: 26px;
     width: auto;
   }
 
@@ -6728,7 +6728,7 @@ html {
 }
 
 /* =============================================================
-   Bimo · markdown rendering + code blocks
+   BMO · markdown rendering + code blocks
    ============================================================= */
 
 .markdown-body {
@@ -6754,7 +6754,7 @@ html {
   font-weight: 600;
 }
 
-/* Bimo UI never uses italic for emphasis. This element-level reset is beaten by
+/* BMO UI never uses italic for emphasis. This element-level reset is beaten by
    the class rules below (markdown content + hljs), so only chrome <em> goes
    upright; user-authored markdown italics and code comments keep theirs. */
 em {
@@ -7295,7 +7295,7 @@ em {
 }
 
 /* =============================================================
-   Bimo · model badge + persona button + composer attachments
+   BMO · model badge + persona button + composer attachments
    ============================================================= */
 
 .model-badge.model-badge-button {
@@ -7533,7 +7533,7 @@ em {
 }
 
 /* =============================================================
-   Bimo · model picker modal
+   BMO · model picker modal
    ============================================================= */
 
 .modal.modal-wide {
@@ -8119,7 +8119,7 @@ em {
 }
 
 /* =============================================================
-   Bimo Voice — full-screen voice assistant overlay + composer button
+   BMO Voice — full-screen voice assistant overlay + composer button
    ============================================================= */
 
 /* Composer button that occupies the send slot when the box is empty. Matches

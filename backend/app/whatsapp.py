@@ -1,7 +1,7 @@
-"""WhatsApp Cloud API integration for Bimo.
+"""WhatsApp Cloud API integration for BMO.
 
 Provides Webhook endpoints for Meta WhatsApp Cloud API to allow users to chat
-directly with Bimo (Stanza 2.5 model) over WhatsApp.
+directly with BMO (Stanza 2.5 model) over WhatsApp.
 """
 
 from __future__ import annotations
@@ -305,7 +305,7 @@ def _process_and_reply_async(sender_phone: str, user_prompt: str) -> None:
         logger.exception("Error processing WhatsApp message for %s: %s", sender_phone, exc)
         send_whatsapp_message(
             sender_phone,
-            "Sorry, Bimo encountered an issue while generating a response. Please try again in a moment."
+            "Sorry, BMO encountered an issue while generating a response. Please try again in a moment."
         )
 
 

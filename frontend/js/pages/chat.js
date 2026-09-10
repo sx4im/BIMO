@@ -1,5 +1,5 @@
 /**
- * Chat page controller for Bimo.
+ * Chat page controller for BMO.
  * Coordinates the message feed, composer, stream handler, voice assistant, and image generation.
  */
 
@@ -118,7 +118,7 @@ export async function renderChat({ id, incognito }) {
 
   async function handleDirectDownload({ title, content, format }) {
     if (!content || !format) return;
-    const docTitle = (title || conversation?.title || "Bimo AI Document").trim();
+    const docTitle = (title || conversation?.title || "BMO AI Document").trim();
     const filename = formatExportFilename(docTitle, format);
 
     if (format === "md") {

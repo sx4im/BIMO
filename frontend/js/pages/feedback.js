@@ -37,7 +37,7 @@ export async function renderFeedback() {
   page.append(
     el("header", { class: "page-head" }, [
       el("h1", { text: "Support" }),
-      el("p", { text: "Hit a bug or have an idea to make Bimo better? Tell us, and it goes straight to the team." }),
+      el("p", { text: "Hit a bug or have an idea to make BMO better? Tell us, and it goes straight to the team." }),
     ])
   );
 
@@ -51,7 +51,7 @@ export async function renderFeedback() {
   });
   const messageInput = el("textarea", {
     class: "feedback-textarea", rows: "6", maxlength: "5000",
-    placeholder: "What went wrong, what you expected, and how we could improve Bimo…",
+    placeholder: "What went wrong, what you expected, and how we could improve BMO…",
   });
 
   // Optional screenshot — images only (any image format), never PDF/other files.
@@ -122,7 +122,7 @@ export async function renderFeedback() {
       name: nameInput.value.trim() || auth.user?.name || "Anonymous",
       email: emailInput.value.trim(),
       message,
-      _subject: "Bimo support request",
+      _subject: "BMO support request",
     };
     try {
       let res;

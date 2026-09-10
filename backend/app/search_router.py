@@ -1,4 +1,4 @@
-"""Autonomous web-search routing for Bimo.
+"""Autonomous web-search routing for BMO.
 
 Decides, per turn, whether answering needs live web results, the way ChatGPT
 and Claude do: search is on by default and the assistant chooses when to use
@@ -116,12 +116,12 @@ _RANKING = re.compile(
     re.IGNORECASE,
 )
 
-# "Hey Bimo," / "Bimo," is how people talk to the assistant. TinyFish's news
+# "Hey BMO," / "BMO," is how people talk to the assistant. TinyFish's news
 # index treats that as part of the query and often returns nothing. Only a
 # vocative address is stripped, not a query that happens to start with "bimo".
 _ADDRESS = re.compile(
-    r"^\s*(?:(?:hey|hi|hello|yo|ok|okay|so)\s+bimo|bimo)\s*[,:!\-]+\s*"
-    r"|^\s*(?:hey|hi|hello|yo|ok|okay|so)\s+bimo\b[\s,.:;!\-]*",
+    r"^\s*(?:(?:hey|hi|hello|yo|ok|okay|so)\s+bmo|bimo)\s*[,:!\-]+\s*"
+    r"|^\s*(?:hey|hi|hello|yo|ok|okay|so)\s+(?:bmo|bimo)\b[\s,.:;!\-]*",
     re.IGNORECASE,
 )
 
@@ -361,7 +361,7 @@ def fetch_results(query: str, *, timeout: float = 8.0) -> list[dict]:
         data = resp.json()
         return data.get("results") or []
 
-    # Live questions prefer the news index. A chatty prompt ("Hey Bimo, what's
+    # Live questions prefer the news index. A chatty prompt ("Hey BMO, what's
     # the score today?") often returns nothing there while the same words as a
     # normal web search still hit, so fall back rather than showing an empty card.
     rows = _get({"query": q, "domain_type": "news"}) if is_live_query(q) else None

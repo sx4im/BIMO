@@ -1,5 +1,5 @@
 /**
- * Full-screen / popup Document Viewer Modal for Bimo.
+ * Full-screen / popup Document Viewer Modal for BMO.
  * Renders formatted document content with download dropdown, copy action, and full reader view.
  */
 
@@ -13,7 +13,7 @@ export function openDocViewerModal({
   content,
   onDownloadFormat,
 }) {
-  const cleanTitle = (title || "Bimo AI Document").trim();
+  const cleanTitle = (title || "BMO AI Document").trim();
 
   // Create Backdrop & Dialog
   const backdrop = el("div", { class: "doc-modal-backdrop", role: "dialog", "aria-modal": "true", "aria-label": cleanTitle });

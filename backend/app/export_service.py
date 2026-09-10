@@ -1,4 +1,4 @@
-"""Production-ready document export service for Bimo.
+"""Production-ready document export service for BMO.
 
 Provides a canonical Markdown-first parsing and rendering engine that produces:
 1. Valid UTF-8 Markdown documents (.md)
@@ -529,7 +529,7 @@ def sanitize_export_filename(title: Optional[str], ext: str) -> str:
 
     raw_title = (title or "").strip()
     if not raw_title:
-        raw_title = "Bimo AI response"
+        raw_title = "BMO AI response"
 
     # Normalize unicode to ASCII
     norm = unicodedata.normalize("NFKD", raw_title)
@@ -541,7 +541,7 @@ def sanitize_export_filename(title: Optional[str], ext: str) -> str:
     slug = re.sub(r"-+", "-", slug).strip("-")
 
     if not slug:
-        slug = "bimo-ai-response"
+        slug = "bmo-ai-response"
 
     # Clamp length
     slug = slug[:80].rstrip("-")
@@ -554,14 +554,14 @@ def export_canonical_markdown(title: Optional[str], markdown_content: str, gener
     """Return UTF-8 bytes for the canonical Markdown document."""
     dt = generated_at or datetime.now(timezone.utc)
     date_str = dt.strftime("%B %d, %Y at %I:%M %p UTC")
-    clean_title = (title or "").strip() or "Bimo AI response"
+    clean_title = (title or "").strip() or "BMO AI response"
 
     # If content already starts with the exact H1 title, don't duplicate
     has_matching_h1 = markdown_content.strip().startswith(f"# {clean_title}")
     header_parts = []
     if not has_matching_h1:
         header_parts.append(f"# {clean_title}\n")
-    header_parts.append(f"*Generated on {date_str} · Created with Bimo*\n")
+    header_parts.append(f"*Generated on {date_str} · Created with BMO*\n")
     header_parts.append("---\n")
 
     full_md = "\n".join(header_parts) + "\n" + markdown_content.strip() + "\n"
@@ -591,10 +591,10 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
 
     dt = generated_at or datetime.now(timezone.utc)
     date_str = dt.strftime("%B %d, %Y at %I:%M %p UTC")
-    clean_title = (title or "").strip() or "Bimo AI response"
+    clean_title = (title or "").strip() or "BMO AI response"
 
     # Numbered Canvas for running Header and Footer ("Page X of Y")
-    class BimoNumberedCanvas(canvas.Canvas):
+    class BMONumberedCanvas(canvas.Canvas):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self._saved_page_states = []
@@ -620,7 +620,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
             if self._pageNumber > 1:
                 self.setFont("Helvetica-Bold", 8)
                 self.setFillColor(colors.HexColor("#d97757"))
-                self.drawString(margin, page_h - 32, "Bimo")
+                self.drawString(margin, page_h - 32, "BMO")
                 self.setFont("Helvetica", 8)
                 self.setFillColor(colors.HexColor("#6c6a64"))
                 header_title = clean_title if len(clean_title) < 45 else clean_title[:42] + "…"
@@ -636,7 +636,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
 
             self.setFont("Helvetica", 8)
             self.setFillColor(colors.HexColor("#8e8b82"))
-            self.drawString(margin, 30, "AI-generated document · Markdown source · Created with Bimo")
+            self.drawString(margin, 30, "AI-generated document · Markdown source · Created with BMO")
 
             page_str = f"Page {self._pageNumber} of {page_count}"
             self.drawRightString(page_w - margin, 30, page_str)
@@ -651,12 +651,12 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         topMargin=48,
         bottomMargin=48,
         title=clean_title,
-        author="Bimo AI",
+        author="BMO AI",
     )
 
     getSampleStyleSheet()
 
-    # Define color palette matching Bimo's design system
+    # Define color palette matching BMO's design system
     c_primary = colors.HexColor("#d97757")
     c_ink = colors.HexColor("#141413")
     c_body = colors.HexColor("#3d3d3a")
@@ -772,7 +772,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
             blocks.pop(0)
 
     story.append(Paragraph(saxutils.escape(clean_title_norm), title_style))
-    story.append(Paragraph(saxutils.escape(f"Generated on {date_str} · Bimo AI Assistant"), meta_style))
+    story.append(Paragraph(saxutils.escape(f"Generated on {date_str} · BMO AI Assistant"), meta_style))
     story.append(HRFlowable(width="100%", thickness=0.75, color=c_hairline, spaceAfter=14))
 
     content_width = letter[0] - 96  # 612 - 96 = 516 pt
@@ -942,7 +942,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
                 story.append(table)
                 story.append(Spacer(1, 8))
 
-    doc.build(story, canvasmaker=BimoNumberedCanvas)
+    doc.build(story, canvasmaker=BMONumberedCanvas)
     return buf.getvalue()
 
 
@@ -962,7 +962,7 @@ def export_docx(title: Optional[str], markdown_content: str, generated_at: Optio
 
     dt = generated_at or datetime.now(timezone.utc)
     date_str = dt.strftime("%B %d, %Y at %I:%M %p UTC")
-    clean_title = (title or "").strip() or "Bimo AI response"
+    clean_title = (title or "").strip() or "BMO AI response"
 
     doc = docx.Document()
 
@@ -977,7 +977,7 @@ def export_docx(title: Optional[str], markdown_content: str, generated_at: Optio
         header = section.header
         hp = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
         hp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        hrun = hp.add_run(f"Bimo · {clean_title}")
+        hrun = hp.add_run(f"BMO · {clean_title}")
         hrun.font.name = "Arial"
         hrun.font.size = Pt(8.5)
         hrun.font.color.rgb = RGBColor(142, 139, 130)
@@ -985,7 +985,7 @@ def export_docx(title: Optional[str], markdown_content: str, generated_at: Optio
         # Footer
         footer = section.footer
         fp = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
-        frun = fp.add_run("AI-generated document · Markdown source · Created with Bimo")
+        frun = fp.add_run("AI-generated document · Markdown source · Created with BMO")
         frun.font.name = "Arial"
         frun.font.size = Pt(8.5)
         frun.font.color.rgb = RGBColor(142, 139, 130)
@@ -1054,7 +1054,7 @@ def export_docx(title: Optional[str], markdown_content: str, generated_at: Optio
     meta_p = doc.add_paragraph()
     meta_p.paragraph_format.space_before = Pt(0)
     meta_p.paragraph_format.space_after = Pt(12)
-    meta_run = meta_p.add_run(f"Generated on {date_str} · Bimo AI Assistant")
+    meta_run = meta_p.add_run(f"Generated on {date_str} · BMO AI Assistant")
     meta_run.italic = True
     meta_run.font.size = Pt(9.5)
     meta_run.font.color.rgb = RGBColor(108, 106, 100)

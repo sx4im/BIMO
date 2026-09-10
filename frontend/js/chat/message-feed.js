@@ -1,5 +1,5 @@
 /**
- * Message feed component for Bimo chat.
+ * Message feed component for BMO chat.
  * Renders empty stream states, message bubbles, reasoning/thinking blocks,
  * streaming indicators, and auto-scrolls with smooth locked pinning.
  *
@@ -42,7 +42,7 @@ export function imageGeneratingNode() {
   return el("article", { class: "message assistant searching" }, [
     el("div", { class: "body" }, [
       el("div", { class: "meta" }, [
-        el("span", { class: "author", text: "Bimo" }),
+        el("span", { class: "author", text: "BMO" }),
         el("span", { text: "·" }),
         el("span", { class: "status-text", text: label }),
       ]),
@@ -75,7 +75,7 @@ export function searchCardRow(data) {
   ]);
 }
 
-// The spoken line Bimo shows before the search animation ("Let me check the
+// The spoken line BMO shows before the search animation ("Let me check the
 // latest on that."). Transient: it belongs to the live turn, not to history.
 export function searchPreambleNode(text) {
   return el("article", { class: "message assistant search-preamble-row" }, [

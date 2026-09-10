@@ -1,4 +1,4 @@
-"""Export routes for Bimo documents (Markdown, PDF, DOCX)."""
+"""Export routes for BMO documents (Markdown, PDF, DOCX)."""
 
 from __future__ import annotations
 

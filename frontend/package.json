@@ -1,9 +1,9 @@
 {
-  "name": "bimo-frontend",
+  "name": "bmo-frontend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "BIMO frontend tests (zero-dep except jsdom for DOM regressions)",
+  "description": "BMO frontend tests (zero-dep except jsdom for DOM regressions)",
   "scripts": {
     "test": "node test-stream-splitter.mjs && node test-version-guard.mjs && node test-scroll-follower-regression.mjs && node test-greetings.mjs"
   },

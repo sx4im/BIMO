@@ -1,6 +1,6 @@
-"""Groq AI client for Bimo.
+"""Groq AI client for BMO.
 
-Bimo interacts with Groq's low-latency OpenAI-compatible chat completions endpoint
+BMO interacts with Groq's low-latency OpenAI-compatible chat completions endpoint
 (https://api.groq.com/openai/v1) for the Aeon Voice model.
 
 Streaming is supported natively: ``iter_response`` yields ``{"type": "delta", "data": ...}``

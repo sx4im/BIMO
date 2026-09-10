@@ -1,5 +1,5 @@
 /**
- * Composer component for Bimo chat.
+ * Composer component for BMO chat.
  * Controls prompt textarea, file attachments, model/tools dropdowns,
  * voice recording bar, and submit/stop state.
  */
@@ -124,7 +124,7 @@ export class Composer {
     this.defaultModel = "thinking";
     this.extendedThinking = localStorage.getItem("bimo-extended-thinking") === "1";
     this.reasoningEffort = this.getReasoningEffort();
-    // Web search is on by default and autonomous: Bimo decides per turn
+    // Web search is on by default and autonomous: BMO decides per turn
     // whether a question actually needs live results. Switching it off opts
     // the conversation out of searching entirely.
     this.autoSearch = true;

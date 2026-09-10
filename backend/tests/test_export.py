@@ -1,4 +1,4 @@
-"""Unit and integration tests for Bimo's response export feature."""
+"""Unit and integration tests for BMO's response export feature."""
 
 from __future__ import annotations
 
@@ -78,7 +78,7 @@ $$|\\psi\\rangle = \\alpha |0\\rangle + \\beta |1\\rangle$$
 | Unit | Bit (0 or 1) | Qubit (Superposition) |
 | Speed | Linear | Exponential for specific algorithms |
 
-Check the official docs at [Bimo AI](https://bimo.ai).
+Check the official docs at [BMO AI](https://bimo.ai).
 """
 
 
@@ -163,7 +163,7 @@ def test_valid_markdown_export(client):
     text = res.data.decode("utf-8")
     assert "Quantum Computing Overview" in text
     assert "Generated on" in text
-    assert "Created with Bimo" in text
+    assert "Created with BMO" in text
 
 
 def test_valid_pdf_export(client):
@@ -210,9 +210,9 @@ def test_valid_docx_export(client):
 def test_filename_sanitization():
     assert sanitize_export_filename("Photosynthesis: How Plants Make Food?", "pdf") == "photosynthesis-how-plants-make-food.pdf"
     assert sanitize_export_filename("../../../etc/passwd", "docx") == "etcpasswd.docx"
-    assert sanitize_export_filename("   ", "md") == "bimo-ai-response.md"
+    assert sanitize_export_filename("   ", "md") == "bmo-ai-response.md"
     assert sanitize_export_filename("Title with -- multiple --- hyphens", "pdf") == "title-with-multiple-hyphens.pdf"
-    assert sanitize_export_filename(None, "docx") == "bimo-ai-response.docx"
+    assert sanitize_export_filename(None, "docx") == "bmo-ai-response.docx"
 
 
 def test_markdown_parser_unit():

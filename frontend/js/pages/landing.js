@@ -1,6 +1,6 @@
 import { $, el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=30";
-import { logo, spikeMark } from "../components/logo.js?v=30";
+import { logo } from "../components/logo.js?v=30";
 import { toast } from "../components/toast.js?v=58";
 import { signInWithGoogle, signInWithGithub, isConfigured } from "../auth.js?v=31";
 import { navigate } from "../router.js?v=31";
@@ -58,13 +58,13 @@ export async function renderLanding() {
     el("header", { class: "landing-nav" }, [
       el("div", { class: "landing-nav-inner" }, [
         el("div", { class: "landing-nav-bar" }, [
-          logo({ size: "md", withLabel: true }),
+          logo({ size: "md" }),
           el("nav", { class: "landing-nav-links" }),
           el("div", { class: "landing-nav-actions", style: "display: flex; gap: 8px; align-items: center;" }, [
             el("button", {
               type: "button",
               class: "btn inverted sm nav-action-btn",
-              style: "justify-content: center;",
+              style: "justify-content: center; background: #fbf9f5 !important; color: #141413 !important; border-color: #fbf9f5 !important;",
               onclick: startSignIn,
               text: "Try Bimo",
             }),

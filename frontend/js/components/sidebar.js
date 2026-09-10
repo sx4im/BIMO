@@ -265,7 +265,7 @@ export function renderSidebar(container, props) {
 
   container.append(
     el("div", { class: "sidebar-head" }, [
-      logo({ size: "md", withLabel: true }),
+      logo({ size: "md" }),
       el("button", {
         type: "button",
         class: "close-mobile",

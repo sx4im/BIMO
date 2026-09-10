@@ -845,13 +845,14 @@ body:has(.app-shell),
 }
 
 .btn.inverted {
-  background: var(--ink);
-  color: var(--canvas);
-  border: 1px solid var(--ink);
+  background: #fbf9f5;
+  color: #141413;
+  border: 1px solid #fbf9f5;
 }
 
 .btn.inverted:hover {
-  opacity: 0.9;
+  background: #ffffff;
+  border-color: #ffffff;
 }
 
 .btn.google {
@@ -1004,21 +1005,35 @@ body:has(.app-shell),
 }
 
 .logo .mark {
-  width: 22px;
   height: 22px;
+  width: auto;
   color: var(--ink);
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
 }
 
-.logo .mark svg {
-  width: 100%;
+.logo .mark img,
+.logo-img {
   height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+:root:not([data-theme="dark"]) .logo .mark img,
+:root:not([data-theme="dark"]) .logo-img {
+  filter: invert(1);
+}
+
+:root[data-theme="dark"] .logo .mark img,
+:root[data-theme="dark"] .logo-img {
+  filter: none;
 }
 
 .logo.sm .mark {
-  width: 18px;
-  height: 18px;
+  height: 20px;
+  width: auto;
 }
 
 .logo .label {
@@ -1129,8 +1144,8 @@ body:has(.app-shell),
 }
 
 .landing-nav-bar .logo .mark {
-  width: 30px;
-  height: 30px;
+  height: 25px;
+  width: auto;
 }
 
 .landing-nav-bar .logo .name {
@@ -1149,8 +1164,18 @@ body:has(.app-shell),
   align-items: center;
 }
 
+.btn.inverted.nav-action-btn,
 .nav-action-btn {
   width: 100px;
+  background: #fbf9f5 !important;
+  color: #141413 !important;
+  border: 1px solid #fbf9f5 !important;
+}
+
+.btn.inverted.nav-action-btn:hover,
+.nav-action-btn:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
 }
 
 @media (min-width: 768px) {
@@ -1222,9 +1247,11 @@ body:has(.app-shell),
 }
 
 .hero-title {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(40px, 6vw, 68px);
+  font-family: "EB Garamond", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: clamp(44px, 6.5vw, 72px);
   line-height: 1.05;
   letter-spacing: -0.01em;
   margin: 0;
@@ -1882,9 +1909,13 @@ body:has(.app-shell),
 }
 
 .landing-footer .logo .mark {
-  width: 30px;
   height: 30px;
+  width: auto;
   color: var(--on-dark);
+}
+
+.landing-footer .logo .mark img {
+  filter: none !important;
 }
 
 .landing-footer .logo .name {
@@ -1936,8 +1967,8 @@ body:has(.app-shell),
 }
 
 .sidebar-head .logo .mark {
-  width: 20px;
-  height: 20px;
+  height: 26px;
+  width: auto;
 }
 
 .sidebar-head .logo .name {
@@ -5926,8 +5957,8 @@ body:has(.chat-page.is-empty) .tools-menu,
 
   /* Sections / heroes — pull oversized whitespace back */
   .landing-nav-bar .logo .mark {
-    width: 18px;
-    height: 18px;
+    height: 22px;
+    width: auto;
   }
 
   .landing-nav-bar .logo .name {

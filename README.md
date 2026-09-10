@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src=".github/assets/bimo-logo.svg" alt="Bimo logo" width="70" align="absmiddle" /> Bimo</h1>
+<h1><img src=".github/assets/logo.png" alt="BMO" width="120" align="absmiddle" /></h1>
 
 A streaming AI chat workspace and agent built on a plain JavaScript frontend and a Flask backend proxying NVIDIA inference and Supabase storage. Chat on the web or over WhatsApp.
 

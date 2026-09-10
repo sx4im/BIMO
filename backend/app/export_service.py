@@ -667,7 +667,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
 
     # Typography Styles
     title_style = ParagraphStyle(
-        "BimoTitle",
+        "BMOTitle",
         fontName="Helvetica-Bold",
         fontSize=20,
         leading=24,
@@ -676,7 +676,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         keepWithNext=True,
     )
     meta_style = ParagraphStyle(
-        "BimoMeta",
+        "BMOMeta",
         fontName="Helvetica-Oblique",
         fontSize=9,
         leading=12,
@@ -685,7 +685,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         keepWithNext=True,
     )
     h1_style = ParagraphStyle(
-        "BimoH1",
+        "BMOH1",
         fontName="Helvetica-Bold",
         fontSize=15,
         leading=19,
@@ -695,7 +695,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         keepWithNext=True,
     )
     h2_style = ParagraphStyle(
-        "BimoH2",
+        "BMOH2",
         fontName="Helvetica-Bold",
         fontSize=13,
         leading=17,
@@ -705,7 +705,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         keepWithNext=True,
     )
     h3_style = ParagraphStyle(
-        "BimoH3",
+        "BMOH3",
         fontName="Helvetica-Bold",
         fontSize=11.5,
         leading=15,
@@ -715,7 +715,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         keepWithNext=True,
     )
     body_style = ParagraphStyle(
-        "BimoBody",
+        "BMOBody",
         fontName="Helvetica",
         fontSize=9.5,
         leading=14,
@@ -723,7 +723,7 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         spaceAfter=8,
     )
     list_item_style = ParagraphStyle(
-        "BimoListItem",
+        "BMOListItem",
         fontName="Helvetica",
         fontSize=9.5,
         leading=13.5,
@@ -731,28 +731,28 @@ def export_pdf(title: Optional[str], markdown_content: str, generated_at: Option
         spaceAfter=4,
     )
     code_text_style = ParagraphStyle(
-        "BimoCodeText",
+        "BMOCodeText",
         fontName="Courier",
         fontSize=8.5,
         leading=11.5,
         textColor=c_ink,
     )
     quote_text_style = ParagraphStyle(
-        "BimoQuoteText",
+        "BMOQuoteText",
         fontName="Helvetica-Oblique",
         fontSize=9.5,
         leading=14,
         textColor=c_body,
     )
     table_cell_style = ParagraphStyle(
-        "BimoTableCell",
+        "BMOTableCell",
         fontName="Helvetica",
         fontSize=8.5,
         leading=11.5,
         textColor=c_body,
     )
     table_head_style = ParagraphStyle(
-        "BimoTableHead",
+        "BMOTableHead",
         fontName="Helvetica-Bold",
         fontSize=8.5,
         leading=11.5,

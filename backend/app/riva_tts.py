@@ -18,7 +18,7 @@ import logging
 import os
 import wave
 
-logger = logging.getLogger("bimo.riva_tts")
+logger = logging.getLogger("bmo.riva_tts")
 
 # Public function-id for nvidia/magpie-tts-multilingual on build.nvidia.com.
 # Overridable in case NVIDIA rotates it or a different TTS model is pinned.

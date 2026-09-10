@@ -7,7 +7,7 @@
  * blaming the (correct) new deploy.
  *
  * Mechanism: index.html carries its build timestamp in
- * <meta name="bimo-build" content="..."> (a meta tag, not an inline
+ * <meta name="bmo-build" content="..."> (a meta tag, not an inline
  * script — CSP forbids inline JS). Because index.html is served
  * no-store, every cold load sees the freshest id. This module remembers
  * the id it booted with, periodically re-fetches "/" with caching
@@ -25,7 +25,7 @@ const BOOT_BUILD_ID = readServedBuildId();
 
 function readServedBuildId() {
   if (typeof document === "undefined") return null; // non-browser (tests)
-  const meta = document.querySelector('meta[name="bimo-build"]');
+  const meta = document.querySelector('meta[name="bmo-build"], meta[name="bimo-build"]');
   const raw = meta && meta.content ? String(meta.content).trim() : "";
   const n = Number.parseInt(raw, 10);
   return Number.isFinite(n) ? n : null;
@@ -33,7 +33,7 @@ function readServedBuildId() {
 
 /** Extract the build id from fetched index.html text. Exported for tests. */
 export function parseBuildId(html) {
-  const m = /<meta\s+name=["']bimo-build["']\s+content=["'](\d+)["']/i.exec(html || "");
+  const m = /<meta\s+name=["'](?:bmo|bimo)-build["']\s+content=["'](\d+)["']/i.exec(html || "");
   return m ? Number.parseInt(m[1], 10) : null;
 }
 

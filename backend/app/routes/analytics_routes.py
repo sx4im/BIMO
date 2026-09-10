@@ -13,7 +13,7 @@ from ..analytics import build_summary, ratings_chart_png
 from ..auth import require_user
 from .helpers import bad_request, friendly_error
 
-logger = logging.getLogger("bimo.routes.analytics")
+logger = logging.getLogger("bmo.routes.analytics")
 
 analytics_bp = Blueprint("analytics_routes", __name__)
 

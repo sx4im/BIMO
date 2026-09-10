@@ -31,7 +31,7 @@ from .config import get_aeon_model, get_mistral_model
 from .prompts import wrap_search_results
 from .routes.helpers import is_trivial_prompt
 
-logger = logging.getLogger("bimo.search_router")
+logger = logging.getLogger("bmo.search_router")
 
 TINYFISH_SEARCH_URL = "https://api.search.tinyfish.ai/"
 MAX_RESULTS = 8

@@ -29,7 +29,7 @@ from openai import (
     RateLimitError,
 )
 
-logger = logging.getLogger("bimo.mistral")
+logger = logging.getLogger("bmo.mistral")
 
 DEFAULT_MISTRAL_BASE_URL = "https://api.mistral.ai/v1"
 DEFAULT_MISTRAL_MODEL = "ministral-8b-2512"

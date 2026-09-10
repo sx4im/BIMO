@@ -29,7 +29,7 @@ from typing import Optional
 import jwt
 from flask import g, jsonify, request
 
-logger = logging.getLogger("bimo.auth")
+logger = logging.getLogger("bmo.auth")
 
 
 @dataclass(frozen=True)

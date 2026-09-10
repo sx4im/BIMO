@@ -20,7 +20,7 @@ import zipfile
 
 from .prompts import wrap_attachment_content
 
-logger = logging.getLogger("bimo.document_processor")
+logger = logging.getLogger("bmo.document_processor")
 
 
 # --- helpers ---

@@ -12,7 +12,7 @@ from ..auth import auth_diagnostics, require_user
 from ..config import KNOWN_MODEL_IDS, UI_MODELS
 from .helpers import bad_request, friendly_error, get_usage_status
 
-logger = logging.getLogger("bimo.routes.user")
+logger = logging.getLogger("bmo.routes.user")
 
 user_bp = Blueprint("user_routes", __name__)
 

@@ -29,7 +29,7 @@ from openai import (
 
 from .config import DEFAULT_AEON_MODEL, DEFAULT_GROQ_BASE_URL
 
-logger = logging.getLogger("bimo.groq")
+logger = logging.getLogger("bmo.groq")
 
 _INVISIBLE_CHARS = (" ", "​", "‌", "‍", "﻿")
 _client_cache: dict[str, OpenAI] = {}

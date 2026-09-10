@@ -12,7 +12,7 @@ from flask import jsonify
 from .. import store
 from ..config import SESSION_LIMIT, SESSION_WINDOW_S, USAGE_WEIGHTS, WEEKLY_LIMIT, WEEKLY_WINDOW_S
 
-logger = logging.getLogger("bimo.routes.helpers")
+logger = logging.getLogger("bmo.routes.helpers")
 
 
 def bad_request(detail: str, status: int = 400):

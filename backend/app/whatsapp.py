@@ -26,7 +26,7 @@ from collections import deque
 import sqlite3
 import time
 
-logger = logging.getLogger("bimo.whatsapp")
+logger = logging.getLogger("bmo.whatsapp")
 
 whatsapp_bp = Blueprint("whatsapp", __name__)
 
@@ -37,7 +37,7 @@ WHATSAPP_APP_SECRET = os.getenv("WHATSAPP_APP_SECRET", "").strip()
 
 # Shared multi-worker SQLite database for WhatsApp conversation memory.
 # Lives in /tmp/ so all gunicorn worker processes share the exact same state without external DB requirements.
-_DB_PATH = os.getenv("WHATSAPP_DB_PATH", "/tmp/bimo_whatsapp_context.db")
+_DB_PATH = os.getenv("WHATSAPP_DB_PATH", "/tmp/bmo_whatsapp_context.db")
 _db_lock = threading.Lock()
 _MAX_HISTORY_TURNS = 40  # up to 40 messages (20 user + 20 assistant turns)
 _HISTORY_TTL_SECONDS = 24 * 3600  # 24 hours conversation memory window

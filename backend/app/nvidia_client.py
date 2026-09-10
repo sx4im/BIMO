@@ -64,7 +64,7 @@ from .prompts import (
     VISION_SYSTEM_PROMPT,
 )
 
-logger = logging.getLogger("bimo.nvidia")
+logger = logging.getLogger("bmo.nvidia")
 
 
 def base_url(model: Optional[str] = None) -> str:

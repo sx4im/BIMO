@@ -55,7 +55,7 @@ logging.basicConfig(
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
 )
 
-logger = logging.getLogger("bimo.main")
+logger = logging.getLogger("bmo.main")
 
 # Backward-compatibility aliases
 _INTERNAL_MODELS = get_internal_models()
@@ -83,7 +83,7 @@ def create_app() -> Flask:
     app.config["RATELIMIT_HEADERS_ENABLED"] = True
     app.config["RATELIMIT_STORAGE_URI"] = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
     limiter.init_app(app)
-    app.extensions["bimo_limiter"] = limiter
+    app.extensions["bmo_limiter"] = limiter
 
     @limiter.request_filter
     def _skip_cors_preflight():
@@ -131,7 +131,7 @@ app = create_app()
 
 # Warm the JWKS cache in the background
 if supabase_client.is_configured():
-    threading.Thread(target=prewarm_jwks, name="bimo-jwks-prewarm", daemon=True).start()
+    threading.Thread(target=prewarm_jwks, name="bmo-jwks-prewarm", daemon=True).start()
 
 # Run a one-time API test on import
 if groq_client.is_configured():

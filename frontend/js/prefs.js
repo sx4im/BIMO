@@ -3,14 +3,14 @@
 // reads the same THEME_KEY synchronously to set data-theme before first paint,
 // so there's no light->dark flash; this module owns runtime changes.
 
-const THEME_KEY = "bimo-theme";        // "dark" (default) | "system" | "light"
-const NAME_KEY = "bimo-display-name";  // string override for the user's name
+const THEME_KEY = "bmo-theme";        // "dark" (default) | "system" | "light"
+const NAME_KEY = "bmo-display-name";  // string override for the user's name
 
 // ---------- theme ----------
 
 export function getThemePref() {
   try {
-    return localStorage.getItem(THEME_KEY) || "dark";
+    return localStorage.getItem(THEME_KEY) || localStorage.getItem("bimo-theme") || "dark";
   } catch {
     return "dark";
   }

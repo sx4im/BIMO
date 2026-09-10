@@ -16,7 +16,7 @@ from ..export_service import (
     sanitize_export_filename,
 )
 
-logger = logging.getLogger("bimo.routes.export")
+logger = logging.getLogger("bmo.routes.export")
 
 export_bp = Blueprint("export_routes", __name__)
 

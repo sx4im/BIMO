@@ -35,7 +35,7 @@ from .helpers import (
     user_owns_path,
 )
 
-logger = logging.getLogger("bimo.routes.chat")
+logger = logging.getLogger("bmo.routes.chat")
 
 chat_bp = Blueprint("chat_routes", __name__)
 
@@ -441,7 +441,7 @@ def chat(user):
         persist_thread = None
         if defer_user_persist and not is_incognito:
             persist_thread = threading.Thread(
-                target=materialize_user_turn, name="bimo-chat-persist", daemon=True
+                target=materialize_user_turn, name="bmo-chat-persist", daemon=True
             )
             persist_thread.start()
 
@@ -637,7 +637,7 @@ def chat(user):
                         except Exception as title_exc:  # noqa: BLE001
                             logger.warning("title generation failed for convo=%s: %s", convo_id_for_title, title_exc)
 
-                    threading.Thread(target=_bg_title, name="bimo-chat-title", daemon=True).start()
+                    threading.Thread(target=_bg_title, name="bmo-chat-title", daemon=True).start()
         except (GeneratorExit, BrokenPipeError, ConnectionError):
             logger.info("chat: client disconnected mid-stream for convo=%s; saving partial", convo.get("id"))
             persist_reply()
@@ -664,7 +664,7 @@ def chat(user):
         finally:
             sse_queue.put(_DONE)
 
-    threading.Thread(target=_pump, name="bimo-chat-gen", daemon=True).start()
+    threading.Thread(target=_pump, name="bmo-chat-gen", daemon=True).start()
 
     def drain():
         try:

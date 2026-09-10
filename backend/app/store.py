@@ -19,7 +19,7 @@ from postgrest.exceptions import APIError
 
 from .supabase_client import attachments_bucket, supabase
 
-logger = logging.getLogger("bimo.store")
+logger = logging.getLogger("bmo.store")
 
 
 def _now_iso() -> str:

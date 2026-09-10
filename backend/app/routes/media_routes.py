@@ -22,7 +22,7 @@ from ..config import (
 from ..limiter import limiter
 from .helpers import bad_request, friendly_error
 
-logger = logging.getLogger("bimo.routes.media")
+logger = logging.getLogger("bmo.routes.media")
 
 media_bp = Blueprint("media_routes", __name__)
 

@@ -16,7 +16,7 @@ import logging
 import os
 import wave
 
-logger = logging.getLogger("bimo.riva")
+logger = logging.getLogger("bmo.riva")
 
 # Public function-id for nvidia/parakeet-ctc-0.6b-asr on build.nvidia.com.
 # (whisper-large-v3 was b702f636-f60c-4a3d-a6f4-f3568c13bd7d.) Overridable in

@@ -3,7 +3,7 @@
 // "system"/"light" choice is always honoured.
 (function () {
   try {
-    var t = localStorage.getItem("bimo-theme") || "dark";
+    var t = localStorage.getItem("bmo-theme") || localStorage.getItem("bimo-theme") || "dark";
     var dark =
       t === "dark" ||
       (t === "system" &&

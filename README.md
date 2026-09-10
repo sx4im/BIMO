@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src=".github/assets/logo.png" alt="BMO" width="120" align="absmiddle" /></h1>
+<h1><img src=".github/assets/logo.svg" alt="BMO" width="120" align="absmiddle" /></h1>
 
 A streaming AI chat workspace and agent built on a plain JavaScript frontend and a Flask backend proxying NVIDIA inference and Supabase storage. Chat on the web or over WhatsApp.
 

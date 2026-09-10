@@ -60,7 +60,7 @@
 
   /* Type */
   --font-display: "Wise Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Poppins", "Fraunces", "Tiempos Headline", "Cormorant Garamond", "EB Garamond", Garamond, "Times New Roman", serif;
+  --font-serif: "EB Garamond", Garamond, "Fraunces", "Tiempos Headline", "Cormorant Garamond", "Times New Roman", serif;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
@@ -1005,30 +1005,47 @@ body:has(.app-shell),
 }
 
 .logo .mark {
-  height: 22px;
+  height: 24px;
   width: auto;
-  color: var(--ink);
+  color: #000000;
   display: inline-flex;
   align-items: center;
 }
 
-.logo .mark img,
-.logo-img {
+:root[data-theme="dark"] .logo .mark,
+:root[data-theme="dark"] .logo .mark svg,
+:root[data-theme="dark"] .logo .mark path {
+  color: #d6d2ca !important;
+  fill: #d6d2ca !important;
+  stroke: #d6d2ca !important;
+}
+
+:root:not([data-theme="dark"]) .logo .mark,
+:root[data-theme="light"] .logo .mark,
+:root:not([data-theme="dark"]) .logo .mark svg,
+:root[data-theme="light"] .logo .mark svg,
+:root:not([data-theme="dark"]) .logo .mark path,
+:root[data-theme="light"] .logo .mark path {
+  color: #000000;
+  fill: #000000;
+  stroke: #000000;
+}
+
+@media (prefers-color-scheme: dark) {
+
+  :root:not([data-theme="light"]) .logo .mark,
+  :root:not([data-theme="light"]) .logo .mark svg,
+  :root:not([data-theme="light"]) .logo .mark path {
+    color: #d6d2ca !important;
+    fill: #d6d2ca !important;
+    stroke: #d6d2ca !important;
+  }
+}
+
+.logo .mark svg {
   height: 100%;
   width: auto;
-  max-width: 100%;
-  object-fit: contain;
   display: block;
-}
-
-:root:not([data-theme="dark"]) .logo .mark img,
-:root:not([data-theme="dark"]) .logo-img {
-  filter: invert(1);
-}
-
-:root[data-theme="dark"] .logo .mark img,
-:root[data-theme="dark"] .logo-img {
-  filter: none;
 }
 
 .logo.sm .mark {
@@ -1144,7 +1161,7 @@ body:has(.app-shell),
 }
 
 .landing-nav-bar .logo .mark {
-  height: 25px;
+  height: 28px;
   width: auto;
 }
 
@@ -1249,7 +1266,7 @@ body:has(.app-shell),
 .hero-title {
   font-family: "EB Garamond", serif;
   font-optical-sizing: auto;
-  font-weight: 400;
+  font-weight: 500;
   font-style: normal;
   font-size: clamp(44px, 6.5vw, 72px);
   line-height: 1.05;
@@ -1911,12 +1928,9 @@ body:has(.app-shell),
 .landing-footer .logo .mark {
   height: 30px;
   width: auto;
-  color: var(--on-dark);
+  color: #d6d2ca;
 }
 
-.landing-footer .logo .mark img {
-  filter: none !important;
-}
 
 .landing-footer .logo .name {
   color: var(--on-dark);
@@ -2738,8 +2752,10 @@ body:has(.app-shell),
 
 .empty-stream h2 {
   margin: 0;
-  font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
-  font-weight: 400;
+  font-family: "EB Garamond", serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
   font-size: clamp(28px, 3.2vw, 38px);
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -3502,9 +3518,11 @@ body:has(.chat-page.is-empty) .app-footer,
 .chat-page.is-empty .empty-stream h2,
 .empty-stream-title {
   margin: 0;
-  font-family: "Times New Roman", Times, "Fraunces", Georgia, serif;
+  font-family: "EB Garamond", serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
   font-size: clamp(30px, 3.6vw, 42px);
-  font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -4448,7 +4466,7 @@ body:has(.chat-page.is-empty) .tools-menu,
   animation: search-bubble-in 0.35s ease-out both;
 }
 
-.search-preamble-row + .searching .search-bubble {
+.search-preamble-row+.searching .search-bubble {
   animation-delay: 0.28s;
 }
 
@@ -4491,7 +4509,7 @@ body:has(.chat-page.is-empty) .tools-menu,
     animation: none;
   }
 
-  .search-preamble-row + .searching .search-bubble {
+  .search-preamble-row+.searching .search-bubble {
     animation-delay: 0s;
   }
 
@@ -5957,7 +5975,7 @@ body:has(.chat-page.is-empty) .tools-menu,
 
   /* Sections / heroes — pull oversized whitespace back */
   .landing-nav-bar .logo .mark {
-    height: 22px;
+    height: 24px;
     width: auto;
   }
 
@@ -8198,18 +8216,22 @@ em {
   transition: opacity 0.2s ease;
 }
 
-@media (max-width: 600px), (max-height: 750px) {
+@media (max-width: 600px),
+(max-height: 750px) {
   .voice-stage {
     gap: 10px;
     padding: 8px 12px;
   }
+
   .voice-globe {
     width: 170px !important;
     height: 170px !important;
   }
+
   .voice-status {
     font-size: 12.5px;
   }
+
   .voice-transcript {
     font-size: 12.5px;
     line-height: 1.4;

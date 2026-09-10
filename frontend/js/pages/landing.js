@@ -1,6 +1,6 @@
 import { $, el, clear } from "../utils.js?v=30";
 import { icon } from "../icons.js?v=30";
-import { logo } from "../components/logo.js?v=30";
+import { logo } from "../components/logo.js?v=31";
 import { toast } from "../components/toast.js?v=58";
 import { signInWithGoogle, signInWithGithub, isConfigured } from "../auth.js?v=31";
 import { navigate } from "../router.js?v=31";

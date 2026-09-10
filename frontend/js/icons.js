@@ -1,7 +1,7 @@
 // Inline SVG icons (Lucide). No external runtime dependency.
 // Each function returns a complete SVG string. Use via `el("span", { html: icon("bot") })`.
 
-
+import { MARK_PATHS } from "./components/logo.js?v=31";
 const SVG_BASE = (paths, { width = 16, height = 16, stroke = 2 } = {}) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
@@ -108,8 +108,8 @@ const CONFIG_MAP = {
 export function icon(name, opts = {}) {
   if (name === "spike" || name === "mark") {
     const w = opts.width || 16;
-    const h = opts.height || w;
-    return `<img src="/assets/logo.png" width="${w}" height="${h}" alt="BMO" class="logo-img" style="object-fit:contain;" />`;
+    const h = opts.height || Math.round(w / 3);
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 1895 633" fill="currentColor" aria-hidden="true">${MARK_PATHS}</svg>`;
   }
   const paths = PATHS[name];
   if (!paths) {

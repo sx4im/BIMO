@@ -182,13 +182,19 @@ export function renderSidebar(container, props) {
   const recents = conversations ? conversations.filter((c) => !c.pinned) : [];
 
   const currentHash = getRoute().hash;
+  const isNewChatActive =
+    !activeId &&
+    (currentHash === "#/app/chat" ||
+      currentHash === "#/app/chat/" ||
+      currentHash === "#/app/chat/incognito");
   const nav = el("nav", { class: "sidebar-nav", "aria-label": "Primary" });
   nav.append(
     el(
       "button",
       {
         type: "button",
-        class: "sidebar-nav-new",
+        class: `sidebar-nav-new${isNewChatActive ? " active" : ""}`,
+        "aria-current": isNewChatActive ? "page" : null,
         onclick: () => {
           onNewChat();
           onCloseMobile && onCloseMobile();
@@ -196,7 +202,7 @@ export function renderSidebar(container, props) {
       },
       [
         el("span", { class: "sidebar-nav-icon", html: icon("plus", { width: 16, height: 16 }) }),
-        el("span", { class: "sidebar-nav-label", text: "New chat" }),
+        el("span", { class: "sidebar-nav-label", text: "New" }),
       ]
     )
   );

@@ -2,11 +2,11 @@ import { defineRoute, startRouter, navigate, dispatch } from "./router.js?v=31";
 import { bootstrap, getAuth, onAuthChange } from "./auth.js?v=31";
 import { initThemeSync } from "./prefs.js?v=32";
 import * as api from "./api.js?v=32";
-import { renderLanding } from "./pages/landing.js?v=45";
-import { renderChat } from "./pages/chat.js?v=149";
-import { renderFeedback } from "./pages/feedback.js?v=69";
-import { renderSettings } from "./pages/settings.js?v=71";
-import { renderNotFound } from "./pages/not-found.js?v=53";
+import { renderLanding } from "./pages/landing.js?v=46";
+import { renderChat } from "./pages/chat.js?v=150";
+import { renderFeedback } from "./pages/feedback.js?v=70";
+import { renderSettings } from "./pages/settings.js?v=72";
+import { renderNotFound } from "./pages/not-found.js?v=54";
 import { bootVersionGuard } from "./version-guard.js?v=1";
 
 

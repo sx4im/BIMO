@@ -2089,7 +2089,8 @@ body:has(.app-shell),
   background: var(--surface-soft);
 }
 
-.sidebar-nav a.active {
+.sidebar-nav a.active,
+.sidebar-nav-new.active {
   color: var(--ink);
   background: var(--surface-active, var(--surface-card));
 }

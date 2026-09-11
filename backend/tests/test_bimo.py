@@ -428,7 +428,10 @@ def test_system_prompt_allows_document_generation_and_web_access():
     assert "rate my resume" in DEFAULT_SYSTEM_PROMPT
     assert "full live web search and webpage fetching" in DEFAULT_SYSTEM_PROMPT
     assert "Never tell the user to search" in DEFAULT_SYSTEM_PROMPT
-    assert "Never put a URL inside square brackets" in DEFAULT_SYSTEM_PROMPT
+    assert "do not add sources, citations, URLs, or Source links" in DEFAULT_SYSTEM_PROMPT
+    assert "do not add sources, citations, URLs, or Source links" in VISION_SYSTEM_PROMPT
+    assert "newest items by Published date" in DEFAULT_SYSTEM_PROMPT
+    assert "Never lead with stale stories" in DEFAULT_SYSTEM_PROMPT
     assert "could not be reached" in DEFAULT_SYSTEM_PROMPT
     assert "ONLY produce a formal standalone document when the user EXPLICITLY commands" not in DEFAULT_SYSTEM_PROMPT
     assert "If in doubt, default to a normal conversational chat response" not in DEFAULT_SYSTEM_PROMPT
@@ -1339,7 +1342,7 @@ def test_search_endpoint(client, monkeypatch):
     assert data["results"][0]["published_date"] == "2026-09-01"
     assert captured_req["url"] == "https://api.search.tinyfish.ai/"
     assert captured_req["headers"]["X-API-Key"] == "tf-test-key"
-    assert captured_req["params"]["query"] == "python news"
+    assert captured_req["params"]["query"].startswith("python news")
     assert captured_req["params"]["domain_type"] == "news"
 
     # 4. TinyFish error -> 502
@@ -1597,7 +1600,44 @@ def test_run_search_normalizes_tinyfish_results(monkeypatch):
     ]
     assert captured["url"] == "https://api.search.tinyfish.ai/"
     assert captured["headers"]["X-API-Key"] == "tf-test-key"
+    assert captured["params"]["query"].startswith("bitcoin price today")
     assert captured["params"]["domain_type"] == "news"
+
+
+def test_run_search_orders_results_newest_first(monkeypatch):
+    import requests
+
+    from app import search_router
+
+    monkeypatch.setenv("TINYFISH_API_KEY", "tf-test-key")
+
+    class MockResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "results": [
+                    {
+                        "title": "Old story",
+                        "snippet": "From last month.",
+                        "url": "https://example.com/old",
+                        "date": "2026-08-01",
+                    },
+                    {
+                        "title": "Fresh story",
+                        "snippet": "From today.",
+                        "url": "https://example.com/new",
+                        "date": "2026-09-11",
+                    },
+                ]
+            }
+
+    monkeypatch.setattr(requests, "get", lambda *a, **k: MockResponse())
+    results = search_router.run_search("latest AI news")
+    assert [r["title"] for r in results] == ["Fresh story", "Old story"]
 
 
 def test_run_search_falls_back_to_web_when_news_is_empty(monkeypatch):
@@ -1672,11 +1712,33 @@ def test_build_search_context_wraps_results_in_boundary_tags():
     )
     assert context.startswith("<live_web_search")
     assert context.endswith("</live_web_search>")
-    assert "https://example.com/btc" in context
+    assert "Bitcoin price" in context
     assert "91,204" in context
-    assert "[https://" not in context
-    assert "](https://" not in context
-    assert "URL: https://example.com/btc" in context
+    assert "without sources, citations, URLs, or Source links" in context
+    assert "ordered newest-first" in context
+    assert "Today is" in context
+    assert "[Source](" not in context
+    assert "https://example.com/btc" not in context
+    assert "URL:" not in context
+
+    mixed = search_router.build_search_context(
+        "latest AI news",
+        [
+            {
+                "title": "Old",
+                "content": "Old blurb.",
+                "url": "https://example.com/old",
+                "published_date": "2026-08-01",
+            },
+            {
+                "title": "New",
+                "content": "New blurb.",
+                "url": "https://example.com/new",
+                "published_date": "2026-09-11",
+            },
+        ],
+    )
+    assert mixed.index("Title: New") < mixed.index("Title: Old")
 
 
 def _search_chat_token():
@@ -1773,7 +1835,9 @@ def test_chat_streams_search_events_and_augments_the_prompt(client, monkeypatch)
     if isinstance(content, list):
         content = "".join(p.get("text", "") for p in content if p.get("type") == "text")
     assert "<live_web_search" in content
-    assert "https://example.com/btc" in content
+    assert "Bitcoin price" in content
+    assert "91,204" in content
+    assert "https://example.com/btc" not in content
     assert "What is the price of Bitcoin today?" in content
 
 

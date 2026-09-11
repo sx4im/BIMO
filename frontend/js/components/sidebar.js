@@ -1,6 +1,5 @@
 import { el, clear } from "../utils.js?v=51";
 import { icon } from "../icons.js?v=48";
-import { logo } from "./logo.js?v=31";
 import { avatar } from "./avatar.js?v=30";
 import { getRoute } from "../router.js?v=31";
 import { openConfirmModal, openPromptModal } from "./confirm-modal.js?v=58";
@@ -265,7 +264,12 @@ export function renderSidebar(container, props) {
 
   container.append(
     el("div", { class: "sidebar-head" }, [
-      logo({ size: "md" }),
+      el("a", {
+        href: "#/",
+        class: "sidebar-brand",
+        "aria-label": "BMO home",
+        text: "Bmo.",
+      }),
       el("button", {
         type: "button",
         class: "close-mobile",

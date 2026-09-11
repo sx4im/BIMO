@@ -1973,11 +1973,28 @@ body:has(.app-shell),
 }
 
 .sidebar-head {
-  padding: 16px 18px 6px;
+  padding: 4px 18px 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+}
+
+.sidebar-brand {
+  font-family: "EB Garamond", serif;
+  font-optical-sizing: auto;
+  font-size: 24px;
+  font-weight: 500;
+  font-style: normal;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 2px 0;
+}
+
+.sidebar-brand:hover {
+  color: var(--ink);
 }
 
 .sidebar-head .logo .mark {
@@ -1990,7 +2007,8 @@ body:has(.app-shell),
 }
 
 .sidebar-nav {
-  padding: 22px 12px 0;
+  /* 6px + item 12px = 18px — flush with .sidebar-head / Bmo. left edge */
+  padding: 4px 6px 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -6792,7 +6810,7 @@ em {
 .markdown-body h2,
 .markdown-body h3,
 .markdown-body h4 {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   color: var(--ink);
   margin: 12px 0 4px;
   line-height: 1.2;

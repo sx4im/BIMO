@@ -93,7 +93,7 @@ export function openChatSearch({ conversations = [], onSelect, onNewChat } = {})
     list.append(newChat);
     rows.push(newChat);
 
-    const matches = conversations.filter(
+    const matches = (conversations || []).filter(
       (c) => !q || (c.title || "").toLowerCase().includes(q)
     );
 

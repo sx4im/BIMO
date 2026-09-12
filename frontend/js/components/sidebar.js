@@ -1,7 +1,7 @@
 import { el, clear } from "../utils.js?v=51";
 import { icon } from "../icons.js?v=68";
 import { avatar } from "./avatar.js?v=30";
-import { getRoute } from "../router.js?v=31";
+import { getRoute, navigate } from "../router.js?v=31";
 import { openConfirmModal, openPromptModal } from "./confirm-modal.js?v=58";
 
 const NAV = [
@@ -222,6 +222,9 @@ export function renderSidebar(container, props) {
             if (isChat && onOpenSearch) {
               e.preventDefault();
               onOpenSearch();
+            } else {
+              e.preventDefault();
+              navigate(hash);
             }
             onCloseMobile && onCloseMobile();
           },

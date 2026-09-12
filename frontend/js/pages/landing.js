@@ -4,7 +4,7 @@ import { logo } from "../components/logo.js?v=31";
 import { toast } from "../components/toast.js?v=58";
 import { signInWithGoogle, signInWithGithub, isConfigured } from "../auth.js?v=31";
 import { navigate } from "../router.js?v=31";
-import { tearDownShell } from "../app-shell.js?v=71";
+import { tearDownShell } from "../app-shell.js?v=72";
 
 
 export async function renderLanding() {

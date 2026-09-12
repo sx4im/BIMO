@@ -52,8 +52,9 @@ function matchPattern(pattern, hash) {
 }
 
 function findRoute(hash) {
+  const clean = (hash.split("?")[0] || "").replace(/\/+$/, "") || "#/";
   for (const route of routes) {
-    const params = matchPattern(route.pattern, hash);
+    const params = matchPattern(route.pattern, hash) ?? matchPattern(route.pattern, clean);
     if (params != null) return { route, params };
   }
   return null;
@@ -67,12 +68,16 @@ export async function dispatch() {
     // Fallback to the 404 route (registered last via `*`).
     const wildcard = routes.find((r) => r.pattern === "*");
     if (wildcard) {
-      if (typeof unmount === "function") unmount();
+      if (typeof unmount === "function") {
+        try { unmount(); } catch (err) { console.warn("Router unmount error:", err); }
+      }
       unmount = await wildcard.handler({});
     }
     return;
   }
-  if (typeof unmount === "function") unmount();
+  if (typeof unmount === "function") {
+    try { unmount(); } catch (err) { console.warn("Router unmount error:", err); }
+  }
   unmount = await found.route.handler(found.params);
 }
 

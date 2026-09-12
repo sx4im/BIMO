@@ -130,7 +130,7 @@ function closeMobile() {
  */
 export async function mountAppShell() {
   const root = $("#app");
-  if (nodes) {
+  if (nodes && nodes.content && nodes.content.isConnected) {
     return shellApi();
   }
 

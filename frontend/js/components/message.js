@@ -17,12 +17,102 @@ function stripExportDisclaimers(text) {
     .trim();
 }
 
+const FENCE_RE = /^ {0,3}(`{3,}|~{3,})/;
+const LIST_OR_QUOTE_RE = /^ {0,3}(?:[-*+]|\d{1,9}[.)]|>|\|)\s*/;
+
+function findTopLevelDocumentH1(text) {
+  const lines = text.split("\n");
+  let inCode = false;
+  let fenceChar = "";
+  let fenceLen = 0;
+  let introParagraphs = 0;
+  let inParagraph = false;
+  let introLineCount = 0;
+  let introCharCount = 0;
+  let h1Heading = null;
+  let h1Index = -1;
+  let offset = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmedLine = line.trim();
+
+    // Check code fences
+    const fenceMatch = line.match(FENCE_RE);
+    if (!inCode && fenceMatch) {
+      // Code fence before any H1 means this is code/technical explanation, not a standalone doc intro
+      return null;
+    }
+    if (inCode && fenceMatch) {
+      if (fenceMatch[1][0] === fenceChar && fenceMatch[1].length >= fenceLen) {
+        inCode = false;
+        fenceChar = "";
+        fenceLen = 0;
+      }
+      offset += line.length + 1;
+      continue;
+    }
+    if (inCode) {
+      offset += line.length + 1;
+      continue;
+    }
+
+    // Outside code: check for Markdown H1 title (# Title, not ## or ###)
+    const h1Match = line.match(/^ {0,3}#\s+([^\n]+)/);
+    if (h1Match) {
+      // H1 title must be at document start: at most a single brief intro (<= 2 lines, <= 120 chars)
+      if (introParagraphs > 1 || introLineCount > 2 || introCharCount > 120) {
+        return null;
+      }
+      h1Heading = h1Match[1].replace(/[*_`#\r]/g, "").trim();
+      h1Index = offset;
+      break;
+    }
+
+    // Lower-level headings (##, ###, etc.), lists, blockquotes, or tables before H1
+    // indicate a conversational answer with structure, not a document intro
+    if (/^ {0,3}#{2,6}\s+/.test(line) || LIST_OR_QUOTE_RE.test(line)) {
+      return null;
+    }
+
+    if (trimmedLine.length > 0) {
+      introLineCount++;
+      if (!inParagraph) {
+        introParagraphs++;
+        inParagraph = true;
+      }
+      introCharCount += trimmedLine.length;
+      if (introParagraphs > 1 || introLineCount > 2 || introCharCount > 120) {
+        return null;
+      }
+    } else {
+      inParagraph = false;
+    }
+
+    offset += line.length + 1;
+  }
+
+  if (!h1Heading || h1Index < 0) {
+    return null;
+  }
+
+  const introText = h1Index > 0 ? text.substring(0, h1Index).trim() : "";
+  const docContent = text.substring(h1Index).trim();
+
+  return {
+    docTitle: h1Heading || "BMO AI Document",
+    introText,
+    docContent,
+  };
+}
+
 export function extractDocumentArtifact(rawContent) {
   if (!rawContent || typeof rawContent !== "string") {
     return { isDoc: false, text: rawContent || "" };
   }
 
-  const cleaned = stripExportDisclaimers(rawContent);
+  const normalized = rawContent.replace(/\r\n/g, "\n");
+  const cleaned = stripExportDisclaimers(normalized);
   const trimmed = cleaned.trim();
 
   // 1. Explicit document fence anywhere in the response: :::document ... ::: or ```document ... ```
@@ -41,23 +131,17 @@ export function extractDocumentArtifact(rawContent) {
     };
   }
 
-  // 2. Markdown H1 title at the start, or after introductory text.
-  const h1Match = trimmed.match(/(?:^|\n)(#\s+([^\n]+))/);
-  if (!h1Match) {
+  // 2. Markdown H1 title at the start of a standalone document (line 1, or after a brief intro)
+  const docH1 = findTopLevelDocumentH1(trimmed);
+  if (!docH1) {
     return { isDoc: false, text: cleaned };
   }
 
-  const heading = h1Match[1];
-  const h1Index = trimmed.indexOf(heading);
-  const introText = h1Index > 0 ? stripExportDisclaimers(trimmed.substring(0, h1Index)) : "";
-  const docContent = trimmed.substring(h1Index).trim();
-  const title = h1Match[2].replace(/[*_`#]/g, "").trim();
-
   return {
     isDoc: true,
-    introText,
-    docTitle: title || "BMO AI Document",
-    docContent,
+    introText: stripExportDisclaimers(docH1.introText),
+    docTitle: docH1.docTitle || "BMO AI Document",
+    docContent: docH1.docContent,
   };
 }
 

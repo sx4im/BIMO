@@ -5,7 +5,7 @@
   "type": "module",
   "description": "BMO frontend tests (zero-dep except jsdom for DOM regressions)",
   "scripts": {
-    "test": "node test-stream-splitter.mjs && node test-version-guard.mjs && node test-scroll-follower-regression.mjs && node test-greetings.mjs"
+    "test": "node test-stream-splitter.mjs && node test-version-guard.mjs && node test-scroll-follower-regression.mjs && node test-greetings.mjs && node test-document-artifact.mjs"
   },
   "devDependencies": {
     "jsdom": "^30.0.1"

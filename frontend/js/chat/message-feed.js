@@ -18,9 +18,9 @@ import { icon } from "../icons.js?v=48";
 import { readingOrb } from "../components/orb.js?v=3";
 import { searchCard } from "../components/search-card.js?v=3";
 import { renderMarkdown, whenMarkdownReady } from "../components/markdown.js?v=33";
-import { messageBubble, reasoningDetails, extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=72";
+import { messageBubble, reasoningDetails } from "../components/message.js?v=73";
 import { EXPORT_FORMATS, downloadBlob } from "../export.js?v=4";
-import { StreamingRenderer } from "./stream-renderer.js?v=12";
+import { StreamingRenderer } from "./stream-renderer.js?v=13";
 import { stripStrayCursors } from "./caret.js?v=1";
 import { ScrollFollower } from "./scroll-follower.js?v=5";
 import { getGreeting, getRandomGreetingTemplate, getPageGreetingTemplate, getFirstName } from "./greetings.js?v=4";
@@ -116,13 +116,8 @@ export function streamingBubbleNode(text, reasoning = "", statusPhrase = "") {
   article.__streamRenderer = renderer;
 
   if (text) {
-    const docArtifact = extractDocumentArtifact(text);
-    if (docArtifact.isDoc) {
-      renderer.update(text, reasoning); // routes to the skeleton card
-    } else {
-      renderer.finish(text, reasoning);
-      renderer.done = false; // the stream continues — allow further frames
-    }
+    renderer.finish(text, reasoning);
+    renderer.done = false; // the stream continues — allow further frames
   }
   return article;
 }
@@ -134,14 +129,12 @@ export class MessageFeed {
     onFeedback,
     onRetryAssistantMessage,
     onExport,
-    onOpenDoc,
   }) {
     this.onEditMessage = onEditMessage;
     this.onRetryMessage = onRetryMessage;
     this.onFeedback = onFeedback;
     this.onRetryAssistantMessage = onRetryAssistantMessage;
     this.onExport = onExport;
-    this.onOpenDoc = onOpenDoc;
 
     this.stream = el("div", { class: "chat-stream" });
     this.streamInner = el("div", { class: "inner" });
@@ -324,7 +317,6 @@ export class MessageFeed {
           onFeedback: m.role === "assistant" ? this.onFeedback : undefined,
           onRetryAssistant: m.role === "assistant" ? this.onRetryAssistantMessage : undefined,
           onExport: m.role === "assistant" ? this.onExport : undefined,
-          onOpenDoc: m.role === "assistant" ? this.onOpenDoc : undefined,
           entering: enteringId != null && m.id === enteringId,
         });
         entry.element.replaceWith(newNode);
@@ -341,7 +333,6 @@ export class MessageFeed {
           onFeedback: m.role === "assistant" ? this.onFeedback : undefined,
           onRetryAssistant: m.role === "assistant" ? this.onRetryAssistantMessage : undefined,
           onExport: m.role === "assistant" ? this.onExport : undefined,
-          onOpenDoc: m.role === "assistant" ? this.onOpenDoc : undefined,
           entering: enteringId != null && m.id === enteringId,
         });
         entry = { element: newNode, message: m };

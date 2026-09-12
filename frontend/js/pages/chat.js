@@ -11,11 +11,10 @@ import { mountAppShell } from "../app-shell.js?v=71";
 import { toast } from "../components/toast.js?v=58";
 import { whenMarkdownReady } from "../components/markdown.js?v=33";
 import { openVoiceOverlay } from "../components/voice-overlay.js?v=43";
-import { openDocViewerModal } from "../components/doc-modal.js?v=5";
 import * as api from "../api.js?v=60";
 
 import { Composer, DEFAULT_AVAILABLE_MODELS, extractUrls } from "../chat/composer.js?v=25";
-import { MessageFeed } from "../chat/message-feed.js?v=35";
+import { MessageFeed } from "../chat/message-feed.js?v=36";
 import { StreamHandler, getRandomPhrase } from "../chat/stream-handler.js?v=8";
 import { STUDY_SYSTEM_PROMPT } from "../chat/study-mode.js?v=2";
 import {
@@ -167,13 +166,6 @@ export async function renderChat({ id, incognito }) {
     onRetryMessage: (message) => retryMessage(message),
     onFeedback: (message, sentiment) => handleMessageFeedback(message, sentiment),
     onRetryAssistantMessage: (assistantMsg) => retryAssistantMessage(assistantMsg),
-    onOpenDoc: ({ title, content }) => {
-      openDocViewerModal({
-        title,
-        content,
-        onDownloadFormat: (fmt) => handleDirectDownload({ title, content, format: fmt }),
-      });
-    },
     onExport: ({ message, format, title, content }) => {
       handleDirectDownload({
         title: title || conversation?.title,

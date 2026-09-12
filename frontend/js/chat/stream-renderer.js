@@ -28,7 +28,6 @@
  */
 
 import { renderMarkdown } from "../components/markdown.js?v=33";
-import { extractDocumentArtifact, docArtifactSkeletonCard } from "../components/message.js?v=72";
 import { splitStreamBlocks } from "./stream-splitter.js?v=1";
 import { stripStrayCursors } from "./caret.js?v=1";
 import { el, clear } from "../utils.js?v=30";
@@ -73,7 +72,6 @@ export class StreamingRenderer {
     this.feed = null;
 
     this.done = false;
-    this.skeletonShown = false;
   }
 
   /**
@@ -81,22 +79,6 @@ export class StreamingRenderer {
    * @returns {boolean} true while the target bubble is still attached
    */
   update(text, reasoning = "") {
-    const docArtifact = extractDocumentArtifact(text || "");
-    if (docArtifact.isDoc) {
-      // Document artifact: swap to the skeleton card once, not per token.
-      if (this.framePending) {
-        cancelAnimationFrame(this.framePending);
-        this.framePending = false;
-      }
-      this.done = true;
-      if (!this.skeletonShown) {
-        this.skeletonShown = true;
-        clear(this.bubble);
-        this.bubble.append(docArtifactSkeletonCard("Formatting and preparing document…"));
-      }
-      return true;
-    }
-
     this.pendingText = text || "";
     this.pendingReasoning = reasoning || "";
     if (!this.framePending && !this.done) {

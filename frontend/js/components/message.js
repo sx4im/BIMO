@@ -9,8 +9,8 @@ import { openImageModal } from "./image-modal.js?v=30";
 function stripExportDisclaimers(text) {
   if (!text) return "";
   return text
-    // 1. Strip leading disclaimers like "I cannot generate or send actual .doc files..." or "Here is the content ready to copy..."
-    .replace(/^(?:I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce|download|send)\s+(?:a\s+)?(?:actual\s+)?(?:downloadable\s+)?(?:\.?(?:pdf|word|docx|doc|file|document))[^\n.]*\.(?:\s*However[^\n.]*\.)?|While\s+I\s+(?:cannot|can't)\s+(?:generate|export|create|provide|produce)[^\n.]*\.(?:\s*you\s+can[^\n.]*\.)?|Here(?:\s+is|\s+'s)\s+(?:a|the)?\s*(?:complete|ats-friendly)?\s*(?:ai|professional)?\s*(?:resume|document|template|content)[^\n:]*:\s*\n*)/gi, "")
+    // 1. Strip leading disclaimers like "I cannot generate or send actual .doc files...", "Here is the content ready to copy...", or "Here is a complete... ready to be converted..."
+    .replace(/^(?:I\s+(?:cannot|can[\x27’]t)\s+(?:generate|export|create|provide|produce|download|send)\s+(?:a\s+)?(?:actual\s+)?(?:downloadable\s+)?(?:\.?(?:pdf|word|docx|doc|file|document))[^\n.]*\.(?:\s*However[^\n.]*\.)?|While\s+I\s+(?:cannot|can[\x27’]t)\s+(?:generate|export|create|provide|produce)[^\n.]*\.(?:\s*you\s+can[^\n.]*\.)?|Here(?:\s+is|[\x27’]s)\s+(?:a\s+|an\s+|the\s+)?[^\n:]*(?:resume|document|template|report|proposal|guide|content|format)[^\n.]*(?:ready\s+to\s+be\s+converted|in\s+markdown\s+format|\(via\s+BMO)[^\n.]*\.\s*\n*|Here(?:\s+is|[\x27’]s)\s+(?:a\s+|an\s+|the\s+)?[^\n:]*(?:resume|document|template|report|proposal|guide|content)\s*:\s*\n*)/gi, "")
     // 2. Strip trailing guide / instructions like "To create your .doc file: \n 1. Select all text..." and "Need adjustments? Tell me..."
     .replace(/(?:\n+---\s*\n+|\n+)\*{0,2}To\s+create\s+your\s+\.?doc(?:\s+file)?:\*{0,2}[\s\S]*$/gi, "")
     .replace(/\n{3,}/g, "\n\n")
@@ -60,8 +60,8 @@ function findTopLevelDocumentH1(text) {
     // Outside code: check for Markdown H1 title (# Title, not ## or ###)
     const h1Match = line.match(/^ {0,3}#\s+([^\n]+)/);
     if (h1Match) {
-      // H1 title must be at document start: at most a single brief intro (<= 2 lines, <= 120 chars)
-      if (introParagraphs > 1 || introLineCount > 2 || introCharCount > 120) {
+      // H1 title must be at document start: at most a single brief intro (<= 2 lines, <= 400 chars)
+      if (introParagraphs > 1 || introLineCount > 2 || introCharCount > 400) {
         return null;
       }
       h1Heading = h1Match[1].replace(/[*_`#\r]/g, "").trim();
@@ -82,7 +82,7 @@ function findTopLevelDocumentH1(text) {
         inParagraph = true;
       }
       introCharCount += trimmedLine.length;
-      if (introParagraphs > 1 || introLineCount > 2 || introCharCount > 120) {
+      if (introParagraphs > 1 || introLineCount > 3 || introCharCount > 400) {
         return null;
       }
     } else {
@@ -98,6 +98,11 @@ function findTopLevelDocumentH1(text) {
 
   const introText = h1Index > 0 ? text.substring(0, h1Index).trim() : "";
   const docContent = text.substring(h1Index).trim();
+
+  // Document must have substantive body content (at least 30 chars)
+  if (docContent.length < 30) {
+    return null;
+  }
 
   return {
     docTitle: h1Heading || "BMO AI Document",

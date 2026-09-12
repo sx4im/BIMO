@@ -1,5 +1,5 @@
 import { el, clear } from "../utils.js?v=30";
-import { icon } from "../icons.js?v=57";
+import { icon } from "../icons.js?v=69";
 import { mountAppShell, tearDownShell, getShellState } from "../app-shell.js?v=71";
 import { getAuth, signOut, setUserDisplayName } from "../auth.js?v=31";
 import { getThemePref, setThemePref } from "../prefs.js?v=32";
@@ -11,7 +11,7 @@ import * as api from "../api.js?v=30";
 // Segmented System / Light / Dark control (mirrors the reference Appearance row).
 function appearanceControl() {
   const options = [
-    { id: "system", label: "System", ic: "monitor" },
+    { id: "system", label: "System", ic: "user" },
     { id: "light", label: "Light", ic: "sun" },
     { id: "dark", label: "Dark", ic: "moon" },
   ];
@@ -217,7 +217,7 @@ export async function renderSettings() {
               },
             });
           },
-          html: `${icon("trash", { width: 14, height: 14 })} <span>Delete account</span>`,
+          html: `${icon("delete", { width: 14, height: 14 })} <span>Delete account</span>`,
         }),
       ])
     );

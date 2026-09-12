@@ -16,7 +16,7 @@
 // normal API call) and lets an AnalyserNode drive the globe animation.
 
 import { el } from "../utils.js?v=30";
-import { icon } from "../icons.js?v=57";
+import { icon } from "../icons.js?v=58";
 import { toast } from "./toast.js?v=58";
 import * as api from "../api.js?v=30";
 import { blobToWav16kMono } from "../audio-wav.js?v=30";

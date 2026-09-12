@@ -1,7 +1,7 @@
 import { $, el, clear } from "./utils.js?v=30";
-import { icon } from "./icons.js?v=63";
-import { renderSidebar } from "./components/sidebar.js?v=61";
-import { openChatSearch } from "./components/chat-search.js?v=30";
+import { icon } from "./icons.js?v=68";
+import { renderSidebar } from "./components/sidebar.js?v=62";
+import { openChatSearch } from "./components/chat-search.js?v=31";
 import { toast } from "./components/toast.js?v=58";
 import * as api from "./api.js?v=30";
 import { getAuth, signOut } from "./auth.js?v=31";

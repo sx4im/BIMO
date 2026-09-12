@@ -1,12 +1,12 @@
 import { el, clear } from "../utils.js?v=51";
-import { icon } from "../icons.js?v=48";
+import { icon } from "../icons.js?v=68";
 import { avatar } from "./avatar.js?v=30";
 import { getRoute } from "../router.js?v=31";
 import { openConfirmModal, openPromptModal } from "./confirm-modal.js?v=58";
 
 const NAV = [
-  { hash: "#/app/chat", label: "Chats", icon: "chatBubbles" },
-  { hash: "#/app/feedback", label: "Support", icon: "headset" },
+  { hash: "#/app/chat", label: "Chats", icon: "messageCircleMore" },
+  { hash: "#/app/feedback", label: "Support", icon: "circleHelp" },
   { hash: "#/app/settings", label: "Settings", icon: "settings" },
 ];
 
@@ -201,7 +201,7 @@ export function renderSidebar(container, props) {
         },
       },
       [
-        el("span", { class: "sidebar-nav-icon", html: icon("plus", { width: 16, height: 16 }) }),
+        el("span", { class: "sidebar-nav-icon", html: icon("squarePen", { width: 18, height: 18 }) }),
         el("span", { class: "sidebar-nav-label", text: "New" }),
       ]
     )
@@ -227,7 +227,7 @@ export function renderSidebar(container, props) {
           },
         },
         [
-          el("span", { class: "sidebar-nav-icon", html: icon(iconName, { width: 16, height: 16 }) }),
+          el("span", { class: "sidebar-nav-icon", html: icon(iconName, { width: 18, height: 18 }) }),
           el("span", { class: "sidebar-nav-label", text: label }),
         ]
       )
@@ -299,7 +299,7 @@ export function renderSidebar(container, props) {
           title: "Sign out",
           "aria-label": "Sign out",
           onclick: () => onLogout(),
-          html: icon("logOut"),
+          html: icon("logOut", { width: 18, height: 18 }),
         }),
       ]),
     ].filter(Boolean))

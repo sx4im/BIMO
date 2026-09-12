@@ -4,7 +4,7 @@
 // arrow keys and Enter.
 
 import { el, clear } from "../utils.js?v=30";
-import { icon } from "../icons.js?v=30";
+import { icon } from "../icons.js?v=69";
 
 let activeOverlay = null;
 let keyHandler = null;
@@ -85,7 +85,7 @@ export function openChatSearch({ conversations = [], onSelect, onNewChat } = {})
     rows = [];
 
     const newChat = makeRow({
-      iconName: "pencil",
+      iconName: "squarePen",
       title: "New chat",
       extraClass: "chat-search-new",
       run: () => { close(); onNewChat && onNewChat(); },

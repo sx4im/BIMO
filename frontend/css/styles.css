@@ -2040,39 +2040,769 @@ body:has(.app-shell),
   cursor: pointer;
 }
 
+/* Animated Square Pen (New Chat) */
+@keyframes squarePenNib {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  20% {
+    transform: translate(-1px, 1.5px) rotate(-1deg);
+  }
+  45% {
+    transform: translate(1.5px, -1px) rotate(1deg);
+  }
+  70% {
+    transform: translate(-0.5px, 1px) rotate(-0.5deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+.icon-squarePen .square-pen-nib,
+.icon-square-pen .square-pen-nib {
+  transform-origin: 18px 4px;
+  transition: transform 0.2s ease;
+}
+
+.sidebar-nav-new:hover .icon-squarePen .square-pen-nib,
+.sidebar-nav-new:hover .icon-square-pen .square-pen-nib,
+.sidebar-nav-new:focus-visible .icon-squarePen .square-pen-nib,
+.sidebar-nav-new:focus-visible .icon-square-pen .square-pen-nib,
+.chat-search-new:hover .icon-squarePen .square-pen-nib,
+.chat-search-new:hover .icon-square-pen .square-pen-nib,
+.chat-search-new:focus-visible .icon-squarePen .square-pen-nib,
+.chat-search-new:focus-visible .icon-square-pen .square-pen-nib,
+.cs-row:hover .icon-squarePen .square-pen-nib,
+.cs-row:hover .icon-square-pen .square-pen-nib,
+button:hover .icon-squarePen .square-pen-nib,
+button:hover .icon-square-pen .square-pen-nib,
+.icon-squarePen:hover .square-pen-nib,
+.icon-square-pen:hover .square-pen-nib {
+  animation: squarePenNib 0.5s ease-in-out;
+}
+
+/* Lucide Animated Icons */
+.icon-plus {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+
+button:hover > .icon-plus,
+button:hover .icon-plus,
+.icon-plus:hover {
+  transform: rotate(90deg);
+}
+
+@keyframes dotTypingFade {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  20% {
+    opacity: 0.1;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.icon-messageCircleMore .dot {
+  transform-origin: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-nav a:hover .icon-messageCircleMore .dot-1,
+button:hover .icon-messageCircleMore .dot-1,
+.icon-messageCircleMore:hover .dot-1 {
+  animation: dotTypingFade 1.4s infinite ease-in-out;
+  animation-delay: 0s;
+}
+
+.sidebar-nav a:hover .icon-messageCircleMore .dot-2,
+button:hover .icon-messageCircleMore .dot-2,
+.icon-messageCircleMore:hover .dot-2 {
+  animation: dotTypingFade 1.4s infinite ease-in-out;
+  animation-delay: 0.18s;
+}
+
+.sidebar-nav a:hover .icon-messageCircleMore .dot-3,
+button:hover .icon-messageCircleMore .dot-3,
+.icon-messageCircleMore:hover .dot-3 {
+  animation: dotTypingFade 1.4s infinite ease-in-out;
+  animation-delay: 0.36s;
+}
+
+/* Circle Help (Support) */
+@keyframes circleHelpWiggle {
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-10deg);
+  }
+  40% {
+    transform: rotate(10deg);
+  }
+  60% {
+    transform: rotate(-10deg);
+  }
+  80% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.icon-circleHelp .circle-help-mark,
+.icon-circle-help .circle-help-mark {
+  transform-origin: 12px 12px;
+}
+
+.sidebar-nav a:hover .icon-circleHelp .circle-help-mark,
+.sidebar-nav a:hover .icon-circle-help .circle-help-mark,
+.sidebar-nav a:focus-visible .icon-circleHelp .circle-help-mark,
+.sidebar-nav a:focus-visible .icon-circle-help .circle-help-mark,
+button:hover .icon-circleHelp .circle-help-mark,
+button:hover .icon-circle-help .circle-help-mark,
+.icon-circleHelp:hover .circle-help-mark,
+.icon-circle-help:hover .circle-help-mark {
+  animation: circleHelpWiggle 0.5s ease-in-out;
+}
+
+/* User (Support / System theme) - lucide-animated */
+@keyframes userHeadAnim {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.5); }
+  75% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes userBodyAnim {
+  0% { stroke-dasharray: 40; stroke-dashoffset: 40; opacity: 0.2; }
+  100% { stroke-dasharray: 40; stroke-dashoffset: 0; opacity: 1; }
+}
+
+.icon-user .user-head {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-user .user-body {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-nav a:hover .icon-user .user-head,
+.sidebar-nav a:focus-visible .icon-user .user-head,
+.seg-btn:hover .icon-user .user-head,
+.seg-btn:focus-visible .icon-user .user-head,
+button:hover .icon-user .user-head,
+.icon-user:hover .user-head {
+  animation: userHeadAnim 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-nav a:hover .icon-user .user-body,
+.sidebar-nav a:focus-visible .icon-user .user-body,
+.seg-btn:hover .icon-user .user-body,
+.seg-btn:focus-visible .icon-user .user-body,
+button:hover .icon-user .user-body,
+.icon-user:hover .user-body {
+  animation: userBodyAnim 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Settings */
+.icon-settings {
+  transform-origin: center;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-nav a:hover .icon-settings,
+.sidebar-nav a:focus-visible .icon-settings,
+button:hover .icon-settings,
+.icon-settings:hover {
+  transform: rotate(180deg);
+}
+
+/* Attach File */
+.icon-attachFile,
+.icon-attach-file {
+  transform-origin: 12px 12px;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.composer-attach:hover .icon-attachFile,
+.composer-attach:hover .icon-attach-file,
+.composer-attach:focus-visible .icon-attachFile,
+.composer-attach:focus-visible .icon-attach-file,
+button:hover .icon-attachFile,
+button:hover .icon-attach-file,
+.icon-attachFile:hover,
+.icon-attach-file:hover {
+  transform: rotate(-16deg) scale(1.08);
+}
+
+/* Sliders Horizontal (Preferences / Tools) */
+.icon-slidersHorizontal .slider-thumb-1,
+.icon-sliders .slider-thumb-1,
+.icon-slidersHorizontal .slider-thumb-2,
+.icon-sliders .slider-thumb-2,
+.icon-slidersHorizontal .slider-thumb-3,
+.icon-sliders .slider-thumb-3 {
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.composer-tools-btn:hover .slider-thumb-1,
+.composer-tools-btn:focus-visible .slider-thumb-1,
+button:hover .icon-slidersHorizontal .slider-thumb-1,
+button:hover .icon-sliders .slider-thumb-1,
+.icon-slidersHorizontal:hover .slider-thumb-1,
+.icon-sliders:hover .slider-thumb-1 {
+  transform: translateX(-4px);
+}
+
+.composer-tools-btn:hover .slider-thumb-2,
+.composer-tools-btn:focus-visible .slider-thumb-2,
+button:hover .icon-slidersHorizontal .slider-thumb-2,
+button:hover .icon-sliders .slider-thumb-2,
+.icon-slidersHorizontal:hover .slider-thumb-2,
+.icon-sliders:hover .slider-thumb-2 {
+  transform: translateX(4px);
+}
+
+.composer-tools-btn:hover .slider-thumb-3,
+.composer-tools-btn:focus-visible .slider-thumb-3,
+button:hover .icon-slidersHorizontal .slider-thumb-3,
+button:hover .icon-sliders .slider-thumb-3,
+.icon-slidersHorizontal:hover .slider-thumb-3,
+.icon-sliders:hover .slider-thumb-3 {
+  transform: translateX(-4px);
+}
+
+/* Mic */
+@keyframes micCapsuleBob {
+  0% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(-1.5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.icon-mic .mic-capsule {
+  transform-origin: center;
+}
+
+.composer-voice:hover .mic-capsule,
+.composer-voice:focus-visible .mic-capsule,
+button:hover .icon-mic .mic-capsule,
+.icon-mic:hover .mic-capsule {
+  animation: micCapsuleBob 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Audio Lines (Voice Assistant) */
+@keyframes audioWave1 {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.4); }
+}
+
+@keyframes audioWave2 {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.3); }
+}
+
+@keyframes audioWave3 {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.4); }
+}
+
+@keyframes audioWave4 {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.35); }
+}
+
+.icon-audioLines .audio-bar,
+.icon-audio-lines .audio-bar {
+  transform-origin: center;
+}
+
+.voice-assistant-btn:hover .icon-audioLines .audio-bar-1,
+.voice-assistant-btn:hover .icon-audio-lines .audio-bar-1,
+.voice-assistant-btn:focus-visible .icon-audioLines .audio-bar-1,
+.voice-assistant-btn:focus-visible .icon-audio-lines .audio-bar-1,
+button:hover .icon-audioLines .audio-bar-1,
+button:hover .icon-audio-lines .audio-bar-1,
+.icon-audioLines:hover .audio-bar-1,
+.icon-audio-lines:hover .audio-bar-1 {
+  animation: audioWave1 1.2s infinite ease-in-out;
+}
+
+.voice-assistant-btn:hover .icon-audioLines .audio-bar-2,
+.voice-assistant-btn:hover .icon-audio-lines .audio-bar-2,
+.voice-assistant-btn:focus-visible .icon-audioLines .audio-bar-2,
+.voice-assistant-btn:focus-visible .icon-audio-lines .audio-bar-2,
+button:hover .icon-audioLines .audio-bar-2,
+button:hover .icon-audio-lines .audio-bar-2,
+.icon-audioLines:hover .audio-bar-2,
+.icon-audio-lines:hover .audio-bar-2 {
+  animation: audioWave2 0.9s infinite ease-in-out;
+}
+
+.voice-assistant-btn:hover .icon-audioLines .audio-bar-3,
+.voice-assistant-btn:hover .icon-audio-lines .audio-bar-3,
+.voice-assistant-btn:focus-visible .icon-audioLines .audio-bar-3,
+.voice-assistant-btn:focus-visible .icon-audio-lines .audio-bar-3,
+button:hover .icon-audioLines .audio-bar-3,
+button:hover .icon-audio-lines .audio-bar-3,
+.icon-audioLines:hover .audio-bar-3,
+.icon-audio-lines:hover .audio-bar-3 {
+  animation: audioWave3 0.7s infinite ease-in-out;
+}
+
+.voice-assistant-btn:hover .icon-audioLines .audio-bar-4,
+.voice-assistant-btn:hover .icon-audio-lines .audio-bar-4,
+.voice-assistant-btn:focus-visible .icon-audioLines .audio-bar-4,
+.voice-assistant-btn:focus-visible .icon-audio-lines .audio-bar-4,
+button:hover .icon-audioLines .audio-bar-4,
+button:hover .icon-audio-lines .audio-bar-4,
+.icon-audioLines:hover .audio-bar-4,
+.icon-audio-lines:hover .audio-bar-4 {
+  animation: audioWave4 1.1s infinite ease-in-out;
+}
+
+/* Arrow Up (Send Button) */
+@keyframes arrowUpBounce {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-3.5px); }
+  70% { transform: translateY(1px); }
+  100% { transform: translateY(0); }
+}
+
+.icon-arrowUp,
+.icon-arrow-up {
+  transform-origin: center;
+}
+
+.composer .send:hover:not(:disabled) .icon-arrowUp,
+.composer .send:hover:not(:disabled) .icon-arrow-up,
+.composer .send:focus-visible:not(:disabled) .icon-arrowUp,
+.composer .send:focus-visible:not(:disabled) .icon-arrow-up,
+button:hover .icon-arrowUp,
+button:hover .icon-arrow-up,
+.icon-arrowUp:hover,
+.icon-arrow-up:hover {
+  animation: arrowUpBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Logout */
+.icon-logOut .logout-arrow,
+.icon-logOut .logout-stem,
+.icon-logout .logout-arrow,
+.icon-logout .logout-stem {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-profile .signout:hover .icon-logOut .logout-arrow,
+.sidebar-profile .signout:hover .icon-logOut .logout-stem,
+.sidebar-profile .signout:hover .icon-logout .logout-arrow,
+.sidebar-profile .signout:hover .icon-logout .logout-stem,
+.sidebar-profile .signout:focus-visible .icon-logOut .logout-arrow,
+.sidebar-profile .signout:focus-visible .icon-logOut .logout-stem,
+button:hover .icon-logOut .logout-arrow,
+button:hover .icon-logOut .logout-stem,
+button:hover .icon-logout .logout-arrow,
+button:hover .icon-logout .logout-stem,
+.icon-logOut:hover .logout-arrow,
+.icon-logOut:hover .logout-stem,
+.icon-logout:hover .logout-arrow,
+.icon-logout:hover .logout-stem {
+  transform: translateX(3px);
+}
+
+/* Hat & Glasses (Incognito) */
+@keyframes hatTip {
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+  35% {
+    transform: rotate(-6deg) translateY(-3px);
+  }
+  65% {
+    transform: rotate(2deg) translateY(0.5px);
+  }
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+}
+
+@keyframes glassesNudge {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(0.96) translateY(1px);
+  }
+}
+
+.icon-incognito .hat-group,
+.icon-hatGlasses .hat-group,
+.icon-hat-glasses .hat-group {
+  transform-origin: 12px 11px;
+}
+
+.icon-incognito .glasses-group,
+.icon-hatGlasses .glasses-group,
+.icon-hat-glasses .glasses-group {
+  transform-origin: 12px 18px;
+}
+
+.chat-topbar-incognito:hover .hat-group,
+.chat-topbar-incognito:focus-visible .hat-group,
+.mobile-bar-incognito:hover .hat-group,
+.mobile-bar-incognito:focus-visible .hat-group,
+button:hover .icon-incognito .hat-group,
+button:hover .icon-hatGlasses .hat-group,
+.icon-incognito:hover .hat-group,
+.icon-hatGlasses:hover .hat-group {
+  animation: hatTip 0.5s ease-out;
+}
+
+.chat-topbar-incognito:hover .glasses-group,
+.chat-topbar-incognito:focus-visible .glasses-group,
+.mobile-bar-incognito:hover .glasses-group,
+.mobile-bar-incognito:focus-visible .glasses-group,
+button:hover .icon-incognito .glasses-group,
+button:hover .icon-hatGlasses .glasses-group,
+.icon-incognito:hover .glasses-group,
+.icon-hatGlasses:hover .glasses-group {
+  animation: glassesNudge 0.35s ease-in-out 0.2s;
+}
+
+/* Sun (Light mode) */
+@keyframes sunRayPulse {
+  0% { opacity: 0.2; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.icon-sun {
+  transform-origin: center;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-sun .sun-ray {
+  transform-origin: 12px 12px;
+}
+
+.seg-btn:hover .icon-sun,
+.seg-btn:focus-visible .icon-sun,
+.ob-theme-tile:hover .icon-sun,
+.ob-theme-tile:focus-visible .icon-sun,
+button:hover .icon-sun,
+.icon-sun:hover {
+  transform: rotate(45deg);
+}
+
+.seg-btn:hover .icon-sun .sun-ray-1,
+.ob-theme-tile:hover .icon-sun .sun-ray-1,
+button:hover .icon-sun .sun-ray-1,
+.icon-sun:hover .sun-ray-1 {
+  animation: sunRayPulse 0.4s ease-out 0s;
+}
+.seg-btn:hover .icon-sun .sun-ray-2,
+.ob-theme-tile:hover .icon-sun .sun-ray-2,
+button:hover .icon-sun .sun-ray-2,
+.icon-sun:hover .sun-ray-2 {
+  animation: sunRayPulse 0.4s ease-out 0.04s;
+}
+.seg-btn:hover .icon-sun .sun-ray-3,
+.ob-theme-tile:hover .icon-sun .sun-ray-3,
+button:hover .icon-sun .sun-ray-3,
+.icon-sun:hover .sun-ray-3 {
+  animation: sunRayPulse 0.4s ease-out 0.08s;
+}
+.seg-btn:hover .icon-sun .sun-ray-4,
+.ob-theme-tile:hover .icon-sun .sun-ray-4,
+button:hover .icon-sun .sun-ray-4,
+.icon-sun:hover .sun-ray-4 {
+  animation: sunRayPulse 0.4s ease-out 0.12s;
+}
+.seg-btn:hover .icon-sun .sun-ray-5,
+.ob-theme-tile:hover .icon-sun .sun-ray-5,
+button:hover .icon-sun .sun-ray-5,
+.icon-sun:hover .sun-ray-5 {
+  animation: sunRayPulse 0.4s ease-out 0.16s;
+}
+.seg-btn:hover .icon-sun .sun-ray-6,
+.ob-theme-tile:hover .icon-sun .sun-ray-6,
+button:hover .icon-sun .sun-ray-6,
+.icon-sun:hover .sun-ray-6 {
+  animation: sunRayPulse 0.4s ease-out 0.2s;
+}
+.seg-btn:hover .icon-sun .sun-ray-7,
+.ob-theme-tile:hover .icon-sun .sun-ray-7,
+button:hover .icon-sun .sun-ray-7,
+.icon-sun:hover .sun-ray-7 {
+  animation: sunRayPulse 0.4s ease-out 0.24s;
+}
+.seg-btn:hover .icon-sun .sun-ray-8,
+.ob-theme-tile:hover .icon-sun .sun-ray-8,
+button:hover .icon-sun .sun-ray-8,
+.icon-sun:hover .sun-ray-8 {
+  animation: sunRayPulse 0.4s ease-out 0.28s;
+}
+
+/* Moon (Dark mode) */
+@keyframes moonRock {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-12deg); }
+  40% { transform: rotate(12deg); }
+  60% { transform: rotate(-6deg); }
+  80% { transform: rotate(6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.icon-moon {
+  transform-origin: center;
+}
+
+.seg-btn:hover .icon-moon,
+.seg-btn:focus-visible .icon-moon,
+.ob-theme-tile:hover .icon-moon,
+.ob-theme-tile:focus-visible .icon-moon,
+button:hover .icon-moon,
+.icon-moon:hover {
+  animation: moonRock 1.2s ease-in-out;
+}
+
+/* Animated Message Square */
+@keyframes messageSquareWiggle {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  20% {
+    transform: scale(1.18) rotate(-9deg);
+  }
+  40% {
+    transform: scale(1.18) rotate(9deg);
+  }
+  60% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  80% {
+    transform: scale(1.05) rotate(3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.icon-messageSquare,
+.icon-message-square,
+.cs-ic .icon-messageSquare,
+.cs-ic .icon-message-square {
+  display: block;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.cs-row:hover .icon-messageSquare,
+.cs-row:hover .icon-message-square,
+.cs-row:hover .cs-ic svg,
+.cs-row:focus-visible .icon-messageSquare,
+.cs-row:focus-visible .icon-message-square,
+.cs-row:focus-visible .cs-ic svg,
+.cs-row.active .icon-messageSquare,
+.cs-row.active .icon-message-square,
+.cs-row.active .cs-ic svg,
+.chat-search-row:hover .icon-messageSquare,
+.chat-search-row:hover .icon-message-square,
+.chat-search-row:hover svg,
+button:hover .icon-messageSquare,
+button:hover .icon-message-square,
+.icon-messageSquare:hover,
+.icon-message-square:hover {
+  animation: messageSquareWiggle 0.5s ease-in-out !important;
+}
+
+/* Animated Copy Icon */
+.icon-copy .copy-front,
+.icon-copy .copy-back {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.msg-act:hover .icon-copy .copy-front,
+.msg-act:focus-visible .icon-copy .copy-front,
+button:hover .icon-copy .copy-front,
+.icon-copy:hover .copy-front {
+  transform: translate(-2.5px, -2.5px);
+}
+
+.msg-act:hover .icon-copy .copy-back,
+.msg-act:focus-visible .icon-copy .copy-back,
+button:hover .icon-copy .copy-back,
+.icon-copy:hover .copy-back {
+  transform: translate(2.5px, 2.5px);
+}
+
+/* Animated Refresh-CW / Retry Icon */
+.icon-refresh,
+.icon-refreshCw,
+.icon-refresh-cw,
+.icon-retry {
+  transform-origin: center;
+  transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.msg-act:hover .icon-refresh,
+.msg-act:hover .icon-refreshCw,
+.msg-act:hover .icon-refresh-cw,
+.msg-act:hover .icon-retry,
+.msg-act:focus-visible .icon-refresh,
+.msg-act:focus-visible .icon-refreshCw,
+.msg-act:focus-visible .icon-refresh-cw,
+.msg-act:focus-visible .icon-retry,
+button:hover .icon-refresh,
+button:hover .icon-refreshCw,
+button:hover .icon-refresh-cw,
+button:hover .icon-retry,
+.icon-refresh:hover,
+.icon-refreshCw:hover,
+.icon-refresh-cw:hover,
+.icon-retry:hover {
+  transform: rotate(180deg);
+}
+
+/* Animated Upvote / Like */
+.icon-thumbsUp,
+.icon-upvote,
+.icon-like {
+  transform-origin: 4px 20px;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.msg-act:hover .icon-thumbsUp,
+.msg-act:hover .icon-upvote,
+.msg-act:hover .icon-like,
+.msg-act:focus-visible .icon-thumbsUp,
+.msg-act:focus-visible .icon-upvote,
+.msg-act:focus-visible .icon-like,
+button:hover .icon-thumbsUp,
+button:hover .icon-upvote,
+button:hover .icon-like,
+.icon-thumbsUp:hover,
+.icon-upvote:hover,
+.icon-like:hover {
+  transform: translate(-1.5px, -2.5px) rotate(-14deg);
+}
+
+/* Animated Downvote / Dislike */
+.icon-thumbsDown,
+.icon-downvote,
+.icon-dislike {
+  transform-origin: 4px 4px;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.msg-act:hover .icon-thumbsDown,
+.msg-act:hover .icon-downvote,
+.msg-act:hover .icon-dislike,
+.msg-act:focus-visible .icon-thumbsDown,
+.msg-act:focus-visible .icon-downvote,
+.msg-act:focus-visible .icon-dislike,
+button:hover .icon-thumbsDown,
+button:hover .icon-downvote,
+button:hover .icon-dislike,
+.icon-thumbsDown:hover,
+.icon-downvote:hover,
+.icon-dislike:hover {
+  transform: translate(-1.5px, 2.5px) rotate(-14deg);
+}
+
+/* Animated Delete / Trash Icon */
+.icon-delete .trash-lid,
+.icon-trash .trash-lid,
+.icon-trash-2 .trash-lid {
+  transform-origin: 4px 6px;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-delete .trash-bin,
+.icon-trash .trash-bin,
+.icon-trash-2 .trash-bin {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn.danger:hover .icon-delete .trash-lid,
+.btn.danger:hover .icon-trash .trash-lid,
+.btn.danger:hover .icon-trash-2 .trash-lid,
+.btn.danger:focus-visible .icon-delete .trash-lid,
+.btn.danger:focus-visible .icon-trash .trash-lid,
+.btn.danger:focus-visible .icon-trash-2 .trash-lid,
+.sidebar-convo-menu-item.danger:hover .icon-delete .trash-lid,
+.sidebar-convo-menu-item.danger:hover .icon-trash .trash-lid,
+.sidebar-convo-menu-item.danger:hover .icon-trash-2 .trash-lid,
+button:hover .icon-delete .trash-lid,
+button:hover .icon-trash .trash-lid,
+button:hover .icon-trash-2 .trash-lid,
+.icon-delete:hover .trash-lid,
+.icon-trash:hover .trash-lid,
+.icon-trash-2:hover .trash-lid {
+  transform: translateY(-2.5px) rotate(-8deg);
+}
+
+.btn.danger:hover .icon-delete .trash-bin,
+.btn.danger:hover .icon-trash .trash-bin,
+.btn.danger:hover .icon-trash-2 .trash-bin,
+.btn.danger:focus-visible .icon-delete .trash-bin,
+.btn.danger:focus-visible .icon-trash .trash-bin,
+.btn.danger:focus-visible .icon-trash-2 .trash-bin,
+.sidebar-convo-menu-item.danger:hover .icon-delete .trash-bin,
+.sidebar-convo-menu-item.danger:hover .icon-trash .trash-bin,
+.sidebar-convo-menu-item.danger:hover .icon-trash-2 .trash-bin,
+button:hover .icon-delete .trash-bin,
+button:hover .icon-trash .trash-bin,
+button:hover .icon-trash-2 .trash-bin,
+.icon-delete:hover .trash-bin,
+.icon-trash:hover .trash-bin,
+.icon-trash-2:hover .trash-bin {
+  transform: translateY(0.5px);
+}
+
+
+
+.sidebar-nav-icon,
 .sidebar-nav-new .sidebar-nav-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  /* Always-visible circular chip around the plus — not just on hover.
-     The BUTTON stays transparent; only this icon chip carries the fill. */
-  background: var(--surface-soft);
-  box-shadow: inset 0 0 0 1px var(--hairline);
-}
-
-.sidebar-nav-new .sidebar-nav-icon svg {
-  width: 14px;
-  height: 14px;
-}
-
-.sidebar-nav-new:hover .sidebar-nav-icon {
-  background: var(--surface-active, var(--surface-cream-strong));
-  box-shadow: inset 0 0 0 1px var(--hairline-strong);
-}
-
-.sidebar-nav-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
-.sidebar-nav-icon svg {
+.sidebar-nav-icon svg,
+.sidebar-nav-new .sidebar-nav-icon svg {
   display: block;
-  width: 16px;
-  height: 16px;
+  width: 17.6px;
+  height: 17.6px;
 }
 
 .sidebar-nav-label {
@@ -2381,8 +3111,8 @@ body:has(.app-shell),
 }
 
 .sidebar-profile .signout svg {
-  width: 16px;
-  height: 16px;
+  width: 17.6px;
+  height: 17.6px;
 }
 
 /* Mobile drawer */
@@ -8534,6 +9264,15 @@ em {
 .voice-close {
   background: var(--ink);
   color: var(--canvas);
+}
+
+.voice-close:hover {
+  background: var(--ink-strong, #111);
+  transform: scale(1.05);
+}
+
+.voice-close:active {
+  transform: scale(0.95);
 }
 
 .voice-mic.active {

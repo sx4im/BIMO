@@ -5,7 +5,7 @@
  */
 
 import { el, clear } from "../utils.js?v=20";
-import { icon, formatDocIcon } from "../icons.js?v=64";
+import { icon, formatDocIcon } from "../icons.js?v=65";
 import { toast } from "../components/toast.js?v=58";
 import { openImageModal } from "../components/image-modal.js?v=18";
 import { blobToWav16kMono } from "../audio-wav.js?v=30";
@@ -260,7 +260,7 @@ export class Composer {
       title: "Attach file",
       "aria-label": "Attach file",
       onclick: () => this.toggleAttachMenu(),
-      html: icon("plus", { width: 16, height: 16 }),
+      html: icon("attachFile", { width: 16, height: 16 }),
     });
     this.attachWrap = el("div", { class: "composer-attach-wrap" }, [this.attachBtn, this.attachmentMenu]);
 
@@ -274,7 +274,7 @@ export class Composer {
       "aria-haspopup": "menu",
       "aria-expanded": "false",
       onclick: () => this.toggleToolsMenu(),
-      html: icon("sliders", { width: 18, height: 18 }),
+      html: icon("slidersHorizontal", { width: 18, height: 18 }),
     });
     this.toolsWrap = el("div", { class: "composer-tools-wrap" }, [this.toolsBtn, this.toolsMenu]);
 
@@ -380,7 +380,7 @@ export class Composer {
       "aria-label": "Send message",
       disabled: true,
       style: "display:none",
-      html: icon("send", { width: 16, height: 16 }),
+      html: icon("arrowUp", { width: 16, height: 16 }),
       onclick: (e) => {
         if (this.isGenerating) {
           e.preventDefault();
@@ -998,7 +998,7 @@ export class Composer {
       this.sendBtn.style.display = "";
       this.sendBtn.setAttribute("aria-label", "Send message");
       this.sendBtn.title = "Send message";
-      this.sendBtn.innerHTML = icon("send", { width: 16, height: 16 });
+      this.sendBtn.innerHTML = icon("arrowUp", { width: 16, height: 16 });
       this.sendBtn.disabled = false;
     } else if (this.isImageMode()) {
       this.voiceAssistantBtn.style.display = "none";
@@ -1006,7 +1006,7 @@ export class Composer {
       this.sendBtn.disabled = true;
       this.sendBtn.setAttribute("aria-label", "Send message");
       this.sendBtn.title = "Describe an image to create";
-      this.sendBtn.innerHTML = icon("send", { width: 16, height: 16 });
+      this.sendBtn.innerHTML = icon("arrowUp", { width: 16, height: 16 });
     } else {
       this.sendBtn.style.display = "none";
       this.voiceAssistantBtn.style.display = "";

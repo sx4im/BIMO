@@ -20,7 +20,7 @@ function isLocalhost() {
 }
 
 const DEFAULTS = {
-  apiUrl: isLocalhost() ? "http://localhost:8000" : "https://bimo-backend-4a4g.onrender.com",
+  apiUrl: isLocalhost() ? "http://localhost:8000" : "https://sx4im--bmo-backend-flask-app.modal.run",
   supabaseUrl: "https://wrrxalkctbixtvjndptk.supabase.co",
   supabaseAnonKey: "sb_publishable_9bZYYsAy0L6bQb2PG83mJg_PNwDJXIw",
 };
@@ -28,8 +28,8 @@ const DEFAULTS = {
 function loadOverrides() {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    if (data.apiUrl && typeof data.apiUrl === "string" && data.apiUrl.includes("4a4q")) {
-      data.apiUrl = data.apiUrl.replace("4a4q", "4a4g");
+    if (data.apiUrl && typeof data.apiUrl === "string" && data.apiUrl.includes("onrender.com")) {
+      delete data.apiUrl;
       save(data);
     }
     return data;
